@@ -2,13 +2,36 @@
 
 namespace app\core;
 
-use Exception;
-
 class Router
 {
     private array $routes = [];
+    private string $defaultController = 'HomeController';
+    private string $defaultMethod = 'index';
 
-    public function get($route, $action){
+    private function normalizeRoute(string $route): string
+    {
+        return trim($route, '/');
+    }
+
+    private function resolvePath(): string
+    {
+        if (isset($_GET['url']) && $_GET['url'] !== '') {
+            return $this->normalizeRoute((string) $_GET['url']);
+        }
+
+        $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+
+        if ($scriptDir !== '/' && str_starts_with($requestUri, $scriptDir)) {
+            $requestUri = substr($requestUri, strlen($scriptDir));
+        }
+
+        return $this->normalizeRoute($requestUri);
+    }
+
+    public function get(string $route, string $action): void
+    {
+        $route = $this->normalizeRoute($route);
 
         $this->routes[] = [
             'method' => 'get',
@@ -17,7 +40,9 @@ class Router
         ];
     }
 
-    public function post($route, $action){
+    public function post(string $route, string $action): void
+    {
+        $route = $this->normalizeRoute($route);
 
         $this->routes[] = [
             'method' => 'post',
@@ -27,16 +52,21 @@ class Router
     }
 
 
-    public function run()
+    public function run(): void
     {
-        $uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $method = strtolower($_SERVER['REQUEST_METHOD']);
+        $path = $this->resolvePath();
+        $method = strtolower($_SERVER['REQUEST_METHOD'] ?? 'get');
+
+        if ($path === '') {
+            $this->dispatchTo($this->defaultController, $this->defaultMethod);
+            return;
+        }
 
         foreach ($this->routes as $route) {
-        
-            if ($route['route'] == $uri && $route['method'] == $method) {
-                
-                return $this->dispatch($route);
+            if ($route['route'] === $path && $route['method'] === $method) {
+
+                $this->dispatch($route);
+                return;
             }
         }
 
@@ -44,10 +74,14 @@ class Router
         exit('Rota não encontrada');
     }
 
-    public function dispatch($route){
+    public function dispatch(array $route): void
+    {
+        [$controller, $method] = explode('@', $route['action'], 2);
+        $this->dispatchTo($controller, $method);
+    }
 
-        list($controller, $method) = explode('@', $route['action']);
-
+    private function dispatchTo(string $controller, string $method): void
+    {
         $controllerClass = "app\\controllers\\$controller";
 
         if (!class_exists($controllerClass)) {
@@ -65,7 +99,8 @@ class Router
 
     }
 
-    public function getAllRoutes(){
+    public function getAllRoutes(): array
+    {
         return $this->routes;
     }
 
