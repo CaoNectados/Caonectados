@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS USUARIOS (
     regiao_id INT UNSIGNED NULL,
     telefone VARCHAR(20) NOT NULL,
     senha VARCHAR(255) NOT NULL,
-    tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'ong', 'administrador') NOT NULL DEFAULT 'usuario',
+    tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'administrador') NOT NULL DEFAULT 'usuario',
     status_conta ENUM('pendente', 'ativo', 'bloqueado', 'inativo') NOT NULL DEFAULT 'pendente',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email VARCHAR(150) NOT NULL,

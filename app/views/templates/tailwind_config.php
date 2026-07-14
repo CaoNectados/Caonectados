@@ -183,5 +183,82 @@
             .rotulo-link { @apply whitespace-nowrap font-poppins font-medium transition-opacity duration-200; }
             #sidebar.colapsada .rotulo-link { @apply pointer-events-none opacity-0; }
             #sidebar.colapsada .nav-link-desktop { @apply justify-center px-0; }
+        
+       
+
+       /* ============================================================
+           2. SCROLLBAR PRINCIPAL (Aplicada apenas no Conteúdo)
+           A barra agora nasce abaixo do Header!
+        ============================================================= */
+        #area-conteudo::-webkit-scrollbar {
+            width: 34px; 
+        }
+
+        /* 2. O trilho é "espremido" no meio por bordas transparentes */
+        #area-conteudo::-webkit-scrollbar-track {
+            @apply bg-rosa-6 dark:bg-preto2; 
+            border-left: 12px solid transparent; 
+            border-right: 12px solid transparent; 
+            background-clip: padding-box; 
+        }
+
+        /* 3. O pegador também é "espremido" no meio */
+        #area-conteudo::-webkit-scrollbar-thumb {
+            @apply bg-roxo1 dark:bg-roxo1; 
+            border-radius: 20px;
+            border: 12px solid transparent; 
+            background-clip: padding-box;
+        }
+
+        #area-conteudo::-webkit-scrollbar-thumb:hover {
+            @apply bg-primary dark:bg-primary;
+        }
+
+        /* 4. Os botões das patinhas */
+        #area-conteudo::-webkit-scrollbar-button:single-button {
+            display: block;
+            height: 34px; 
+            background-color: transparent; 
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain; 
+        }
+
+        /* SETA DE CIMA */
+        #area-conteudo::-webkit-scrollbar-button:single-button:vertical:decrement {
+            background-image: url("<?= e(BASE_URL) ?>/assets/img/patinha-cima.png");
+        }
+
+        /* SETA DE BAIXO */
+        #area-conteudo::-webkit-scrollbar-button:single-button:vertical:increment {
+            background-image: url("<?= e(BASE_URL) ?>/assets/img/patinha-baixo.png");
+        }
+
+        /* ============================================================
+           SCROLLBAR DO MENU LATERAL (Sidebar)
+        ============================================================= */
+        #sidebar nav::-webkit-scrollbar {
+            width: 10px; 
+        }
+        #sidebar nav::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        #sidebar nav::-webkit-scrollbar-thumb {
+            @apply bg-white/20 dark:bg-white/10;
+            border-radius: 10px;
+        }
+        #sidebar nav::-webkit-scrollbar-thumb:hover {
+            @apply bg-white/40 dark:bg-roxo2;
+        }
+
+
+        /* ===== Cards ===== */
+            .card-padrao {
+                @apply rounded-2xl bg-surface p-6 shadow-md;
+            }
+            .card-destaque { /* card rosa da Home com a sombra */
+                @apply rounded-xl bg-rosa-1 p-6 sm:p-8 border border-rosa-2/50
+                       shadow-[6px_6px_0px_rgba(44,44,44,0.15)] dark:shadow-[6px_6px_0px_rgba(255,255,255,0.05)];
+            }
         }
     </style>
