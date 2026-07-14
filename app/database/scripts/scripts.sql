@@ -20,23 +20,23 @@ CREATE TABLE IF NOT EXISTS TRACOS (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS USUARIOS (
-	usuario_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	regiao_id INT UNSIGNED NULL,
-	telefone VARCHAR(20) NOT NULL,
-	senha VARCHAR(255) NOT NULL,
-	tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'administrador') NOT NULL DEFAULT 'usuario',
-	status_conta ENUM('pendente', 'ativo', 'bloqueado', 'inativo') NOT NULL DEFAULT 'pendente',
-	criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	email VARCHAR(150) NOT NULL,
-	nome VARCHAR(150) NOT NULL,
-	num_morada VARCHAR(20) NOT NULL,
-	obs_casa TEXT NULL,
-	dt_nasc DATE NULL,
-	cpf VARCHAR(20) NOT NULL,
-	deletado_em TIMESTAMP NULL DEFAULT NULL,
-	CONSTRAINT fk_usuarios_regioes
-		FOREIGN KEY (regiao_id) REFERENCES REGIOES (regiao_id)
-		ON UPDATE CASCADE
+    usuario_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    regiao_id INT UNSIGNED NULL,
+    telefone VARCHAR(20) NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'administrador') NOT NULL DEFAULT 'usuario',
+    status_conta ENUM('pendente', 'ativo', 'bloqueado', 'inativo') NOT NULL DEFAULT 'pendente',
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    email VARCHAR(150) NOT NULL,
+    nome VARCHAR(150) NOT NULL,
+    num_morada VARCHAR(20) NOT NULL,
+    obs_casa TEXT NULL,
+    dt_nasc DATE NULL,
+    cpf VARCHAR(20) NOT NULL,
+    deletado_em TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT fk_usuarios_regioes
+        FOREIGN KEY (regiao_id) REFERENCES REGIOES (regiao_id)
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS TUTORES (

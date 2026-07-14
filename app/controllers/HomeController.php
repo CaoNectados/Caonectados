@@ -4,10 +4,19 @@ namespace app\controllers;
 
 use app\core\Controller;
 
+/**
+ * Controller da página inicial.
+ * Responsabilidade única: receber a requisição e devolver a View.
+ * (Página institucional/estática — não há regra de negócio, logo não há Service.)
+ */
 class HomeController extends Controller
 {
     public function index(): void
     {
-        echo '✅ Sucesso! O sistema de rotas do CãoNectados está funcionando perfeitamente!';
+        $this->view('home/index', [
+            'titulo'    => 'Home',
+            'descricao' => 'Plataforma de adoção de animais da tríplice fronteira. '
+                         . 'Conectamos pets que precisam de um lar com humanos dispostos a dar muito amor.',
+        ]);
     }
 }

@@ -16,7 +16,6 @@ if (session_status() === PHP_SESSION_NONE) {
 // Configuração do Sistema
 define('APP_NAME', 'CaoNectados');
 define('BASE_URL', 'http://localhost/ModeloProjetoIntegrador/public');
-define('URL_BASE', BASE_URL);
 
 // Configurações do Banco de Dados
 define('DB_HOST', 'localhost');
