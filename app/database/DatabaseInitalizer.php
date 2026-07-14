@@ -1,72 +1,54 @@
 <?php
 
-namespace app\core;
+namespace app\database;
 
-use Exception;
+use PDO;
+use PDOException;
+use RuntimeException;
 
-class Router
+/**
+ * Inicializador do banco de dados.
+ * Cria o schema (se não existir) e executa o scripts.sql.
+ *
+ * IMPORTANTE: o arquivo antigo "DatabaseInitalizer.php" (com typo) deve ser
+ * removido do repositório — o Autoload exige que nome do arquivo == nome da classe.
+ */
+class DatabaseInitializer
 {
-    private array $routes = [];
-
-    public function get($route, $action){
-
-        $this->routes[] = [
-            'method' => 'get',
-            'route' => $route,
-            'action' => $action
-        ];
-    }
-
-    public function post($route, $action){
-
-        $this->routes[] = [
-            'method' => 'post',
-            'route' => $route,
-            'action' => $action
-        ];
-    }
-
-
-    public function run()
+    public static function initialize(): void
     {
-        $uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $method = strtolower($_SERVER['REQUEST_METHOD']);
+        $dsn = sprintf('mysql:host=%s;charset=utf8mb4', DB_HOST);
 
-        foreach ($this->routes as $route) {
-        
-            if ($route['route'] == $uri && $route['method'] == $method) {
-                
-                return $this->dispatch($route);
+        try {
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+
+            $pdo->exec(
+                'CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '`
+                 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+            );
+            $pdo->exec('USE `' . DB_NAME . '`');
+
+            $scriptPath = __DIR__ . '/scripts/scripts.sql';
+
+            if (!file_exists($scriptPath)) {
+                throw new RuntimeException("Script SQL não encontrado em: {$scriptPath}");
             }
+
+            $sql = file_get_contents($scriptPath);
+
+            if ($sql === false || trim($sql) === '') {
+                throw new RuntimeException('Script SQL vazio ou ilegível.');
+            }
+
+            $pdo->exec($sql);
+        } catch (PDOException $e) {
+            if (defined('DEV_ENVIRONMENT') && DEV_ENVIRONMENT === true) {
+                throw $e;
+            }
+            http_response_code(500);
+            exit('Erro ao inicializar o banco de dados.');
         }
-
-        http_response_code(404);
-        exit('Rota não encontrada');
     }
-
-    public function dispatch($route){
-
-        list($controller, $method) = explode('@', $route['action']);
-
-        $controllerClass = "app\\controllers\\$controller";
-
-        if (!class_exists($controllerClass)) {
-            print "Controller $controller não encontrado";
-            die;
-        }
-
-        if (!method_exists($controllerClass, $method)) {
-            print "Método $method não encontrado em $controllerClass";
-            die;
-        }
-        
-        $controller = new $controllerClass;
-        $controller->$method();
-
-    }
-
-    public function getAllRoutes(){
-        return $this->routes;
-    }
-
 }

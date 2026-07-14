@@ -1,72 +1,50 @@
 <?php
 
-namespace app\core;
+namespace app\database;
 
-use Exception;
+use PDO;
+use PDOException;
 
-class Router
+/**
+ * Fábrica de conexões PDO (Singleton).
+ * Única classe autorizada a criar a conexão com o MySQL.
+ */
+class ConnectionFactory
 {
-    private array $routes = [];
+    private static ?PDO $instance = null;
 
-    public function get($route, $action){
-
-        $this->routes[] = [
-            'method' => 'get',
-            'route' => $route,
-            'action' => $action
-        ];
-    }
-
-    public function post($route, $action){
-
-        $this->routes[] = [
-            'method' => 'post',
-            'route' => $route,
-            'action' => $action
-        ];
-    }
-
-
-    public function run()
+    /** Impede instanciação direta — use ConnectionFactory::getConnection(). */
+    private function __construct()
     {
-        $uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $method = strtolower($_SERVER['REQUEST_METHOD']);
+    }
 
-        foreach ($this->routes as $route) {
-        
-            if ($route['route'] == $uri && $route['method'] == $method) {
-                
-                return $this->dispatch($route);
+    public static function getConnection(): PDO
+    {
+        if (self::$instance === null) {
+            $dsn = sprintf(
+                'mysql:host=%s;dbname=%s;charset=utf8mb4',
+                DB_HOST,
+                DB_NAME
+            );
+
+            try {
+                self::$instance = new PDO($dsn, DB_USER, DB_PASS, [
+                    // Lança exceções em erros de SQL (nunca falha silenciosamente)
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    // fetch() retorna array associativo por padrão
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    // Prepared statements NATIVOS do MySQL (proteção real contra SQL Injection)
+                    PDO::ATTR_EMULATE_PREPARES   => false,
+                ]);
+            } catch (PDOException $e) {
+                if (defined('DEV_ENVIRONMENT') && DEV_ENVIRONMENT === true) {
+                    throw $e; // em desenvolvimento, mostra o erro real
+                }
+                http_response_code(500);
+                exit('Erro ao conectar ao banco de dados.');
             }
         }
 
-        http_response_code(404);
-        exit('Rota não encontrada');
+        return self::$instance;
     }
-
-    public function dispatch($route){
-
-        list($controller, $method) = explode('@', $route['action']);
-
-        $controllerClass = "app\\controllers\\$controller";
-
-        if (!class_exists($controllerClass)) {
-            print "Controller $controller não encontrado";
-            die;
-        }
-
-        if (!method_exists($controllerClass, $method)) {
-            print "Método $method não encontrado em $controllerClass";
-            die;
-        }
-        
-        $controller = new $controllerClass;
-        $controller->$method();
-
-    }
-
-    public function getAllRoutes(){
-        return $this->routes;
-    }
-
 }
