@@ -9,6 +9,8 @@ use app\models\Protetor;
 use app\repositories\UsuarioRepository;
 use app\repositories\TutorRepository;
 use app\repositories\ProtetorRepository;
+use app\repositories\RegiaoRepository;
+
 use Exception;
 
 class OnboardingService
@@ -16,12 +18,14 @@ class OnboardingService
     private UsuarioRepository $usuarioRepo;
     private TutorRepository $tutorRepo;
     private ProtetorRepository $protetorRepo;
+    private RegiaoRepository $regiaoRepository;
 
     public function __construct()
     {
         $this->usuarioRepo = new UsuarioRepository();
         $this->tutorRepo = new TutorRepository();
         $this->protetorRepo = new ProtetorRepository();
+        $this->regiaoRepository = new RegiaoRepository();
     }
 
     public function processarAdotante(array $dados, int $usuarioId): void
@@ -104,4 +108,11 @@ class OnboardingService
             throw $e;
         }
     }
+
+
+    public function listarRegioes(): array
+    {
+        return $this->regiaoRepository->listar();
+    }
+    
 }

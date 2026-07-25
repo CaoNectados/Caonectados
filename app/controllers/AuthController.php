@@ -62,12 +62,9 @@ class AuthController
         $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
         $senha_confirmacao = $_POST['senha_confirmacao'] ?? '';
-        $telefone = trim($_POST['telefone'] ?? '');
-        $cpf = preg_replace('/\D+/', '', (string) ($_POST['cpf'] ?? ''));
-        $numMorada = trim($_POST['num_morada'] ?? '');
-        $tipoPerfil = trim($_POST['tipo_perfil'] ?? 'usuario');
+        $tipoPerfil ='usuario';
 
-        if (empty($nome) || empty($email) || empty($senha) || empty($senha_confirmacao) || empty($telefone) || empty($cpf) || empty($numMorada)) {
+        if (empty($nome) || empty($email) || empty($senha) || empty($senha_confirmacao) || empty($tipoPerfil)) {
             $this->redirecionarComErro('erro_cadastro', 'Todos os campos são obrigatórios.', '/cadastro');
         }
 
@@ -83,17 +80,7 @@ class AuthController
             $this->redirecionarComErro('erro_cadastro', 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.', '/cadastro');
         }
 
-        if (strlen($telefone) < 8) {
-            $this->redirecionarComErro('erro_cadastro', 'Informe um telefone válido.', '/cadastro');
-        }
-
-        if (strlen($cpf) !== 11) {
-            $this->redirecionarComErro('erro_cadastro', 'Informe um CPF válido com 11 dígitos.', '/cadastro');
-        }
-
-        if ($numMorada === '') {
-            $this->redirecionarComErro('erro_cadastro', 'Informe o número da moradia.', '/cadastro');
-        }
+    
 
         $usuarioModel = new Usuario();
 
@@ -107,10 +94,7 @@ class AuthController
             'nome' => $nome,
             'email' => $email,
             'senha' => $hashSenha,
-            'tipo_perfil' => $tipoPerfil ?: 'usuario',
-            'telefone' => $telefone,
-            'cpf' => $cpf,
-            'num_morada' => $numMorada
+            'tipo_perfil' => $tipoPerfil ?: 'usuario'
         ];
 
         $usuarioId = $usuarioModel->create($dadosNovoUsuario);

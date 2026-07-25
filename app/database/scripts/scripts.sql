@@ -248,3 +248,46 @@ CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
         FOREIGN KEY (traco_id) REFERENCES TRACO (traco_id)
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ===========================================
+-- REGIÕES (Bairros de Foz do Iguaçu)
+-- ===========================================
+
+INSERT INTO REGIAO (nome_regiao) VALUES
+('Alto da Boa Vista'),
+('Bourbon'),
+('Campos do Iguaçu'),
+('Carimã'),
+('Centro'),
+('Cognópolis'),
+('Conjunto Libra'),
+('Conjunto Residencial Aporã'),
+('Conjunto Residencial Arroio Dourado'),
+('Conjunto Residencial Lagoa Dourada'),
+('Conjunto Residencial Três Bandeiras'),
+('Curitibano'),
+('Gleba Guarani'),
+('Ipê'),
+('Jardim Alice'),
+('Jardim América'),
+('Jardim Central'),
+('Jardim das Flores'),
+('Jardim Eliza I'),
+('Jardim Eliza II'),
+('Jardim Europa'),
+('Jardim Itaipu'),
+('Jardim Jupira'),
+('Jardim Lancaster'),
+('Jardim Panorama'),
+('Jardim Polo Centro'),
+('Jardim São Paulo'),
+('Jardim Tarobá'),
+('Morumbi'),
+('Náutica'),
+('Parque Imperatriz'),
+('Polo Centro'),
+('Porto Belo'),
+('Porto Meira'),
+('Profilurb I'),
+('Profilurb II'),
+('Três Lagoas');

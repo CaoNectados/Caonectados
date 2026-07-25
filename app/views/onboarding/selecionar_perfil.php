@@ -1,11 +1,15 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>CãoNectados - Bem-vindo</title>
-</head>
-<body>
-    <main>
+<?php
+
+$conteudo = __FILE__;
+
+if (!defined('ONBOARDING_LAYOUT')) {
+
+    define('ONBOARDING_LAYOUT', true);
+
+    ob_start();
+
+?>
+
         <header>
             <h1>Bem vindo(a) ao CãoNectados</h1>
             <h2>Como você vai usar o CãoNectados?</h2>
@@ -13,16 +17,25 @@
         </header>
 
         <section>
-            <a href="/onboarding/adotante">
+            <a href="<?= URL_BASE ?>/onboarding/adotante">
                 <button type="button">Quero Adotar</button>
             </a>
-            <a href="/onboarding/ong?tipo=PROTETOR">
+            <a href="<?= URL_BASE ?>/onboarding/ong?tipo=PROTETOR">
                 <button type="button">Protetor Independente</button>
             </a>
-            <a href="/onboarding/ong?tipo=ONG">
+            <a href="<?= URL_BASE ?>/onboarding/ong?tipo=ONG">
                 <button type="button">Sou uma ONG</button>
             </a>
         </section>
-    </main>
-</body>
-</html>
+
+    <?php
+
+$conteudo = ob_get_clean();
+
+require_once __DIR__ . '/../templates/onboarding_layout.php';
+
+return;
+
+}
+
+echo $conteudo;

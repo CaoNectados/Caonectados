@@ -13,6 +13,11 @@
 
         <form action="<?= URL_BASE ?>/cadastro" method="POST">
             <div>
+                <label for="nome" style="display:none;">Nome completo</label>
+                <input type="text" name="nome" id="nome" required placeholder="Nome completo">
+            </div>
+
+            <div>
                 <label for="email" style="display:none;">E-mail</label>
                 <input type="email" name="email" id="email" required placeholder="E-mail">
             </div>
@@ -26,8 +31,6 @@
                 <label for="senha_confirmacao" style="display:none;">Confirme sua senha</label>
                 <input type="password" name="senha_confirmacao" id="senha_confirmacao" required placeholder="Confirme sua senha">
             </div>
-
-            <input type="hidden" name="tipo_perfil" value="usuario">
 
             <button type="submit">Cadastrar</button>
         </form>

@@ -26,4 +26,13 @@ class Controller
         header('location: ' . $url);
         exit();
     }
+
+    // No seu arquivo app/core/Controller.php
+protected function autenticacaoRequired()
+{
+    if (empty($_SESSION['usuario_id'])) {
+        header("Location: " . URL_BASE . "/login");
+        exit;
+    }
+}
 }

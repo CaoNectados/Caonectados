@@ -23,14 +23,19 @@ class OnboardingController extends Controller
 
     public function adotante()
     {
-        $this->view('onboarding/adotante_passos');
+        $this->view('onboarding/adotante_passos', [
+            'regioes' => $this->onboardingService->listarRegioes()
+        ]);
     }
 
     public function ong()
     {
-        $this->view('onboarding/ong_passos');
+        $this->view('onboarding/ong_passos', [
+            'regioes' => $this->onboardingService->listarRegioes()
+        ]);
     }
 
+  
     public function storeAdotante()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -57,4 +62,5 @@ class OnboardingController extends Controller
             }
         }
     }
+   
 }

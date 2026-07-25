@@ -1,21 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Onboarding - Adotante</title>
 </head>
+
 <body>
     <main>
         <form action="/onboarding/adotante/salvar" method="POST">
-            
+
             <fieldset>
+
                 <legend>Selecione a sua localização</legend>
+
                 <label for="regiao_id">Pesquise seu Bairro *</label>
-                <select name="regiao_id" id="regiao_id" required>
-                    <option value="">Selecione o bairro</option>
-                    <option value="1">Porto Meira</option>
-                    <!-- Opções dinâmicas viriam do banco -->
+
+                <select
+                    name="regiao_id"
+                    id="regiao_id"
+                    required>
+
+                    <option value="">
+                        Selecione o bairro
+                    </option>
+
+                    <?php foreach ($regioes as $regiao): ?>
+
+                        <option value="<?= $regiao->getRegiaoId(); ?>">
+
+                            <?= htmlspecialchars($regiao->getNomeRegiao()); ?>
+
+                        </option>
+
+                    <?php endforeach; ?>
+
                 </select>
+
             </fieldset>
 
             <fieldset>
@@ -49,7 +70,7 @@
                 <input type="text" name="nome" placeholder="Digite seu nome aqui" required>
 
                 <p>Selecione suas preferências para montarmos o seu feed perfeito.</p>
-                
+
                 <label>Espécie:</label>
                 <input type="checkbox" name="especie[]" value="Gato"> Gato
                 <input type="checkbox" name="especie[]" value="Cachorro"> Cachorro
@@ -69,4 +90,5 @@
         </form>
     </main>
 </body>
+
 </html>
