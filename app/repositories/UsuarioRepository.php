@@ -9,16 +9,16 @@ class UsuarioRepository
 {
     public function atualizarOnboarding(Usuario $usuario, PDO $pdo): bool
     {
-        $sql = "UPDATE USUARIOS 
+        $sql = "UPDATE USUARIO 
                 SET nome = :nome, 
                     regiao_id = :regiao_id, 
-                    tipo_atual = :tipo_atual 
+                    tipo_perfil = :tipo_perfil 
                 WHERE usuario_id = :usuario_id";
 
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':nome', $usuario->getNome());
         $stmt->bindValue(':regiao_id', $usuario->getRegiaoId());
-        $stmt->bindValue(':tipo_atual', $usuario->getTipoAtual());
+        $stmt->bindValue(':tipo_perfil', $usuario->getTipoAtual());
         $stmt->bindValue(':usuario_id', $usuario->getUsuarioId());
 
         return $stmt->execute();
@@ -26,7 +26,7 @@ class UsuarioRepository
 
       public function salvarNovoUsuario(Usuario $usuario, PDO $pdo): int
     {
-        $sql = "INSERT INTO USUARIOS (email, senha) VALUES (:email, :senha)";
+        $sql = "INSERT INTO USUARIO (email, senha) VALUES (:email, :senha)";
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':email', $usuario->getEmail());
         $stmt->bindValue(':senha', $usuario->getSenha());
@@ -37,7 +37,7 @@ class UsuarioRepository
 
     public function buscarPorEmail(string $email, PDO $pdo): ?Usuario
     {
-        $sql = "SELECT * FROM USUARIOS WHERE email = :email AND deletado_em IS NULL";
+        $sql = "SELECT * FROM USUARIO WHERE email = :email AND deletado_em IS NULL";
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':email', $email);
         $stmt->execute();
@@ -52,7 +52,7 @@ class UsuarioRepository
         $usuario->setUsuarioId($dados['usuario_id']);
         $usuario->setEmail($dados['email']);
         $usuario->setSenha($dados['senha']);
-        $usuario->setTipoAtual($dados['tipo_atual']);
+        $usuario->setTipoAtual($dados['tipo_perfil']);
         $usuario->setStatusConta($dados['status_conta']);
         
         return $usuario;

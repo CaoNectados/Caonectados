@@ -13,11 +13,6 @@
 
         <form action="<?= URL_BASE ?>/cadastro" method="POST">
             <div>
-                <label for="nome" style="display:none;">Nome Completo</label>
-                <input type="text" name="nome" id="nome" required placeholder="Nome Completo">
-            </div>
-
-            <div>
                 <label for="email" style="display:none;">E-mail</label>
                 <input type="email" name="email" id="email" required placeholder="E-mail">
             </div>
@@ -32,11 +27,13 @@
                 <input type="password" name="senha_confirmacao" id="senha_confirmacao" required placeholder="Confirme sua senha">
             </div>
 
+            <input type="hidden" name="tipo_perfil" value="usuario">
+
             <button type="submit">Cadastrar</button>
         </form>
 
         <div>
-            <a href="/login">Faça Login Aqui!</a>
+            <a href="<?= URL_BASE ?>/login">Faça Login Aqui!</a>
         </div>
     </main>
 
@@ -54,18 +51,15 @@
     <!-- Script que dispara o modal caso exista um erro na sessão -->
     <?php if (isset($_SESSION['erro_cadastro'])): ?>
     <script>
-        // Captura a mensagem do PHP
-        let mensagemErro = "<?= $_SESSION['erro_cadastro'] ?>";
+        const mensagemErro = <?= json_encode($_SESSION['erro_cadastro']) ?>;
         
-        // Insere a mensagem no modal
         document.getElementById('texto-modal-erro').innerText = mensagemErro;
         
-        // Exibe o modal (removendo a classe hidden ou alterando o display)
-        let modal = document.getElementById('modal-erro');
+        const modal = document.getElementById('modal-erro');
         modal.classList.remove('hidden');
-        modal.style.display = 'flex'; // Garante que apareça caso use display none inline
+        modal.style.display = 'flex';
     </script>
-    <?php unset($_SESSION['erro_cadastro']); // Limpa a sessão após exibir o erro ?>
+    <?php unset($_SESSION['erro_cadastro']); ?>
     <?php endif; ?>
 
 </body>

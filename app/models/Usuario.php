@@ -2,8 +2,9 @@
 
 namespace app\models;
 
+use app\database\ConnectionFactory;
 use PDO;
-use app\core\Database; // Ajuste este namespace para o local real da sua classe de conexão com o banco
+use PDOException;
 
 class Usuario
 {
@@ -12,6 +13,7 @@ class Usuario
     private ?string $telefone = null;
     private ?string $senha = null;
     private ?string $tipo_atual = null;
+    private ?string $tipo_perfil = null;
     private ?string $status_conta = null;
     private ?string $email = null;
     private ?string $nome = null;
@@ -37,8 +39,17 @@ class Usuario
     public function getSenha(): ?string { return $this->senha; }
     public function setSenha(?string $senha): void { $this->senha = $senha; }
 
-    public function getTipoAtual(): ?string { return $this->tipo_atual; }
-    public function setTipoAtual(?string $tipo_atual): void { $this->tipo_atual = $tipo_atual; }
+    public function getTipoAtual(): ?string { return $this->tipo_perfil ?? $this->tipo_atual; }
+    public function setTipoAtual(?string $tipo_atual): void
+    {
+        $this->tipo_atual = $tipo_atual;
+    }
+
+    public function getTipoPerfil(): ?string { return $this->tipo_perfil ?? $this->tipo_atual; }
+    public function setTipoPerfil(?string $tipo_perfil): void
+    {
+        $this->tipo_perfil = $tipo_perfil;
+    }
 
     public function getStatusConta(): ?string { return $this->status_conta; }
     public function setStatusConta(?string $status_conta): void { $this->status_conta = $status_conta; }
@@ -67,53 +78,58 @@ class Usuario
     public function getDeletadoEm(): ?string { return $this->deletado_em; }
     public function setDeletadoEm(?string $deletado_em): void { $this->deletado_em = $deletado_em; }
 
-    // ==========================================
-    // MÉTODOS DE BANCO DE DADOS (CRUD)
-    // ==========================================
-
-    /**
-     * Busca um usuário pelo endereço de e-mail
-     * Retorna um objeto genérico contendo os dados do banco ou false se não encontrar.
-     */
-    public function findByEmail(string $email)
+   
+    public function findByEmail(string $email): ?object
     {
-        // ATENÇÃO: Ajuste a forma como você chama a sua conexão PDO
-        $conexao = Database::getInstance(); 
-        
-        // ATENÇÃO: Verifique se o nome da sua tabela no banco é 'usuario' ou 'usuarios'
-        $sql = "SELECT * FROM usuario WHERE email = :email LIMIT 1"; 
+        $conexao = ConnectionFactory::getConnection();
+
+        $sql = 'SELECT * FROM USUARIO WHERE email = :email LIMIT 1';
         
         $stmt = $conexao->prepare($sql);
         $stmt->bindValue(':email', $email);
         $stmt->execute();
 
-        return $stmt->fetch(PDO::FETCH_OBJ);
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$dados) {
+            return null;
+        }
+
+        $usuario = (object) $dados;
+        $usuario->tipo_atual = $dados['tipo_perfil'] ?? null;
+        $usuario->tipo_perfil = $dados['tipo_perfil'] ?? null;
+
+        return $usuario;
     }
 
-    /**
-     * Insere um novo usuário no banco de dados e retorna o ID gerado
-     */
-    public function create(array $dados)
+    public function create(array $dados): int|false
     {
-        // ATENÇÃO: Ajuste a forma como você chama a sua conexão PDO
-        $conexao = Database::getInstance();
-        
-        // ATENÇÃO: Verifique se o nome da sua tabela no banco é 'usuario' ou 'usuarios'
-        $sql = "INSERT INTO usuario (nome, email, senha, tipo_atual) VALUES (:nome, :email, :senha, :tipo_atual)";
-        
-        $stmt = $conexao->prepare($sql);
-        
-        $stmt->bindValue(':nome', $dados['nome']);
-        $stmt->bindValue(':email', $dados['email']);
-        $stmt->bindValue(':senha', $dados['senha']);
-        
-        // Pega o tipo_atual do array ou insere NULL se não existir
-        $stmt->bindValue(':tipo_atual', $dados['tipo_atual'] ?? null); 
-        
-        if ($stmt->execute()) {
-            return $conexao->lastInsertId(); // Retorna o 'usuario_id' recém-criado
+        try {
+            $conexao = ConnectionFactory::getConnection();
+
+            $sql = 'INSERT INTO USUARIO (nome, email, senha, tipo_perfil) '
+                . 'VALUES (:nome, :email, :senha, :tipo_perfil)';
+
+            $stmt = $conexao->prepare($sql);
+
+            $stmt->bindValue(':nome', $dados['nome']);
+            $stmt->bindValue(':email', $dados['email']);
+            $stmt->bindValue(':senha', $dados['senha']);
+
+            $stmt->bindValue(':tipo_perfil', $dados['tipo_perfil'] ?? 'usuario');
+
+            if ($stmt->execute()) {
+                return (int) $conexao->lastInsertId();
+            }
+
+            return false;
+
+        } catch (PDOException $e) {
+            if (defined('DEV_ENVIRONMENT') && DEV_ENVIRONMENT === true) {
+                throw $e;
+            }
+
+            return false;
         }
-        
-        return false;
     }
 }
