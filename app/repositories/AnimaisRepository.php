@@ -5,7 +5,7 @@ namespace app\repositories;
 use app\core\BaseRepository;
 use app\models\Animais;
 use PDO;
-use PDOStatement;
+use PDOStatement; 
 
 class AnimaisRepository extends BaseRepository
 {
