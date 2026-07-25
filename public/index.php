@@ -10,6 +10,14 @@ $router = new Router();
 $router->get('/', 'HomeController@index');
 $router->get('/home', 'HomeController@index');
 
+$router->get('/animais', 'AnimaisController@index');
+$router->get('/animais/mostrar', 'AnimaisController@show');
+$router->post('/animais', 'AnimaisController@store');
+$router->post('/animais/editar', 'AnimaisController@update');
+$router->post('/animais/status', 'AnimaisController@status');
+$router->post('/animais/reativar', 'AnimaisController@reativar');
+$router->post('/animais/excluir', 'AnimaisController@destroy');
+
 
 
 $router->run();
