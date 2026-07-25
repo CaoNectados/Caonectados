@@ -2,7 +2,7 @@
 
 namespace app\services;
 
-use app\models\Animais;
+use app\models\Animais; 
 use app\repositories\AnimaisRepository;
 use DateTime;
 use InvalidArgumentException;
