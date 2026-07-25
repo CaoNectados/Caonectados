@@ -226,12 +226,12 @@
 
         /* SETA DE CIMA */
         #area-conteudo::-webkit-scrollbar-button:single-button:vertical:decrement {
-            background-image: url("<?= e(BASE_URL) ?>/assets/img/patinha-cima.png");
+            background-image: url("<?= e(URL_BASE) ?>/assets/img/patinha-cima.png");
         }
 
         /* SETA DE BAIXO */
         #area-conteudo::-webkit-scrollbar-button:single-button:vertical:increment {
-            background-image: url("<?= e(BASE_URL) ?>/assets/img/patinha-baixo.png");
+            background-image: url("<?= e(URL_BASE) ?>/assets/img/patinha-baixo.png");
         }
 
         /* ============================================================

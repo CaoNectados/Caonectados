@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Se a URL apontar para um arquivo existente (como imagens/CSS), não faz nada
+RewriteCond %{REQUEST_FILENAME} !-f
+# Se a URL apontar para um diretório existente, não faz nada
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Joga todas as outras requisições para o index.php processar as rotas
+RewriteRule ^(.*)$ index.php [QSA,L]

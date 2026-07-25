@@ -2,37 +2,13 @@
 
 namespace app\core;
 
+use Exception;
+
 class Router
 {
     private array $routes = [];
-    private string $defaultController = 'HomeController';
-    private string $defaultMethod = 'index';
 
-    private function normalizeRoute(string $route): string
-    {
-        return trim($route, '/');
-    }
-
-    private function resolvePath(): string
-    {
-        if (isset($_GET['url']) && $_GET['url'] !== '') {
-            return $this->normalizeRoute((string) $_GET['url']);
-        }
-
-        $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-
-        if ($scriptDir !== '/' && str_starts_with($requestUri, $scriptDir)) {
-            $requestUri = substr($requestUri, strlen($scriptDir));
-        }
-
-        return $this->normalizeRoute($requestUri);
-    }
-
-    public function get(string $route, string $action): void
-    {
-        $route = $this->normalizeRoute($route);
-
+    public function get($route, $action){
         $this->routes[] = [
             'method' => 'get',
             'route' => $route,
@@ -40,10 +16,7 @@ class Router
         ];
     }
 
-    public function post(string $route, string $action): void
-    {
-        $route = $this->normalizeRoute($route);
-
+    public function post($route, $action){
         $this->routes[] = [
             'method' => 'post',
             'route' => $route,
@@ -51,37 +24,59 @@ class Router
         ];
     }
 
-
-    public function run(): void
+    public function run()
     {
-        $path = $this->resolvePath();
-        $method = strtolower($_SERVER['REQUEST_METHOD'] ?? 'get');
-
-        if ($path === '') {
-            $this->dispatchTo($this->defaultController, $this->defaultMethod);
-            return;
+        // Extrai apenas o caminho, removendo a query string (ex: ?simular_perfil=protetor)
+        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        
+        // Define o caminho base onde o projeto está rodando (pasta public)
+        $basePath = dirname($_SERVER['SCRIPT_NAME']);
+        $basePath = str_replace('\\', '/', $basePath);
+        
+        if ($basePath === '/') {
+            $basePath = '';
         }
 
-        foreach ($this->routes as $route) {
-            if ($route['route'] === $path && $route['method'] === $method) {
+        // Remove a pasta base da URI para termos apenas a rota final
+        if (strpos($uri, $basePath) === 0) {
+            $uri = substr($uri, strlen($basePath));
+        }
 
-                $this->dispatch($route);
-                return;
+        // --- CORREÇÃO DA BARRA DUPLA AQUI ---
+        // Se vier //login da URL, ele transforma em /login limpo
+        $uri = preg_replace('#/+#', '/', $uri);
+
+        // Se a URI ficar vazia após remover o basePath, ou for apenas uma barra, a rota é '/'
+        if (empty($uri) || $uri === '/') {
+            $uri = '/';
+        } else {
+            // Para outras rotas (ex: /cadastro/), removemos a barra final para padronizar
+            $uri = rtrim($uri, '/');
+        }
+
+        $method = strtolower($_SERVER['REQUEST_METHOD']);
+
+        foreach ($this->routes as $route) {
+            $registeredRoute = $route['route'];
+            
+            // Padroniza a rota registrada da mesma forma
+            if ($registeredRoute !== '/') {
+                $registeredRoute = rtrim($registeredRoute, '/');
+            }
+
+            if ($registeredRoute === $uri && $route['method'] === $method) {
+                return $this->dispatch($route);
             }
         }
 
         http_response_code(404);
-        exit('Rota não encontrada');
+        exit('Rota não encontrada. Rota solicitada: ' . htmlspecialchars($uri));
     }
 
-    public function dispatch(array $route): void
-    {
-        [$controller, $method] = explode('@', $route['action'], 2);
-        $this->dispatchTo($controller, $method);
-    }
+    public function dispatch($route){
 
-    private function dispatchTo(string $controller, string $method): void
-    {
+        list($controller, $method) = explode('@', $route['action']);
+
         $controllerClass = "app\\controllers\\$controller";
 
         if (!class_exists($controllerClass)) {
@@ -99,9 +94,7 @@ class Router
 
     }
 
-    public function getAllRoutes(): array
-    {
+    public function getAllRoutes(){
         return $this->routes;
     }
-
 }

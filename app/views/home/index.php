@@ -1,8 +1,10 @@
-<?php require __DIR__ . '/../templates/header.php'; ?>
+<?php 
+require_once __DIR__ . '/../templates/header.php'; 
+?>
 
 <section class="px-4 " aria-label="CãoNectados — Amor à primeira lambida">
     <div class="mx-auto max-w-6xl">
-        <img src="<?= e(BASE_URL) ?>/assets/img/logo-caonectados.gif"
+        <img src="<?= e(URL_BASE) ?>/assets/img/logo-caonectados.gif"
              alt="CãoNectados — Amor à primeira lambida"
              class="mx-auto w-full max-w-[700px] object-contain -my-4 sm:-my-8 lg:-my-16">
     </div>
@@ -39,7 +41,7 @@
             </article>
 
             <div class="hidden justify-center lg:flex">
-                <img src="<?= e(BASE_URL) ?>/assets/img/home.svg"
+                <img src="<?= e(URL_BASE) ?>/assets/img/home.svg"
                      alt="Ilustração em traço de um cachorro e um gato"
                      class="w-full max-w-md dark:opacity-90 dark:invert"
                      width="384" height="288" loading="lazy">
@@ -68,7 +70,7 @@
             <li>
                 <article class="flex h-full flex-col items-center rounded-[2rem] bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-2 dark:bg-preto3">
                     <span class="flex h-20 w-20 items-center justify-center rounded-full bg-rosa-1" aria-hidden="true">
-                        <img src="<?= e(BASE_URL) ?>/assets/icons/geral/user-rosa.svg" alt="" class="h-14 w-14">
+                        <img src="<?= e(URL_BASE) ?>/assets/icons/geral/user-rosa.svg" alt="" class="h-14 w-14">
                     </span>
                     <h3 class="mt-5 font-shantell text-xl font-bold text-text-dark dark:text-branco ">
                         Crie seu Perfil
@@ -85,7 +87,7 @@
             <li>
                 <article class="flex h-full flex-col items-center rounded-[2rem] bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-2 dark:bg-preto3">
                     <span class="flex h-20 w-20 items-center justify-center rounded-full bg-rosa-1" aria-hidden="true">
-                        <img src="<?= e(BASE_URL) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="h-14 w-14">
+                        <img src="<?= e(URL_BASE) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="h-14 w-14">
                     </span>
                     <h3 class="mt-5 font-shantell text-xl font-bold text-text-dark dark:text-branco">
                         Dê a Patinha
@@ -102,7 +104,7 @@
             <li>
                 <article class="flex h-full flex-col items-center rounded-[2rem] bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:-translate-y-2 dark:bg-preto3">
                     <span class="flex h-20 w-20 items-center justify-center rounded-full bg-rosa-1" aria-hidden="true">
-                        <img src="<?= e(BASE_URL) ?>/assets/icons/geral/casa-rosa.svg" alt="" class="h-14 w-14">
+                        <img src="<?= e(URL_BASE) ?>/assets/icons/geral/casa-rosa.svg" alt="" class="h-14 w-14">
                     </span>
                     <h3 class="mt-5 font-shantell text-xl font-bold text-text-dark dark:text-branco">
                         Adoção Segura
@@ -122,8 +124,8 @@
 <section class="px-4 pb-16 sm:px-6 lg:px-8" aria-labelledby="titulo-instagram">
     <div class="relative mx-auto flex max-w-4xl flex-col items-center overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-rosa-1 to-rosa-3 px-6 py-12 text-center shadow-lg dark:from-primary dark:to-roxo1 sm:px-12 sm:py-16">
         
-        <img src="<?= e(BASE_URL) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="absolute -left-6 -top-6 h-24 w-24 opacity-20 rotate-[-15deg] ">
-        <img src="<?= e(BASE_URL) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="absolute -bottom-8 -right-8 h-32 w-32 opacity-20 rotate-[15deg] ">
+        <img src="<?= e(URL_BASE) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="absolute -left-6 -top-6 h-24 w-24 opacity-20 rotate-[-15deg] ">
+        <img src="<?= e(URL_BASE) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="absolute -bottom-8 -right-8 h-32 w-32 opacity-20 rotate-[15deg] ">
 
         <h2 id="titulo-instagram" class="relative z-10 font-shantell text-3xl font-bold text-text-dark dark:text-branco sm:text-4xl">
             Acompanhe nosso Projeto!
@@ -136,7 +138,7 @@
         <a href="https://www.instagram.com/caonectados2026/" target="_blank" rel="noopener noreferrer"
            class="relative z-10 mt-8 flex items-center gap-3 rounded-full bg-rosaAlerta px-8 py-4 font-poppins text-lg font-bold text-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:bg-marrom hover:shadow-xl dark:hover:bg-rosa-2 dark:hover:text-text-dark">
             
-            <img src="<?= e(BASE_URL) ?>/assets/icons/social/instagram.svg" alt="Logotipo do Instagram" class="h-7 w-7 brightness-0 invert">
+            <img src="<?= e(URL_BASE) ?>/assets/icons/social/instagram.svg" alt="Logotipo do Instagram" class="h-7 w-7 brightness-0 invert">
             
             Seguir @caonectados2026
         </a>

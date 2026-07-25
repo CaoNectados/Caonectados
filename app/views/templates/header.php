@@ -10,52 +10,52 @@ $tipoPerfil = $_SESSION['tipo_perfil'] ?? null;
 $menuItens = [];
 
 // Item comum a todos
-$menuItens[] = ['url' => '/', 'label' => 'Home', 'icone' => 'home.svg'];
+$menuItens[] = ['url' => URL_BASE . '/', 'label' => 'Home', 'icone' => 'home.svg'];
 
-if($tipoPerfil === null) {
-    $menuItens[] = ['url' => '/cadastro', 'label' => 'Cadastre-se', 'icone' => 'cadastro.svg'];
+if ($tipoPerfil === null) {
+    $menuItens[] = ['url' => URL_BASE . '/cadastro', 'label' => 'Cadastre-se', 'icone' => 'cadastro.svg'];
 }
 
 // ---------------- PERFIL: ADMINISTRADOR ----------------
 if ($tipoPerfil === 'administrador') {
-    $menuItens[] = ['url' => '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/perfil',    'label' => 'Perfil',    'icone' => 'perfil.svg',    'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar',               'label' => 'Pesquisar',                  'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',                  'label' => 'Perfil',                     'icone' => 'perfil.svg',           'apenas_desktop' => true];
 
-    $menuItens[] = ['url' => '/admin/dashboard', 'label' => 'Dashboard', 'icone' => 'dashboard.svg'];
-    $menuItens[] = ['url' => '/admin/solicitacoes', 'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
-    $menuItens[] = ['url' => '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários', 'icone' => 'usuarios.svg'];
-    $menuItens[] = ['url' => '/admin/gerenciar-bairros', 'label' => 'Gerenciar Bairros', 'icone' => 'bairros.svg'];
-    $menuItens[] = ['url' => '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
-    $menuItens[] = ['url' => '/admin/denuncias', 'label' => 'Denúncias', 'icone' => 'denuncia.svg'];
-    $menuItens[] = ['url' => '/admin/auditoria-logs', 'label' => 'Auditoria e Logs', 'icone' => 'auditoria.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/dashboard',         'label' => 'Dashboard',                  'icone' => 'dashboard.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/solicitacoes',      'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários',       'icone' => 'usuarios.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-bairros',  'label' => 'Gerenciar Bairros',        'icone' => 'bairros.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/denuncias',         'label' => 'Denúncias',                  'icone' => 'denuncia.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/auditoria-logs',    'label' => 'Auditoria e Logs',           'icone' => 'auditoria.svg'];
 
 // ---------------- PERFIL: PROTETOR ----------------
 } elseif ($tipoPerfil === 'protetor') {
-    $menuItens[] = ['url' => '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/feed',                 'label' => 'Feed',                   'icone' => 'dashboard.svg',        'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
 
-    $menuItens[] = ['url' => '/animais/cadastrar', 'label' => 'Gerenciar Animais',       'icone' => 'gerenciar-animais.png'];
-    $menuItens[] = ['url' => '/solicitacoes',      'label' => 'Solicitações Recebidas', 'icone' => 'solicitacoes.png'];
-    $menuItens[] = ['url' => '/pagina-protetor',   'label' => 'Página',                 'icone' => 'pagina.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/animais/cadastrar',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
+    $menuItens[] = ['url' => URL_BASE . '/solicitacoes',         'label' => 'Solicitações Recebidas', 'icone' => 'solicitacoes.png'];
+    $menuItens[] = ['url' => URL_BASE . '/pagina-protetor',      'label' => 'Página',                 'icone' => 'pagina.svg'];
 
 // ---------------- PERFIL: ADOTANTE ----------------
 } elseif ($tipoPerfil === 'adotante') {
-    $menuItens[] = ['url' => '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' => '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/feed',                 'label' => 'Feed',                   'icone' => 'dashboard.svg',        'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
 
 // ---------------- PERFIL: USUÁRIO GENÉRICO ----------------
 } elseif ($tipoPerfil === 'usuario') {
-    $menuItens[] = ['url' => '/perfil/completar', 'label' => 'Completar Perfil', 'icone' => 'perfil.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/perfil/completar',    'label' => 'Completar Perfil',       'icone' => 'perfil.svg'];
 }
 
 $estaLogado = $tipoPerfil !== null;
 $itemAuth   = $estaLogado
-    ? ['url' => '/logout', 'label' => 'Sair',              'icone' => 'logout.svg']
-    : ['url' => '/login',  'label' => 'Entrar', 'icone' => 'login2.svg'];
+    ? ['url' => URL_BASE . '/logout', 'label' => 'Sair',   'icone' => 'logout.svg']
+    : ['url' => URL_BASE . '/login',  'label' => 'Entrar', 'icone' => 'login2.svg'];
 
 // PEGA A URL ATUAL (Apenas o caminho, ignora parâmetros como ?simular_perfil)
 $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -91,8 +91,8 @@ $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     <header class="sticky top-0 z-50 h-16 bg-primary shadow-md">
         <div class="relative flex h-full items-center gap-3 px-4 sm:px-6">
 
-            <a href="/" id="logo-header" class="flex items-center shrink-0 gap-2" aria-label="CãoNectados — página inicial">
-                <img src="<?= e(BASE_URL) ?>/assets/img/logo.png"
+            <a href="<?= URL_BASE ?>/" id="logo-header" class="flex items-center shrink-0 gap-2" aria-label="CãoNectados — página inicial">
+                <img src="<?= e(URL_BASE) ?>/assets/img/logo.png"
                     alt="CãoNectados"
                     class="h-16 w-auto sm:h-18 lg:h-18">
                 <span class="hidden whitespace-nowrap font-shantell text-2xl font-bold leading-tight text-white lg:inline">
@@ -116,7 +116,7 @@ $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
                 <button type="button"
                     class="relative rounded-lg p-2 text-white transition hover:bg-white/20"
                     aria-label="Notificações">
-                    <img src="<?= e(BASE_URL) ?>/assets/icons/navbar/notificacao.svg"
+                    <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/notificacao.svg"
                         alt=""
                         aria-hidden="true"
                         class="h-8 w-8">
@@ -148,10 +148,10 @@ $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
                         // LÓGICA DE ITEM ATIVO
                         $ehAtivo = false;
-                        if ($item['url'] === '/') {
+                        if ($item['url'] === URL_BASE . '/') {
                             $ehAtivo = ($uriAtual === '/' || preg_match('/public\/?(?:index\.php)?$/', $uriAtual));
                         } else {
-                            $ehAtivo = (strpos($uriAtual, $item['url']) !== false);
+                            $ehAtivo = (strpos($uriAtual, parse_url($item['url'], PHP_URL_PATH)) !== false);
                         }
                         $classeTexto = $ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white';
                     ?>
@@ -187,7 +187,8 @@ $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
                 <li>
                     <?php 
-                        $authAtivo = (strpos($uriAtual, $itemAuth['url']) !== false);
+                        $pathAuth = parse_url($itemAuth['url'], PHP_URL_PATH);
+                        $authAtivo = (strpos($uriAtual, $pathAuth) !== false);
                         $classeAuthTexto = $authAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : ($estaLogado ? 'text-white' : 'font-semibold text-white');
                     ?>
                     <a href="<?= e($itemAuth['url']) ?>"
@@ -213,10 +214,11 @@ $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
                 <?php 
                     // LÓGICA DE ITEM ATIVO
                     $ehAtivo = false;
-                    if ($item['url'] === '/') {
+                    $itemPath = parse_url($item['url'], PHP_URL_PATH);
+                    if ($item['url'] === URL_BASE . '/') {
                         $ehAtivo = ($uriAtual === '/' || preg_match('/public\/?(?:index\.php)?$/', $uriAtual));
                     } else {
-                        $ehAtivo = (strpos($uriAtual, $item['url']) !== false);
+                        $ehAtivo = (strpos($uriAtual, $itemPath) !== false);
                     }
                     $classeTexto = $ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white';
                 ?>
