@@ -19,5 +19,13 @@ $router->post('/animais/reativar', 'AnimaisController@reativar');
 $router->post('/animais/excluir', 'AnimaisController@destroy');
 
 
+$router->get('/regioes', 'RegioesController@index');
+$router->get('/regioes/cadastrar', 'RegioesController@create');
+$router->get('/regioes/editar', 'RegioesController@edit');
+$router->get('/regioes/excluir', 'RegioesController@deleteView');
+
+$router->post('/regioes/salvar', 'RegioesController@store');
+$router->post('/regioes/atualizar', 'RegioesController@update');
+$router->post('/regioes/deletar', 'RegioesController@destroy');
 
 $router->run();
