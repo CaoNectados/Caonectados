@@ -7,9 +7,7 @@ class Regioes
     private ?int $regiaoId = null;
     private string $nomeRegiao;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function getRegiaoId(): ?int
     {

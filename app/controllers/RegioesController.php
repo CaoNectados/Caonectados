@@ -19,7 +19,7 @@ class RegioesController extends Controller
         $this->db = new PDO(
             'mysql:host=localhost;dbname=caonectados;charset=utf8mb4',
             'root',
-            'leticia2007'
+            ''
         );
 
         $repository = new RegioesRepository($this->db);

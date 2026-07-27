@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Listar Bairros</title>
 </head>
+
 <body>
     <h1>Bairros Cadastrados</h1>
 
@@ -25,7 +27,7 @@
                         <td><?= $r->getRegiaoId(); ?></td>
                         <td><?= htmlspecialchars($r->getNomeRegiao()); ?></td>
                         <td>
-                            <a href="/regioes/editar?id=<?= $r->getRegiaoId(); ?>">Editar</a> | 
+                            <a href="/regioes/editar?id=<?= $r->getRegiaoId(); ?>">Editar</a> |
                             <a href="/regioes/excluir?id=<?= $r->getRegiaoId(); ?>">Excluir</a>
                         </td>
                     </tr>
@@ -38,4 +40,5 @@
         </tbody>
     </table>
 </body>
+
 </html>
