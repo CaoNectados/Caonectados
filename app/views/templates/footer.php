@@ -24,6 +24,73 @@
     
     </div> 
 
+    <div id="modal-feedback" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">
+            <h2 id="titulo-modal-feedback" class="text-xl font-bold mb-3 font-shantell"></h2>
+            <p id="texto-modal-feedback" class="text-text-dark mb-6 text-sm sm:text-base leading-relaxed font-poppins"></p>
+            <button id="btn-modal-feedback" onclick="fecharModalFeedback()" class="w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins">
+                Entendido
+            </button>
+        </div>
+    </div>
+
     <script src="<?= e(URL_BASE) ?>/assets/js/menu.js" defer></script>
+
+    <script>
+        // Função para fechar o modal
+        function fecharModalFeedback() {
+            const modal = document.getElementById('modal-feedback');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+
+        // NOVA FUNÇÃO GLOBAL: Pode ser chamada de qualquer arquivo JS do sistema
+        function mostrarModalFeedback(tipo, mensagem) {
+            const titulos = {
+                erro:        'Ops! Algo deu errado',
+                aviso:       'Atenção!',
+                sucesso:     'Sucesso!',
+                informativo: 'Informação'
+            };
+
+            const classesCores = {
+                erro:        { texto: 'text-erro', bg: 'bg-erro' },
+                aviso:       { texto: 'text-aviso', bg: 'bg-aviso' },
+                sucesso:     { texto: 'text-sucesso', bg: 'bg-sucesso' },
+                informativo: { texto: 'text-informativo', bg: 'bg-informativo' }
+            };
+
+            const tipoFeedback = tipo || 'informativo';
+            const cores = classesCores[tipoFeedback] || classesCores.informativo;
+
+            const elTitulo = document.getElementById('titulo-modal-feedback');
+            const elTexto = document.getElementById('texto-modal-feedback');
+            const elBtn = document.getElementById('btn-modal-feedback');
+            const modal = document.getElementById('modal-feedback');
+
+            // Limpa classes anteriores e aplica as novas
+            elTitulo.className = 'text-xl font-bold mb-3 font-shantell ' + cores.texto;
+            elBtn.className = 'w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins ' + cores.bg;
+
+            elTitulo.innerText = titulos[tipoFeedback] || titulos.informativo;
+            elTexto.innerText = mensagem;
+
+            // Exibe o modal
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+    </script>
+
+    <!-- Dispara o modal se houver feedback vindo do PHP na sessão -->
+    <?php if (isset($_SESSION['feedback'])): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const feedback = <?= json_encode($_SESSION['feedback']) ?>;
+            mostrarModalFeedback(feedback.tipo, feedback.mensagem);
+        });
+    </script>
+    <?php unset($_SESSION['feedback']); ?>
+    <?php endif; ?>
+
 </body>
 </html>

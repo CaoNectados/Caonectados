@@ -1,11 +1,13 @@
 <?php
+
 namespace app\models;
+
+use PDO;
 
 class Regiao
 {
     private int $regiao_id;
     private string $nome_regiao;
-
     public function getRegiaoId(): int
     {
         return $this->regiao_id;
@@ -25,4 +27,5 @@ class Regiao
     {
         $this->nome_regiao = $nome;
     }
+
 }

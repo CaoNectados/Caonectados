@@ -6,27 +6,9 @@ use app\core\Controller;
 
 class ProtetoresController extends Controller
 {
-    public function index()
+    public function __construct()
     {
-    }
-
-    public function create()
-    {
-    }
-
-    public function store()
-    {
-    }
-
-    public function edit()
-    {
-    }
-
-    public function update()
-    {
-    }
-
-    public function destroy()
-    {
+       
+        $this->autenticacaoRequired(['protetor']);
     }
 }

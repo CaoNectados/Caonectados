@@ -6,27 +6,9 @@ use app\core\Controller;
 
 class TutoresController extends Controller
 {
-    public function index()
+  public function __construct()
     {
-    }
-
-    public function create()
-    {
-    }
-
-    public function store()
-    {
-    }
-
-    public function edit()
-    {
-    }
-
-    public function update()
-    {
-    }
-
-    public function destroy()
-    {
+        // aqui só permita acesso se for ong, vamos usar esse método para proteger as rotas que são restritas
+        $this->autenticacaoRequired(['tutor']);
     }
 }

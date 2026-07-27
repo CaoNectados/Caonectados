@@ -24,8 +24,10 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     regiao_id INT UNSIGNED NULL,
     telefone VARCHAR(20) NOT NULL,
     senha VARCHAR(255) NOT NULL,
-    tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'administrador') NOT NULL DEFAULT 'usuario',
-    status_conta ENUM('pendente', 'ativo', 'bloqueado', 'inativo') NOT NULL DEFAULT 'pendente',
+    -- ATUALIZADO: Adicionado 'ong' ao tipo_perfil
+    tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'ong', 'administrador') NOT NULL DEFAULT 'usuario',
+    -- ATUALIZADO: Usaremos este campo para bloquear os menus. Padrão no cadastro é 'pendente'
+    status_conta ENUM('pendente', 'ativo', 'bloqueado', 'rejeitado', 'inativo') NOT NULL DEFAULT 'pendente',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email VARCHAR(150) NOT NULL,
     nome VARCHAR(150) NOT NULL,
@@ -47,6 +49,8 @@ CREATE TABLE IF NOT EXISTS TUTOR (
     descricao TEXT NULL,
     tamanho_interno_morada ENUM('pequeno', 'medio', 'grande') NULL,
     detalhes TEXT NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deletado_em TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_tutor_usuario
         FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id)
         ON UPDATE CASCADE
@@ -60,6 +64,9 @@ CREATE TABLE IF NOT EXISTS PROTETOR (
     codigo_documento VARCHAR(20) NOT NULL,
     tipo_documento ENUM('cpf', 'cnpj') NOT NULL,
     nome_fantasia VARCHAR(45) NOT NULL,
+    comprovante_documento VARCHAR(255) NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deletado_em TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_protetor_usuario
         FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id)
         ON UPDATE CASCADE
@@ -115,6 +122,7 @@ CREATE TABLE IF NOT EXISTS PAGINA (
     descricao TEXT NULL,
     foto_fundo VARCHAR(255) NULL,
     foto_perfil VARCHAR(255) NULL,
+    chave_pix VARCHAR(255) NULL,
     CONSTRAINT fk_pagina_protetor
         FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id)
         ON UPDATE CASCADE
@@ -252,7 +260,6 @@ CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
 -- ===========================================
 -- REGIÕES (Bairros de Foz do Iguaçu)
 -- ===========================================
-
 INSERT INTO REGIAO (nome_regiao) VALUES
 ('Alto da Boa Vista'),
 ('Bourbon'),
@@ -291,3 +298,40 @@ INSERT INTO REGIAO (nome_regiao) VALUES
 ('Profilurb I'),
 ('Profilurb II'),
 ('Três Lagoas');
+
+-- ===========================================
+-- ESPÉCIES
+-- ===========================================
+INSERT INTO ESPECIE (nome) VALUES
+('Cachorro'),
+('Gato'),
+('Ave'),
+('Roedor'),
+('Coelho');
+
+-- ===========================================
+-- RAÇAS (Mais comuns no Brasil)
+-- ===========================================
+INSERT INTO RACA (especie_id, nome) VALUES
+(1, 'Sem Raça Definida (SRD) / Vira-lata'),
+(1, 'Shih Tzu'),
+(1, 'Yorkshire Terrier'),
+(1, 'Poodle'),
+(1, 'Pinscher'),
+(1, 'Bulldog Francês'),
+(1, 'Golden Retriever'),
+(1, 'Labrador'),
+(1, 'Pug'),
+(1, 'Spitz Alemão / Lulu da Pomerânia'),
+(1, 'Pitbull'),
+(1, 'Rottweiler'),
+(1, 'Dachshund (Salsicha)'),
+(1, 'Border Collie'),
+(1, 'Pastor Alemão'),
+(2, 'Sem Raça Definida (SRD) / Vira-lata'),
+(2, 'Siamês'),
+(2, 'Persa'),
+(2, 'Angorá'),
+(2, 'Maine Coon'),
+(2, 'Bengal'),
+(2, 'Sphynx');

@@ -7,18 +7,21 @@ use PDO;
 
 class TutorRepository
 {
-    public function salvar(Tutor $tutor, PDO $pdo): bool
+    public function salvar(Tutor $tutor, PDO $pdo): int
     {
-        $sql = "INSERT INTO TUTORES (usuario_id, tipo_moradia, tamanho_interno_moradia, tamanho_externo_moradia, detalhes) 
-                VALUES (:usuario_id, :tipo_moradia, :tamanho_interno_moradia, :tamanho_externo_moradia, :detalhes)";
+        $sql = "INSERT INTO TUTOR (usuario_id, tipo_morada, foto_perfil, descricao, tamanho_interno_morada, detalhes) 
+                VALUES (:usuario_id, :tipo_morada, :foto_perfil, :descricao, :tamanho_interno_morada, :detalhes)";
 
         $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':usuario_id', $tutor->getUsuarioId());
-        $stmt->bindValue(':tipo_moradia', $tutor->getTipoMoradia());
-        $stmt->bindValue(':tamanho_interno_moradia', $tutor->getTamanhoInternoMoradia());
-        $stmt->bindValue(':tamanho_externo_moradia', $tutor->getTamanhoExternoMoradia());
+        $stmt->bindValue(':usuario_id', $tutor->getUsuarioId(), PDO::PARAM_INT);
+        $stmt->bindValue(':tipo_morada', $tutor->getTipoMorada());
+        $stmt->bindValue(':foto_perfil', $tutor->getFotoPerfil());
+        $stmt->bindValue(':descricao', $tutor->getDescricao());
+        $stmt->bindValue(':tamanho_interno_morada', $tutor->getTamanhoInternoMoradia());
         $stmt->bindValue(':detalhes', $tutor->getDetalhes());
 
-        return $stmt->execute();
+        $stmt->execute();
+
+        return (int) $pdo->lastInsertId();
     }
 }
