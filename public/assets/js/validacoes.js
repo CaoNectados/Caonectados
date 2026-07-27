@@ -17,7 +17,7 @@ const CaonectadosValidator = {
         });
 
         inputHidden.value = encontradoId;
-        return encontradoId !== ''; // Retorna true se achou, false se não achou
+        return encontradoId !== '';
     },
 
     // 2. Valida CPF matematicamente
@@ -87,20 +87,49 @@ const CaonectadosValidator = {
             const tamanhoEmMB = inputElement.files[0].size / (1024 * 1024);
             return tamanhoEmMB <= tamanhoMaximoMB;
         }
-        return true; // Se não tem arquivo, passa (a validação de 'required' pega isso depois se precisar)
+        return true;
     },
 
-    // 6. Verifica todos os campos obrigatórios de um container (div ou form)
-    validarCamposObrigatorios: function(containerElement) {
-        const campos = containerElement.querySelectorAll('[required]');
-        let valido = true;
+    // 6. Valida links de redes sociais (INSTAGRAM E FACEBOOK)
+    validarLinkSocial: function(url, rede) {
+        if (!url || url.trim() === '') return true;
 
-        campos.forEach(campo => {
-            if (!campo.checkValidity()) {
-                campo.reportValidity();
-                valido = false;
+        let link = url.trim().toLowerCase();
+        if (!link.startsWith('http://') && !link.startsWith('https://')) {
+            link = 'https://' + link;
+        }
+
+        try {
+            const parsedUrl = new URL(link);
+            if (rede === 'instagram') {
+                return parsedUrl.hostname.includes('instagram.com');
             }
-        });
-        return valido;
+            if (rede === 'facebook') {
+                return parsedUrl.hostname.includes('facebook.com');
+            }
+            return true;
+        } catch (_) {
+            return false;
+        }
+    },
+
+    // 7. Valida Chave PIX (E-mail, CPF, CNPJ, Telefone ou Aleatória)
+    validarChavePix: function(chave) {
+        if (!chave || chave.trim() === '') return true;
+        const c = chave.trim();
+
+        // Email
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return true;
+
+        // Numéricos (CPF, CNPJ ou Telefone)
+        const numeros = c.replace(/[^\d]+/g, '');
+        if (numeros.length === 11) return this.isCpfValido(numeros);
+        if (numeros.length === 14) return this.isCnpjValido(numeros);
+        if (numeros.length === 10 || numeros.length === 11) return true;
+
+        // Chave Aleatória EVP
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c)) return true;
+
+        return false;
     }
 };
