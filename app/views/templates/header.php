@@ -11,9 +11,6 @@ $statusConta = $_SESSION['status_conta'] ?? 'ativo';
 $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $menuItens = [];
 
-// ==================================================================
-// MIDDLEWARE: QUARENTENA TOTAL PARA CONTAS PENDENTES
-// ==================================================================
 $isPendente = (($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') && $statusConta === 'pendente');
 
 if ($isPendente) {
@@ -69,9 +66,10 @@ if ($tipoPerfil === 'administrador') {
 
     // ---------------- PERFIL: ADOTANTE ----------------
 } elseif ($tipoPerfil === 'adotante') {
-    // ... [Mantenha os itens de adotante iguais aos que você já tem] ...
-    $menuItens[] = ['url' => URL_BASE . '/feed',                 'label' => 'Feed',                   'icone' => 'dashboard.svg',        'apenas_desktop' => true];
-    // ... adicione o resto ...
+    $menuItens[] = ['url' =>  URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg',      'apenas_desktop' => true];
+    $menuItens[] = ['url' =>  URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' =>  URL_BASE .'/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
+    $menuItens[] = ['url' =>  URL_BASE .'/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
 }
 
 // ---------------- PERFIL: USUÁRIO GENÉRICO ----------------

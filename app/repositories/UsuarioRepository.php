@@ -57,4 +57,46 @@ class UsuarioRepository
         
         return $usuario;
     }
+
+
+    // Busca todos os usuários ativos, bloqueados ou pendentes (ignora os deletados)
+    public function buscarTodos(\PDO $pdo): array
+    {
+        $sql = "SELECT * FROM USUARIO WHERE deletado_em IS NULL ORDER BY criado_em DESC";
+        $stmt = $pdo->query($sql);
+        
+        $usuarios = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $usuario = new \app\models\Usuario();
+            $usuario->setUsuarioId($row['usuario_id']);
+            $usuario->setNome($row['nome']);
+            $usuario->setEmail($row['email']);
+            $usuario->setStatusConta($row['status_conta']);
+            $usuario->setTipoAtual($row['tipo_perfil']);
+            $usuarios[] = $usuario;
+        }
+        return $usuarios;
+    }
+
+    // Soft Delete: Marca o usuário como inativo e registra a data da exclusão
+    public function inativar(int $usuarioId, \PDO $pdo): void
+    {
+        $sql = "UPDATE USUARIO SET status_conta = 'inativo', deletado_em = CURRENT_TIMESTAMP WHERE usuario_id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id' => $usuarioId]);
+    }
+
+    // Atualização Geral pelo Admin
+    public function atualizar(\app\models\Usuario $usuario, \PDO $pdo): void
+    {
+        $sql = "UPDATE USUARIO SET nome = :nome, email = :email, status_conta = :status, tipo_perfil = :tipo WHERE usuario_id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            'nome'   => $usuario->getNome(),
+            'email'  => $usuario->getEmail(),
+            'status' => $usuario->getStatusConta(),
+            'tipo'   => $usuario->getTipoAtual(),
+            'id'     => $usuario->getUsuarioId()
+        ]);
+    }
 }

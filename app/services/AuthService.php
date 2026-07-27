@@ -6,6 +6,7 @@ use app\database\ConnectionFactory;
 use app\models\Usuario;
 use app\repositories\UsuarioRepository;
 use Exception;
+use PDO;
 
 class AuthService
 {
@@ -43,8 +44,11 @@ class AuthService
             throw new Exception("E-mail ou senha inválidos.");
         }
 
-        if ($usuario->getStatusConta() === 'BLOQUEADA') {
-            throw new Exception("Sua conta está bloqueada. Entre em contato com o suporte.");
+        $statusConta = strtolower((string)$usuario->getStatusConta());
+
+        // Bloqueio de contas restritas
+        if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado', 'bloqueada'])) {
+            throw new Exception("Sua conta está inativa ou bloqueada. Entre em contato com o suporte.");
         }
 
         return $usuario;
@@ -56,12 +60,48 @@ class AuthService
             session_start();
         }
         
-        // Armazena o objeto ou os dados essenciais na sessão
+        $tipoPerfil = strtolower((string)($usuario->getTipoAtual() ?? 'usuario'));
+        $statusConta = strtolower((string)($usuario->getStatusConta() ?? 'pendente'));
+
+        // 1. Define os dados de autenticação na SESSÃO
+        $_SESSION['usuario_id']    = $usuario->getUsuarioId();
+        $_SESSION['usuario_email'] = $usuario->getEmail();
+        $_SESSION['usuario_nome']  = $usuario->getNome();
+        $_SESSION['tipo_conta']    = $tipoPerfil;
+        $_SESSION['status_conta']  = $statusConta;
+
         $_SESSION['usuario_logado'] = (object) [
             'usuario_id' => $usuario->getUsuarioId(),
-            'email' => $usuario->getEmail(),
-            'tipo_atual' => $usuario->getTipoAtual()
+            'email'      => $usuario->getEmail(),
+            'tipo_atual' => $tipoPerfil
         ];
+
+        // 2. VERIFICAÇÃO DA NOTIFICAÇÃO DE APROVAÇÃO (ONG / PROTETOR)
+        if (in_array($tipoPerfil, ['ong', 'protetor']) && $statusConta === 'ativo') {
+            $pdo = ConnectionFactory::getConnection();
+
+            // Busca notificação do sistema não lida para o usuário
+            $sql = "SELECT notificacao_id FROM NOTIFICACAO 
+                    WHERE usuario_id = :id 
+                      AND tipo_notificacao = 'sistema' 
+                      AND lida = FALSE 
+                    LIMIT 1";
+                    
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['id' => $usuario->getUsuarioId()]);
+            $notificacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Se for o primeiro login após a aprovação, ativa as variáveis da modal
+            if ($notificacao) {
+                $_SESSION['boas_vindas_nome'] = $usuario->getNome();
+                $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
+
+                // Marca como LIDA para nunca mais aparecer nos logins futuros
+                $sqlMark = "UPDATE NOTIFICACAO SET lida = TRUE WHERE notificacao_id = :notif_id";
+                $stmtMark = $pdo->prepare($sqlMark);
+                $stmtMark->execute(['notif_id' => $notificacao['notificacao_id']]);
+            }
+        }
     }
 
     public function encerrarSessao(): void

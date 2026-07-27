@@ -335,3 +335,18 @@ INSERT INTO RACA (especie_id, nome) VALUES
 (2, 'Maine Coon'),
 (2, 'Bengal'),
 (2, 'Sphynx');
+
+-- ===========================================
+-- USUÁRIO ADMINISTRADOR 
+-- ===========================================
+INSERT INTO USUARIO (telefone, senha, tipo_perfil, status_conta, email, nome, num_morada, cpf) 
+VALUES (
+    '45900000000', 
+    '$2y$10$w095tE50XzWp.H8H6/hQ8OG4/gY5.fU4W0W8I7kM3Q4O5M3Z6Z.Wq', 
+    'administrador', 
+    'ativo', 
+    'caonectados2026@gmail.com', 
+    'Admin CãoNectados', 
+    '0', 
+    '00000000000'
+);

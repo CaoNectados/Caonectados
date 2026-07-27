@@ -22,7 +22,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function processarLogin()
+   public function processarLogin()
     {
         $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
@@ -42,23 +42,50 @@ class AuthController extends Controller
             $this->redirecionarComMensagem('erro', 'E-mail ou senha incorretos.', '/login');
         }
 
-        $_SESSION['usuario_id'] = $user->usuario_id;
-        $_SESSION['usuario_email'] = $user->email;
-        $_SESSION['tipo_conta'] = $user->tipo_perfil ?? $user->tipo_atual ?? null;
+        // Pega as propriedades do model/array tratadas
+        $tipoPerfil = $user->tipo_perfil ?? $user->tipo_atual ?? 'usuario';
+        $statusConta = $user->status_conta ?? 'pendente';
 
-        if (empty($user->tipo_perfil) || $user->tipo_perfil === 'usuario') {
-            $this->view('onboarding/selecionar_perfil', [
-                'titulo'    => 'Selecionar Perfil',
-                'descricao' => 'Escolha o tipo de perfil que deseja criar.',
-            ]);
-        } else {
-            $this->view('home/index', [
-                'titulo'    => 'Home',
-                'descricao' => 'Plataforma de adoção de animais da tríplice fronteira. '
-                             . 'Conectamos pets que precisam de um lar com humanos dispostos a dar muito amor.',
-            ]);
+        // 1. Bloqueio de contas inativas ou banidas
+        if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado'])) {
+            $this->redirecionarComMensagem('erro', 'Sua conta está inativa ou bloqueada. Entre em contato com o suporte.', '/login');
         }
-        exit;
+
+        // 2. Preenchimento das variáveis de SESSÃO
+        $_SESSION['usuario_id']    = $user->usuario_id;
+        $_SESSION['usuario_email'] = $user->email;
+        $_SESSION['usuario_nome']  = $user->nome;
+        $_SESSION['tipo_conta']    = $tipoPerfil;
+        $_SESSION['status_conta']  = $statusConta;
+
+        // 3. Redirecionamento por estado do usuário
+
+        // Caso A: Usuário novo (não completou onboarding)
+        if (empty($tipoPerfil) || $tipoPerfil === 'usuario') {
+            $this->redirect('/onboarding');
+        }
+
+        // Caso B: ONG/Protetor ainda aguardando validação do Administrador
+        if ($statusConta === 'pendente') {
+            $this->redirect('/aguardando-aprovacao');
+        }
+
+        // Caso C: Admin logando
+        if ($tipoPerfil === 'administrador') {
+            $this->redirect('/admin/gerenciar-usuarios');
+        }
+
+        // Caso D: ONG ou Protetor recém-aprovado acessando a conta
+        if (in_array($tipoPerfil, ['ong', 'protetor']) && $statusConta === 'ativo') {
+            // Seta a sessão para disparar o modal de boas-vindas no footer
+            $_SESSION['boas_vindas_nome'] = $user->nome;
+            $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
+
+            $this->redirect('/home');
+        }
+
+        // Caso E: Adotante/Tutor ativo
+        $this->redirect('/home');
     }
 
     public function cadastro()

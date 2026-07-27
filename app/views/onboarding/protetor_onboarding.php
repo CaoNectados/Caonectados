@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
 $tipo_perfil = $tipo_perfil ?? 'cpf';
-// Verifica o tipo de perfil enviado pelo Controller para mudar os textos dinamicamente
 $isOng = ($tipo_perfil === 'cnpj');
 
 $titulo_etapa1    = $isOng ? "Vamos validar sua ONG" : "Vamos validar seu perfil";
@@ -13,10 +12,8 @@ $placeholder_doc  = $isOng ? "00.000.000/0000-00" : "000.000.000-00";
 $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 ?>
 
-<!-- Action aponta para o novo método unificado -->
 <form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4">
 
-    <!-- Campo oculto para avisar o banco se é 'cpf' ou 'cnpj' -->
     <input type="hidden" name="tipo_documento" value="<?= $tipo_perfil ?>">
 
     <!-- BARRA DE PROGRESSO -->
@@ -43,15 +40,12 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         <div class="space-y-4 mb-6">
             <div>
                 <label for="nome_fantasia" class="block font-medium mb-1"><?= $label_nome ?></label>
-                <input type="text" name="nome_fantasia" id="nome_fantasia" placeholder="<?= $placeholder_nome ?>" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                <input type="text" name="nome_fantasia" id="nome_fantasia" placeholder="<?= $placeholder_nome ?>" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
 
             <div>
                 <label for="cnpj_cpf" class="block font-medium mb-1"><?= $label_doc ?></label>
-                <!-- Removido o required genérico daqui, pois vamos validar manualmente -->
-                <input type="text" name="cnpj_cpf" id="cnpj_cpf" placeholder="<?= $placeholder_doc ?>" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
-                
-                <!-- MENSAGEM DE ERRO OCULTA -->
+                <input type="text" name="cnpj_cpf" id="cnpj_cpf" placeholder="<?= $placeholder_doc ?>" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
                 <p id="erro-documento" class="text-xs text-red-500 mt-1 hidden">O documento informado é inválido.</p>
             </div>
         </div>
@@ -71,7 +65,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
         <div class="mb-6 relative">
             <label for="input-busca-bairro" class="block font-medium mb-1">Pesquise seu Bairro / Região *</label>
-            <input type="text" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." required autocomplete="off" oninput="sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            <input type="text" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -101,22 +95,22 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         <div class="space-y-4 mb-6">
             <div>
                 <label for="descricao" class="block font-medium mb-1">Descrição / Causa *</label>
-                <textarea name="descricao" id="descricao" rows="3" required placeholder="Mínimo de 1-2 parágrafos para apresentar a causa..." class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-300"></textarea>
+                <textarea name="descricao" id="descricao" rows="3" placeholder="Mínimo de 15 caracteres apresentando a causa..." class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-300"></textarea>
             </div>
 
             <div>
-                <label for="instagram" class="block font-medium mb-1">Instagram</label>
-                <input type="text" name="instagram" id="instagram" placeholder="Ex: @seu_instagram" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                <label for="instagram" class="block font-medium mb-1">Link do Instagram</label>
+                <input type="text" name="instagram" id="instagram" placeholder="https://instagram.com/seu_perfil" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
 
             <div>
-                <label for="facebook" class="block font-medium mb-1">Facebook</label>
-                <input type="text" name="facebook" id="facebook" placeholder="Ex: facebook.com/seu_perfil" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                <label for="facebook" class="block font-medium mb-1">Link do Facebook</label>
+                <input type="text" name="facebook" id="facebook" placeholder="https://facebook.com/seu_perfil" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
 
             <div>
                 <label for="chave_pix" class="block font-medium mb-1">Chave PIX para doações</label>
-                <input type="text" name="chave_pix" id="chave_pix" placeholder="E-mail, CNPJ, CPF ou Telefone" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                <input type="text" name="chave_pix" id="chave_pix" placeholder="E-mail, CNPJ, CPF, Celular ou Chave Aleatória" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
         </div>
 
@@ -169,9 +163,18 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 <label for="comprovante_documento" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
                     Anexar documento
                 </label>
-                <input type="file" name="comprovante_documento" id="comprovante_documento" required onchange="exibirNomeArquivo(this)" class="hidden">
+                <input type="file" name="comprovante_documento" id="comprovante_documento" onchange="exibirNomeArquivo(this)" class="hidden">
             </div>
             <p id="nome-arquivo-selecionado" class="text-xs text-green-700 font-bold mt-2"></p>
+        </div>
+        <!-- Aceite de Termos (LGPD) -->
+        <div class="mb-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="aceite_termos" required class="mt-1 w-5 h-5 text-pink-500 rounded focus:ring-pink-400">
+                <span class="text-xs text-gray-600 leading-relaxed">
+                    Li e concordo com o <strong>Termo de Responsabilidade</strong>. Declaro ser maior de 18 anos e autorizo o CãoNectados a armazenar meus dados conforme a LGPD para fins de intermediação de adoções. Compreendo que a plataforma não possui responsabilidade legal ou logística sobre o processo de adoção.
+                </span>
+            </label>
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -180,8 +183,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         </div>
     </div>
 </form>
-<script src="<?= URL_BASE ?>/assets/js/validacoes.js"></script>
-<script src="<?= URL_BASE ?>/assets/js/validacoes.js"></script>
+
 <script>
     let etapaAtual = 1;
     const totalEtapas = 5;
@@ -200,7 +202,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
             if (i <= etapaAtual) {
                 elProgresso.classList.remove('bg-gray-300');
-                elProgresso.classList.add('bg-green-500'); 
+                elProgresso.classList.add('bg-green-500');
             } else {
                 elProgresso.classList.remove('bg-green-500');
                 elProgresso.classList.add('bg-gray-300');
@@ -232,10 +234,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
     }
 
     function proximaEtapa() {
-        const etapaDiv = document.getElementById(`etapa-${etapaAtual}`);
-
-        // --- VALIDAÇÕES POR ETAPA DO PROTETOR/ONG ---
-
         // ETAPA 1: Nome Fantasia e CPF/CNPJ
         if (etapaAtual === 1) {
             const nomeInput = document.getElementById('nome_fantasia');
@@ -247,10 +245,11 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
             const inputDoc = document.getElementById('cnpj_cpf');
             const msgErroDoc = document.getElementById('erro-documento');
-            
+
             if (inputDoc.value.trim() === '' || !CaonectadosValidator.validarDocumento(inputDoc.value)) {
                 msgErroDoc.classList.remove('hidden');
                 inputDoc.classList.add('border-red-500', 'ring-red-300');
+                mostrarModalFeedback('erro', "Informe um número de CPF ou CNPJ válido.");
                 inputDoc.focus();
                 return;
             } else {
@@ -268,17 +267,39 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
             if (!inputHidden.value) {
                 msgErro.classList.remove('hidden');
+                mostrarModalFeedback('aviso', "Por favor, selecione um bairro válido da lista.");
                 document.getElementById('input-busca-bairro').focus();
                 return;
             }
         }
 
-        // ETAPA 3: Descrição/Causa
+        // ETAPA 3: Descrição, Links e PIX
         if (etapaAtual === 3) {
             const descricao = document.getElementById('descricao');
             if (descricao.value.trim().length < 15) {
                 mostrarModalFeedback('aviso', "Por favor, forneça uma breve descrição da sua causa (mínimo de 15 caracteres).");
                 descricao.focus();
+                return;
+            }
+
+            const insta = document.getElementById('instagram').value.trim();
+            if (insta !== '' && !CaonectadosValidator.validarLinkSocial(insta, 'instagram')) {
+                mostrarModalFeedback('erro', "Informe um link válido do Instagram (Ex: instagram.com/sua_ong).");
+                document.getElementById('instagram').focus();
+                return;
+            }
+
+            const face = document.getElementById('facebook').value.trim();
+            if (face !== '' && !CaonectadosValidator.validarLinkSocial(face, 'facebook')) {
+                mostrarModalFeedback('erro', "Informe um link válido do Facebook (Ex: facebook.com/sua_ong).");
+                document.getElementById('facebook').focus();
+                return;
+            }
+
+            const pix = document.getElementById('chave_pix').value.trim();
+            if (pix !== '' && pix.length < 5) {
+                mostrarModalFeedback('erro', "Informe uma Chave PIX válida.");
+                document.getElementById('chave_pix').focus();
                 return;
             }
         }
@@ -305,18 +326,8 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             }
         }
 
-        // Validação genérica HTML5 para campos required
-        const camposObrigatorios = etapaDiv.querySelectorAll('[required]');
-        let valido = true;
-
-        camposObrigatorios.forEach(campo => {
-            if (!campo.checkValidity()) {
-                campo.reportValidity();
-                valido = false;
-            }
-        });
-
-        if (valido && etapaAtual < totalEtapas) {
+        // Se a etapa passou por todas as validações sem cair nos 'return', avança
+        if (etapaAtual < totalEtapas) {
             etapaAtual++;
             atualizarVisualEtapas();
         }
@@ -338,7 +349,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         if (input.files && input.files[0]) {
             const leitor = new FileReader();
 
-            leitor.onload = function (e) {
+            leitor.onload = function(e) {
                 imgPreview.src = e.target.result;
                 imgPreview.classList.remove('hidden');
                 placeholder.classList.add('hidden');
@@ -362,5 +373,4 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
 <?php
 require_once __DIR__ . '/../templates/footer.php';
-
 ?>

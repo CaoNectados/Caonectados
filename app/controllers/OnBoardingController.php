@@ -22,7 +22,7 @@ class OnboardingController extends Controller
         $this->regiaoRepo = new RegiaoRepository();
         $this->especieRepo = new EspecieRepository();
 
-        $this->autenticacaoRequired(); 
+        $this->autenticacaoRequired();
     }
 
     public function index()
@@ -56,7 +56,7 @@ class OnboardingController extends Controller
         $this->view('onboarding/protetor_onboarding', [
             'titulo'      => 'Cadastro de ONG',
             'regioes'     => $regioes,
-            'tipo_perfil' => 'cnpj' 
+            'tipo_perfil' => 'cnpj'
         ]);
     }
 
@@ -68,7 +68,7 @@ class OnboardingController extends Controller
         $this->view('onboarding/protetor_onboarding', [
             'titulo'      => 'Cadastro de Protetor',
             'regioes'     => $regioes,
-            'tipo_perfil' => 'cpf' 
+            'tipo_perfil' => 'cpf'
         ]);
     }
 
@@ -82,28 +82,47 @@ class OnboardingController extends Controller
                     throw new Exception("Sessão expirada. Faça login novamente.");
                 }
 
-                // 1. Sanitizar todos os dados para evitar ataques XSS
-                $dadosLimpos = ValidationService::sanitizarArray($_POST);
+                // 1. Validar campos obrigatórios nos dados brutos
+                ValidationService::validarCamposObrigatorios($_POST, ['nome_fantasia', 'cnpj_cpf', 'regiao_id']);
 
-                // 2. Verificar se os campos essenciais estão preenchidos
-                ValidationService::validarCamposObrigatorios($dadosLimpos, ['nome_fantasia', 'cnpj_cpf', 'regiao_id']);
+                // 2. Validar CPF ou CNPJ
+                $tipoDoc = $_POST['tipo_documento'] ?? 'cpf';
+                $documento = $_POST['cnpj_cpf'];
 
-                // 3. Validar se o documento é válido matematicamente
-                $tipoDoc = $dadosLimpos['tipo_documento'] ?? 'cpf';
-                $documento = $dadosLimpos['cnpj_cpf'];
+                if ($tipoDoc === 'cnpj') {
+                    if (!ValidationService::validarCnpj($documento)) {
+                        throw new Exception("O CNPJ informado possui um formato inválido.");
+                    }
 
-                if ($tipoDoc === 'cnpj' && !ValidationService::validarCnpj($documento)) {
-                    throw new Exception("O CNPJ informado é inválido.");
-                } elseif ($tipoDoc === 'cpf' && !ValidationService::validarCpf($documento)) {
-                    throw new Exception("O CPF informado é inválido.");
+                    if (!ValidationService::verificarExistenciaCnpjReal($documento)) {
+                        throw new Exception("O CNPJ informado não consta como ativo na Receita Federal.");
+                    }
+                } else {
+                    if (!ValidationService::validarCpf($documento)) {
+                        throw new Exception("O CPF informado possui um formato inválido.");
+                    }
                 }
 
-                // Passamos $dadosLimpos ao invés de $_POST cru para o Service
+                // 3. Validar links sociais e chave PIX ANTES de sanitizar as strings
+                if (!empty($_POST['instagram']) && !ValidationService::validarLinkRedeSocial($_POST['instagram'], 'instagram')) {
+                    throw new Exception("O link informado para o Instagram é inválido.");
+                }
+
+                if (!empty($_POST['facebook']) && !ValidationService::validarLinkRedeSocial($_POST['facebook'], 'facebook')) {
+                    throw new Exception("O link informado para o Facebook é inválido.");
+                }
+
+                if (!empty($_POST['chave_pix']) && !ValidationService::validarChavePix($_POST['chave_pix'])) {
+                    throw new Exception("A Chave PIX informada não é válida.");
+                }
+
+                // 4. Sanitizar os dados apenas ao final antes de enviar para o banco
+                $dadosLimpos = ValidationService::sanitizarArray($_POST);
+
                 $this->onboardingService->processarOng($dadosLimpos, $_FILES, $usuarioId);
 
                 $this->redirect('/aguardando-aprovacao');
             } catch (Exception $e) {
-                // Se qualquer validação falhar, o usuário é jogado de volta com a mensagem de erro
                 $this->redirecionarComMensagem('erro', $e->getMessage(), '/onboarding', $e->getMessage());
             }
         }
@@ -128,7 +147,11 @@ class OnboardingController extends Controller
                 // Passamos os dados já higienizados para o Service
                 $this->onboardingService->processarTutor($dadosLimpos, $_FILES, $usuarioId);
 
-                $this->redirecionarComMensagem('sucesso', 'Cadastro de tutor realizado com sucesso!', '/home');
+                // 3. DISPARA O MODAL DE BOAS-VINDAS NO FEED
+                $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
+                $_SESSION['boas_vindas_tipo'] = 'adotante';
+
+                $this->redirect('/feed');
             } catch (Exception $e) {
                 $this->redirecionarComMensagem('erro', $e->getMessage(), '/onboarding/tutor', $e->getMessage());
             }

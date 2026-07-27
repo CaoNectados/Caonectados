@@ -4,6 +4,7 @@
  */
 ?>
     </main>
+    <?php require_once __DIR__ . '/modal_boas_vindas.php'; ?>
     <footer class="relative border-t border-white/10 bg-primary text-white shadow-[0_-6px_18px_rgba(0,0,0,0.18)]">
         <img src="<?= e(URL_BASE) ?? '' ?>/assets/img/cachorrorodape.png"
              alt=""
@@ -24,6 +25,7 @@
     
     </div> 
 
+    <!-- Modal Unificado de Feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
         <div class="bg-white rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">
             <h2 id="titulo-modal-feedback" class="text-xl font-bold mb-3 font-shantell"></h2>
@@ -34,17 +36,18 @@
         </div>
     </div>
 
+    <!-- 1. Scripts globais da aplicação -->
     <script src="<?= e(URL_BASE) ?>/assets/js/menu.js" defer></script>
+    <script src="<?= e(URL_BASE) ?>/assets/js/validacoes.js"></script>
 
+    <!-- 2. Lógica do Modal de Feedback -->
     <script>
-        // Função para fechar o modal
         function fecharModalFeedback() {
             const modal = document.getElementById('modal-feedback');
             modal.classList.add('hidden');
             modal.style.display = 'none';
         }
 
-        // NOVA FUNÇÃO GLOBAL: Pode ser chamada de qualquer arquivo JS do sistema
         function mostrarModalFeedback(tipo, mensagem) {
             const titulos = {
                 erro:        'Ops! Algo deu errado',
@@ -68,14 +71,12 @@
             const elBtn = document.getElementById('btn-modal-feedback');
             const modal = document.getElementById('modal-feedback');
 
-            // Limpa classes anteriores e aplica as novas
             elTitulo.className = 'text-xl font-bold mb-3 font-shantell ' + cores.texto;
             elBtn.className = 'w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins ' + cores.bg;
 
             elTitulo.innerText = titulos[tipoFeedback] || titulos.informativo;
             elTexto.innerText = mensagem;
 
-            // Exibe o modal
             modal.classList.remove('hidden');
             modal.style.display = 'flex';
         }
