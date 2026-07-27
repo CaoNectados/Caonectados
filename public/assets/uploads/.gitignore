@@ -1,0 +1,8 @@
+# Ignora todos os arquivos desta pasta
+*
+
+# Mas NÃO ignora o próprio arquivo .gitignore
+!.gitignore
+
+
+!.htaccess
