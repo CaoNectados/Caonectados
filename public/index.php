@@ -28,4 +28,25 @@ $router->post('/regioes/salvar', 'RegioesController@store');
 $router->post('/regioes/atualizar', 'RegioesController@update');
 $router->post('/regioes/deletar', 'RegioesController@destroy');
 
+// --- ESPÉCIES ---
+$router->get('/especies', 'EspeciesController@index');
+$router->get('/especies/cadastrar', 'EspeciesController@create');
+$router->post('/especies/salvar', 'EspeciesController@store');
+$router->get('/especies/editar', 'EspeciesController@edit');
+$router->post('/especies/atualizar', 'EspeciesController@update');
+$router->get('/especies/excluir', 'EspeciesController@deleteView');
+$router->post('/especies/deletar', 'EspeciesController@destroy');
+$router->get('/especies/reativar', 'EspeciesController@reativar');
+
+// --- RAÇAS ---
+$router->get('/racas', 'RacasController@index');
+$router->get('/racas/cadastrar', 'RacasController@create');
+$router->post('/racas/salvar', 'RacasController@store');
+$router->get('/racas/editar', 'RacasController@edit');
+$router->post('/racas/atualizar', 'RacasController@update');
+$router->get('/racas/excluir', 'RacasController@deleteView');
+$router->post('/racas/deletar', 'RacasController@destroy');
+$router->post('/racas/importar', 'RacasController@importar');
+$router->get('/racas/reativar', 'RacasController@reativar');
+
 $router->run();

@@ -287,3 +287,17 @@ INSERT INTO `REGIOES` (`nome_regiao`) VALUES
 ('Lote Grande'),
 ('Remanso'),
 ('Parque Nacional');
+
+
+INSERT INTO `ESPECIES` (`especie_id`, `nome`) VALUES (1, 'Cão'), (2, 'Gato');
+
+INSERT INTO `RACA` (`nome`, `especie_id`) VALUES 
+('Sem Raça Definida (SRD)', 1),
+('Labrador Retriever', 1),
+('Poodle', 1),
+('Sem Raça Definida (SRD)', 2),
+('Siamês', 2),
+('Persa', 2);
+
+ALTER TABLE ESPECIES ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE RACA ADD COLUMN ativo BOOLEAN NOT NULL DEFAULT TRUE;

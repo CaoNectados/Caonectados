@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Editar Bairro</title>
 </head>
+
 <body>
     <h1>Editar Bairro</h1>
 
@@ -21,4 +23,5 @@
     <br>
     <a href="/regioes">Voltar para a lista</a>
 </body>
+
 </html>

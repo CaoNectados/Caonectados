@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Cadastrar Bairro</title>
 </head>
+
 <body>
     <h1>Cadastrar Novo Bairro</h1>
 
@@ -17,4 +19,5 @@
     <br>
     <a href="/regioes">Voltar para a lista</a>
 </body>
+
 </html>
