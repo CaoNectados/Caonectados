@@ -12,7 +12,7 @@ $placeholder_doc  = $isOng ? "00.000.000/0000-00" : "000.000.000-00";
 $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 ?>
 
-<form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" onsubmit="return validarEnvioFinal(event)" class="max-w-md mx-auto p-4">
+<form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4">
 
     <input type="hidden" name="tipo_documento" value="<?= $tipo_perfil ?>">
 
@@ -48,6 +48,10 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 <label for="cnpj_cpf" class="block font-medium mb-1"><?= $label_doc ?></label>
                 <input type="text" name="cnpj_cpf" id="cnpj_cpf" placeholder="<?= $placeholder_doc ?>" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
                 <p id="erro-documento" class="text-xs text-red-500 mt-1 hidden">O documento informado é inválido.</p>
+            </div>
+            <div>
+                <label for="dt_nasc" class="block font-medium mb-1">Data de Nascimento *</label>
+                <input type="date" name="dt_nasc" id="dt_nasc" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
         </div>
 
@@ -171,12 +175,11 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium">Ler os Termos</span>
-            <!-- BOTAO ALTERADO PARA AVANÇAR E NAO ENVIAR -->
             <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-pink-200 text-xl font-bold flex items-center justify-center">&rarr;</button>
         </div>
     </div>
 
-    <!-- ETAPA 6: TERMOS DE RESPONSABILIDADE (NOVA) -->
+    <!-- ETAPA 6: TERMOS DE RESPONSABILIDADE -->
     <div class="etapa-form hidden" id="etapa-6">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold mb-2 font-shantell">Termos de Responsabilidade</h1>
@@ -208,7 +211,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
 <script>
     let etapaAtual = 1;
-    const totalEtapas = 6; // Atualizado para 6
+    const totalEtapas = 6; 
     const urlSelecionarPerfil = "<?= URL_BASE ?>/onboarding";
 
     function atualizarVisualEtapas() {
@@ -256,7 +259,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
     }
 
     function proximaEtapa() {
-        // ETAPA 1: Nome Fantasia e CPF/CNPJ
         if (etapaAtual === 1) {
             const nomeInput = document.getElementById('nome_fantasia');
             if (nomeInput.value.trim().length < 3) {
@@ -265,13 +267,34 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 return;
             }
 
+            const dataNasc = document.getElementById('dt_nasc');
+            if (!dataNasc.value) {
+                mostrarModalFeedback('erro', "Informe sua data de nascimento.");
+                dataNasc.focus();
+                return;
+            }
+
             const inputDoc = document.getElementById('cnpj_cpf');
             const msgErroDoc = document.getElementById('erro-documento');
+            const tipoDoc = document.querySelector('input[name="tipo_documento"]').value;
+            
+            const docLimpo = inputDoc.value.replace(/[^\d]+/g, '');
+            let docValido = false;
+            let msgErroEspecifica = "";
 
-            if (inputDoc.value.trim() === '' || !CaonectadosValidator.validarDocumento(inputDoc.value)) {
+            if (tipoDoc === 'cnpj') {
+                docValido = (docLimpo.length === 14 && CaonectadosValidator.isCnpjValido(docLimpo));
+                msgErroEspecifica = "Informe um CNPJ válido com 14 dígitos.";
+            } else {
+                docValido = (docLimpo.length === 11 && CaonectadosValidator.isCpfValido(docLimpo));
+                msgErroEspecifica = "Informe um CPF válido com 11 dígitos.";
+            }
+
+            if (inputDoc.value.trim() === '' || !docValido) {
+                msgErroDoc.innerText = msgErroEspecifica;
                 msgErroDoc.classList.remove('hidden');
                 inputDoc.classList.add('border-red-500', 'ring-red-300');
-                mostrarModalFeedback('erro', "Informe um número de CPF ou CNPJ válido.");
+                mostrarModalFeedback('erro', msgErroEspecifica);
                 inputDoc.focus();
                 return;
             } else {
@@ -280,7 +303,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             }
         }
 
-        // ETAPA 2: Bairro/Região
         if (etapaAtual === 2) {
             const inputHidden = document.getElementById('regiao_id_hidden');
             const msgErro = document.getElementById('erro-bairro-invalido');
@@ -295,7 +317,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             }
         }
 
-        // ETAPA 3: Descrição, Links e PIX
         if (etapaAtual === 3) {
             const descricao = document.getElementById('descricao');
             if (descricao.value.trim().length < 15) {
@@ -326,7 +347,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             }
         }
 
-        // ETAPA 4: Foto de Perfil
         if (etapaAtual === 4) {
             const fotoInput = document.getElementById('foto_perfil');
             if (fotoInput.files.length > 0 && !CaonectadosValidator.validarTamanhoArquivo(fotoInput, 2)) {
@@ -335,7 +355,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             }
         }
 
-        // ETAPA 5: VALIDAÇÃO ANTES DOS TERMOS (Comprovante)
         if (etapaAtual === 5) {
             const docInput = document.getElementById('comprovante_documento');
             if (docInput.files.length === 0) {
@@ -354,16 +373,14 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         }
     }
 
-    function validarEnvioFinal(event) {
-        // Valida apenas a caixinha na etapa final
+    // Função de validação isolada para ser chamada no AJAX
+    function validarEnvioFinal() {
         const aceiteTermos = document.querySelector('input[name="aceite_termos"]');
         if (!aceiteTermos || !aceiteTermos.checked) {
-            event.preventDefault();
             mostrarModalFeedback('aviso', "Você deve ler e concordar com os Termos de Responsabilidade para continuar.");
             aceiteTermos.focus();
             return false;
         }
-
         return true;
     }
 
@@ -403,6 +420,42 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
     }
 
     document.addEventListener('DOMContentLoaded', atualizarVisualEtapas);
+
+    // ==========================================
+    // INTERCEPTAÇÃO DO ENVIO (AJAX)
+    // ==========================================
+    document.querySelector('form').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+
+        if (!validarEnvioFinal()) return; 
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const btnTextoOriginal = btnSubmit.innerHTML;
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Enviando...';
+
+        try {
+            const response = await fetch(form.action, { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = btnTextoOriginal;
+                mostrarModalFeedback('erro', result.mensagem); 
+            } else if (result.status === 'sucesso') {
+                if (typeof limparAutoSave === 'function') limparAutoSave();
+                
+                window.location.href = result.redirect_url;
+            }
+        } catch (error) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = btnTextoOriginal;
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    });
 </script>
 
 <?php

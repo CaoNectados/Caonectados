@@ -1,36 +1,36 @@
 <?php
 
-namespace app\controllers;
+namespace app\controllers\admin;
 
 use app\core\Controller;
-use app\repositories\EspecieRepository;
+use app\repositories\RegiaoRepository;
 use app\database\ConnectionFactory;
 use Exception;
 
-class EspecieController extends Controller
+class RegiaoController extends Controller
 {
-    private EspecieRepository $especieRepo;
+    private RegiaoRepository $regiaoRepo;
 
     public function __construct()
     {
-        $this->especieRepo = new EspecieRepository();
+        $this->regiaoRepo = new RegiaoRepository();
     }
 
     /**
      * Endpoint para requisições AJAX/Fetch do JavaScript
-     * Rota sugerida: /especies/json
+     * Rota sugerida: /regioes/json
      */
     public function buscarJson()
     {
         try {
             $pdo = ConnectionFactory::getConnection();
-            $especies = $this->especieRepo->buscarTodas($pdo);
+            $regioes = $this->regiaoRepo->buscarTodas($pdo);
             
             header('Content-Type: application/json');
-            echo json_encode(['sucesso' => true, 'dados' => $especies]);
+            echo json_encode(['sucesso' => true, 'dados' => $regioes]);
         } catch (Exception $e) {
             header('Content-Type: application/json', true, 500);
-            echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao buscar espécies.']);
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao buscar regiões.']);
         }
         exit;
     }

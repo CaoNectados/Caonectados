@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
-<form id="form-onboarding-tutor" action="<?= URL_BASE ?>/onboarding/salvar-tutor" method="POST" enctype="multipart/form-data" onsubmit="return validarEnvioFinal(event)" class="max-w-md mx-auto p-4">
+<form id="form-onboarding-tutor" action="<?= URL_BASE ?>/onboarding/salvar-tutor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4">
 
     <!-- BARRA DE PROGRESSO GLOBAL (AGORA COM 5 ETAPAS) -->
     <div class="flex justify-center gap-2 mb-6">
@@ -132,7 +132,12 @@ require_once __DIR__ . '/../templates/header.php';
 
             <h1 class="text-2xl font-bold mb-2 font-shantell">Como podemos te chamar?</h1>
             <input type="text" name="nome_usuario" id="nome_usuario" placeholder="Digite seu nome aqui" class="w-full p-2 border rounded-lg mb-6 text-center focus:ring-2 focus:ring-pink-300">
-
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label for="dt_nasc" class="block font-medium mb-1">Data de Nascimento *</label>
+                    <input type="date" name="dt_nasc" id="dt_nasc" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                </div>
+            </div>
             <p class="text-sm text-gray-600 mb-6">Selecione suas preferências para montarmos o seu feed perfeito. Você pode escolher mais de uma opção!</p>
 
             <div class="space-y-4 mb-6 text-left">
@@ -202,7 +207,6 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium">Ler os Termos</span>
-            <!-- BOTAO ALTERADO PARA AVANÇAR E NAO ENVIAR -->
             <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-pink-200 text-xl font-bold flex items-center justify-center">&rarr;</button>
         </div>
     </div>
@@ -240,7 +244,7 @@ require_once __DIR__ . '/../templates/header.php';
 
 <script>
     let etapaAtual = 1;
-    const totalEtapas = 5; // Atualizado para 5
+    const totalEtapas = 5;
     const urlSelecionarPerfil = "<?= URL_BASE ?>/onboarding";
 
     function atualizarVisualEtapas() {
@@ -291,9 +295,7 @@ require_once __DIR__ . '/../templates/header.php';
         if (etapaAtual === 1) {
             const inputHidden = document.getElementById('regiao_id_hidden');
             const msgErro = document.getElementById('erro-bairro-invalido');
-
             sincronizarRegiaoId();
-
             if (!inputHidden.value) {
                 msgErro.classList.remove('hidden');
                 mostrarModalFeedback('aviso', "Por favor, selecione um bairro válido da lista.");
@@ -306,7 +308,6 @@ require_once __DIR__ . '/../templates/header.php';
             const moradia = document.getElementById('tipo_moradia').value;
             const interior = document.getElementById('espaco_interior').value;
             const externo = document.getElementById('espaco_externo').value;
-
             if (!moradia || !interior || !externo) {
                 mostrarModalFeedback('aviso', "Por favor, preencha todas as perguntas sobre a sua moradia.");
                 return;
@@ -316,19 +317,23 @@ require_once __DIR__ . '/../templates/header.php';
         if (etapaAtual === 3) {
             const criancas = document.getElementById('possui_criancas').value;
             const pets = document.getElementById('possui_outros_pets').value;
-
             if (!criancas || !pets) {
                 mostrarModalFeedback('aviso', "Por favor, responda às perguntas sobre convivência.");
                 return;
             }
         }
 
-        // VALIDAÇÃO DA ETAPA 4 ANTES DE IR PROS TERMOS
         if (etapaAtual === 4) {
             const nomeInput = document.getElementById('nome_usuario');
             if (!nomeInput || nomeInput.value.trim().length < 2) {
                 mostrarModalFeedback('erro', "Por favor, informe seu nome corretamente para prosseguir.");
                 nomeInput.focus();
+                return;
+            }
+            const dataNasc = document.getElementById('dt_nasc');
+            if (!dataNasc || !dataNasc.value) {
+                mostrarModalFeedback('erro', "Por favor, informe sua data de nascimento.");
+                dataNasc.focus();
                 return;
             }
 
@@ -345,16 +350,14 @@ require_once __DIR__ . '/../templates/header.php';
         }
     }
 
-    function validarEnvioFinal(event) {
-        // Valida apenas a caixinha na etapa final
+    // Função separada para validar os Termos
+    function validarEnvioFinal() {
         const aceiteTermos = document.querySelector('input[name="aceite_termos"]');
         if (!aceiteTermos || !aceiteTermos.checked) {
-            event.preventDefault();
             mostrarModalFeedback('aviso', "Você deve ler e concordar com os Termos de Responsabilidade para continuar.");
             aceiteTermos.focus();
             return false;
         }
-
         return true;
     }
 
@@ -381,6 +384,45 @@ require_once __DIR__ . '/../templates/header.php';
     }
 
     document.addEventListener('DOMContentLoaded', atualizarVisualEtapas);
+
+    // ==========================================
+    // INTERCEPTAÇÃO DO ENVIO (AJAX)
+    // ==========================================
+    document.querySelector('form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        if (!validarEnvioFinal()) return;
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const btnTextoOriginal = btnSubmit.innerHTML;
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Enviando...';
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = btnTextoOriginal;
+                mostrarModalFeedback('erro', result.mensagem);
+            } else if (result.status === 'sucesso') {
+                if (typeof limparAutoSave === 'function') limparAutoSave();
+
+                window.location.href = result.redirect_url;
+            }
+        } catch (error) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = btnTextoOriginal;
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    });
 </script>
 
 <?php

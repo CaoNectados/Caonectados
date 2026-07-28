@@ -7,53 +7,74 @@ use app\core\Router;
 
 $router = new Router();
 
-// Home rotas
-$router->get('/', 'HomeController@index');
-$router->get('/home', 'HomeController@index');
-// RF 1 - Manter usuário rotas
 
-    // Rotas do Onboarding
-    $router->get('/onboarding', 'OnboardingController@index');
-    $router->get('/onboarding/tutor', 'OnboardingController@tutor');
-    $router->get('/onboarding/ong', 'OnboardingController@ong');
-    $router->get('/onboarding/protetor', 'OnboardingController@protetor');
+// ==========================================
+// ROTAS DE PÁGINAS PÚBLICAS
+// ==========================================
+    $router->get('/', 'geral/HomeController@index');
+    $router->get('/home', 'geral/HomeController@index');
+
+
+// ==========================================
+// ROTAS ONBOARDING
+// ==========================================
+    $router->get('/onboarding', 'onboarding/OnboardingController@index');
+    $router->get('/onboarding/tutor', 'onboarding/OnboardingController@tutor');
+    $router->get('/onboarding/ong', 'onboarding/OnboardingController@ong');
+    $router->get('/onboarding/protetor', 'onboarding/OnboardingController@protetor');
 
     // Rotas de submissão do formulário dados
-    $router->post('/onboarding/salvar-tutor', 'OnboardingController@salvarTutor');
-    $router->post('/onboarding/salvar-protetor', 'OnboardingController@salvarProtetor');
-
-    //Tela espera para validação
-    $router->get('/aguardando-aprovacao', 'OnboardingController@aguardandoAprovacao');
-
-    // Rota para listar os usuários (admin)
-    $router->get('/admin/gerenciar-usuarios', 'AdminUsuarioController@index');
-
-    // Rotas para Edição (admin)
-    $router->get('/admin/gerenciar-usuarios/editar/{id}', 'AdminUsuarioController@editar');
-    $router->post('/admin/gerenciar-usuarios/atualizar/{id}', 'AdminUsuarioController@atualizar');
-
-    // Rota para Exclusão (Inativação, apenas para admin)
-    $router->get('/admin/gerenciar-usuarios/deletar/{id}', 'AdminUsuarioController@deletar');
+    $router->post('/onboarding/salvar-tutor', 'onboarding/OnboardingController@salvarTutor');
+    $router->post('/onboarding/salvar-protetor', 'onboarding/OnboardingController@salvarProtetor');
+    $router->post('/onboarding/aguardando-aprovacao', 'onboarding/OnboardingController@aguardandoAprovacao');
 
 
-// Rotas do feed
-$router->get('/feed', 'FeedController@feed');
 
-// Autenticação rotas
-    $router->get('/login', 'AuthController@login');
-    $router->post('/login', 'AuthController@processarLogin');
-    $router->get('/cadastro', 'AuthController@cadastro');
-    $router->post('/cadastro', 'AuthController@processarCadastro');
+// ==========================================
+// ROTAS PROTETOR, ONG, TUTOR E ADMIN
+// ==========================================
+$router->get('/feed', 'geral/FeedController@feed');
 
-    $router->get('/logout', 'AuthController@logout');
+    // ==========================================
+    // ROTAS DE PERFIL
+    $router->get('/perfil', 'geral/PerfilController@perfil');
+    $router->get('/perfil', 'geral/PerfilController@index');
+    $router->get('/perfil/editar', 'geral/PerfilController@editar');
+    $router->post('/perfil/atualizar', 'geral/PerfilController@atualizar');
+    $router->get('/perfil/editar-foto', 'geral/PerfilController@editarFoto');
+    $router->post('/perfil/atualizar-foto', 'geral/PerfilController@atualizarFoto');
+// ==========================================
+// ROTAS DE AUTENTICAÇÃO
+// ==========================================
+    $router->get('/login', 'auth/AuthController@login');
+    $router->post('/login', 'auth/AuthController@processarLogin');
+    $router->get('/cadastro', 'auth/AuthController@cadastro');
+    $router->post('/cadastro', 'auth/AuthController@processarCadastro');
+
+    $router->get('/logout', 'auth/AuthController@logout');
     // Rotas de verificação de e-mail
-    $router->get('/verificar-email', 'AuthController@telaVerificacao');
-    $router->post('/verificar-email/validar', 'AuthController@processarVerificacao');
-    $router->get('/reenviar-codigo', 'AuthController@reenviarCodigo');
+    $router->get('/verificar-email', 'auth/AuthController@telaVerificacao');
+    $router->post('/verificar-email/validar', 'auth/AuthController@processarVerificacao');
+    $router->get('/reenviar-codigo', 'auth/AuthController@reenviarCodigo');
     // Recuperação de Senha
-    $router->get('/esqueci-senha', 'AuthController@esqueciSenha');
-    $router->post('/esqueci-senha/processar', 'AuthController@processarEsqueciSenha');
-    $router->get('/redefinir-senha', 'AuthController@redefinirSenha');
+    $router->get('/esqueci-senha', 'auth/AuthController@esqueciSenha');
+    $router->post('/esqueci-senha/processar', 'auth/AuthController@processarEsqueciSenha');
+    $router->get('/redefinir-senha', 'auth/AuthController@redefinirSenha');
     $router->post('/redefinir-senha/processar', 'AuthController@processarRedefinirSenha');
+
+
+// ==========================================
+// ROTAS DO ADMINISTRADOR 
+// ==========================================
+
+    // Dashboard
+    $router->get('/admin/dashboard', 'admin/DashboardController@index');
+    
+    // Solicitações de Cadastro
+    $router->get('/admin/validacao-cadastros', 'admin/SolicitacaoController@index');
+    
+    // Gerenciamento de Usuários
+    $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
+
 
 $router->run();

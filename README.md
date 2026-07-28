@@ -51,7 +51,23 @@ A organização do projeto segue uma arquitetura MVC customizada, com separaçã
 	- URL base apontando para a pasta `public` do projeto
 5. No MySQL, importe o arquivo [app/database/scripts/scripts.sql](app/database/scripts/scripts.sql) para criar o banco e as tabelas.
 6. Configure o projeto para ser executado pela pasta `public` como diretório de entrada.
-7. Acesse a aplicação pelo navegador usando o endereço local configurado no XAMPP.
+7. Abra o terminal na pasta raiz do projeto clonado e execute o comando abaixo para baixar as dependências do PHP:
+   ```bash
+   composer install
+8. Acesse a aplicação pelo navegador usando o endereço local configurado no XAMPP.
+
+## Como Instalar o Composer (Passo a Passo Básico)
+O Composer é o gerenciador de pacotes do PHP, essencial para baixar bibliotecas externas do projeto (como o envio de e-mails).
+
+1. Acesse o site oficial do Composer: [getcomposer.org](https://getcomposer.org/)
+2. Clique em **Download** e baixe o instalador para o seu sistema operacional (`Composer-Setup.exe` para Windows).
+3. Execute o instalador baixado:
+   - Durante a instalação, ele vai procurar o executável do PHP na sua máquina (geralmente localizado em `C:\xampp\php\php.exe`). Confirme o caminho se necessário.
+   - Siga clicando em *Next* até finalizar a instalação.
+4. Para testar se deu certo, abra o seu terminal (Prompt de Comando ou Git Bash) e digite:
+   ```bash
+   composer --version
+
 
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista

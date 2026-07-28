@@ -1,6 +1,6 @@
 <?php
 
-namespace app\controllers;
+namespace app\controllers\geral;
 
 use app\core\Controller;
 use app\repositories\FeedRepository;

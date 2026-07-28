@@ -99,4 +99,66 @@ class UsuarioRepository
             'id'     => $usuario->getUsuarioId()
         ]);
     }
+    /**
+     * Busca os dados de um usuário específico pelo ID.
+     */
+    public function buscarPorId(int $usuarioId, PDO $pdo): ?array
+    {
+        $sql = "SELECT * FROM USUARIO WHERE usuario_id = :id AND deletado_em IS NULL";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':id', $usuarioId, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $dados = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        return $dados ?: null;
+    }
+
+    /**
+     * Atualiza as informações do perfil do usuário.
+     */
+    public function atualizarPerfil(array $dados, PDO $pdo): bool
+    {
+        $sql = "UPDATE USUARIO 
+                SET nome = :nome, 
+                    telefone = :telefone, 
+                    dt_nasc = :dt_nasc, 
+                    regiao_id = :regiao_id, 
+                    num_morada = :num_morada, 
+                    obs_casa = :obs_casa 
+                WHERE usuario_id = :usuario_id";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':nome', $dados['nome']);
+        $stmt->bindValue(':telefone', $dados['telefone']);
+        $stmt->bindValue(':dt_nasc', $dados['dt_nasc']);
+        $stmt->bindValue(':regiao_id', $dados['regiao_id']);
+        $stmt->bindValue(':num_morada', $dados['num_morada']);
+        $stmt->bindValue(':obs_casa', $dados['obs_casa']);
+        $stmt->bindValue(':usuario_id', $dados['usuario_id'], \PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+    public function atualizarDadosGerais(int $usuarioId, string $nome, string $telefone, string $email, ?string $senhaHash, ?int $regiaoId, string $numMorada, ?string $obsCasa, PDO $pdo): bool
+    {
+        if ($senhaHash) {
+            $sql = "UPDATE USUARIO SET nome = :nome, telefone = :telefone, email = :email, senha = :senha, regiao_id = :regiao_id, num_morada = :num_morada, obs_casa = :obs_casa WHERE usuario_id = :id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':senha', $senhaHash);
+        } else {
+            $sql = "UPDATE USUARIO SET nome = :nome, telefone = :telefone, email = :email, regiao_id = :regiao_id, num_morada = :num_morada, obs_casa = :obs_casa WHERE usuario_id = :id";
+            $stmt = $pdo->prepare($sql);
+        }
+
+        $stmt->bindValue(':nome', $nome);
+        $stmt->bindValue(':telefone', $telefone);
+        $stmt->bindValue(':email', $email);
+        $stmt->bindValue(':regiao_id', $regiaoId, $regiaoId ? PDO::PARAM_INT : PDO::PARAM_NULL);
+        $stmt->bindValue(':num_morada', $numMorada);
+        $stmt->bindValue(':obs_casa', $obsCasa);
+        $stmt->bindValue(':id', $usuarioId, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
 }

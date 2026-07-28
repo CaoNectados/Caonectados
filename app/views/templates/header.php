@@ -38,11 +38,16 @@ if ($tipoPerfil === null) {
 
 // ---------------- PERFIL: ADMINISTRADOR ----------------
 if ($tipoPerfil === 'administrador') {
-    // ... [Mantenha os itens de admin iguais aos que você já tem] ...
-    $menuItens[] = ['url' => URL_BASE . '/pesquisar',               'label' => 'Pesquisar',                  'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
-    $menuItens[] = ['url' => URL_BASE . '/perfil',                  'label' => 'Perfil',                     'icone' => 'perfil.svg',           'apenas_desktop' => true];
-    $menuItens[] = ['url' => URL_BASE . '/admin/dashboard',         'label' => 'Dashboard',                  'icone' => 'dashboard.svg'];
-    // ... adicione o resto ...
+     $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Perfil',    'icone' => 'perfil.svg',    'apenas_desktop' => true];
+
+    $menuItens[] = ['url' => URL_BASE . '/admin/dashboard', 'label' => 'Dashboard', 'icone' => 'dashboard.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/solicitacoes', 'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários', 'icone' => 'usuarios.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-bairros', 'label' => 'Gerenciar Bairros', 'icone' => 'bairros.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/denuncias', 'label' => 'Denúncias', 'icone' => 'denuncia.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/auditoria-logs', 'label' => 'Auditoria e Logs', 'icone' => 'auditoria.svg'];
 
     // ---------------- PERFIL: PROTETOR OU ONG ----------------
 } elseif ($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') {
@@ -105,7 +110,7 @@ $itemAuth   = $estaLogado
             }
         })();
     </script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
     <?php include __DIR__ . '/tailwind_config.php'; ?>
 </head>
 

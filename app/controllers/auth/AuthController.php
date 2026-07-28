@@ -1,6 +1,6 @@
 <?php
 
-namespace app\controllers;
+namespace app\controllers\auth;
 
 use app\core\Controller;
 use app\models\Usuario;
@@ -14,6 +14,20 @@ class AuthController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+    }
+
+    /**
+     * Função auxiliar para retornar respostas em JSON para o AJAX
+     */
+    private function responderJson(string $status, string $mensagem, ?string $redirectUrl = null)
+    {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status'       => $status,
+            'mensagem'     => $mensagem,
+            'redirect_url' => $redirectUrl
+        ]);
+        exit;
     }
 
     public function login()
@@ -30,64 +44,48 @@ class AuthController extends Controller
         $senha = $_POST['senha'] ?? '';
 
         if (empty($email) || empty($senha)) {
-            $this->redirecionarComMensagem('erro', 'Por favor, preencha todos os campos.', '/login');
+            $this->responderJson('erro', 'Por favor, preencha todos os campos.');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->redirecionarComMensagem('erro', 'Informe um e-mail válido.', '/login');
+            $this->responderJson('erro', 'Informe um e-mail válido.');
         }
 
         $usuarioModel = new Usuario();
         $user = $usuarioModel->findByEmail($email);
 
         if (!$user || !password_verify($senha, $user->senha)) {
-            $this->redirecionarComMensagem('erro', 'E-mail ou senha incorretos.', '/login');
+            $this->responderJson('erro', 'E-mail ou senha incorretos.');
         }
 
-        // Pega as propriedades do model/array tratadas
         $tipoPerfil = $user->tipo_perfil ?? $user->tipo_atual ?? 'usuario';
         $statusConta = $user->status_conta ?? 'pendente';
 
-        // 1. Bloqueio de contas inativas ou banidas
         if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado'])) {
-            $this->redirecionarComMensagem('erro', 'Sua conta está inativa ou bloqueada. Entre em contato com o suporte.', '/login');
+            $this->responderJson('erro', 'Sua conta está inativa ou bloqueada. Entre em contato com o suporte.');
         }
 
-        // 2. Preenchimento das variáveis de SESSÃO
         $_SESSION['usuario_id']    = $user->usuario_id;
         $_SESSION['usuario_email'] = $user->email;
         $_SESSION['usuario_nome']  = $user->nome;
         $_SESSION['tipo_conta']    = $tipoPerfil;
         $_SESSION['status_conta']  = $statusConta;
 
-        // 3. Redirecionamento por estado do usuário
+        // Define a URL de redirecionamento baseada no status/tipo
+        $urlRedirect = '/home';
 
-        // Caso A: Usuário novo (não completou onboarding)
         if (empty($tipoPerfil) || $tipoPerfil === 'usuario') {
-            $this->redirect('/onboarding');
-        }
-
-        // Caso B: ONG/Protetor ainda aguardando validação do Administrador
-        if ($statusConta === 'pendente') {
-            $this->redirect('/aguardando-aprovacao');
-        }
-
-        // Caso C: Admin logando
-        if ($tipoPerfil === 'administrador') {
-            $this->redirect('/admin/gerenciar-usuarios');
-        }
-
-        // Caso D: ONG ou Protetor recém-aprovado acessando a conta
-        if (in_array($tipoPerfil, ['ong', 'protetor']) && $statusConta === 'ativo') {
-            // Seta a sessão para disparar o modal de boas-vindas no footer
+            $urlRedirect = '/onboarding';
+        } elseif ($statusConta === 'pendente') {
+            $urlRedirect = '/aguardando-aprovacao';
+        } elseif ($tipoPerfil === 'administrador') {
+            $urlRedirect = '/admin/dashboard';
+        } elseif (in_array($tipoPerfil, ['ong', 'protetor']) && $statusConta === 'ativo') {
             $_SESSION['boas_vindas_nome'] = $user->nome;
             $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
-
-            $this->redirect('/home');
         }
 
-        // Caso E: Adotante/Tutor ativo
-        $this->redirect('/home');
+        $this->responderJson('sucesso', 'Login efetuado com sucesso!', URL_BASE . $urlRedirect);
     }
 
     public function cadastro()
@@ -98,7 +96,7 @@ class AuthController extends Controller
         ]);
     }
 
-   public function processarCadastro()
+    public function processarCadastro()
     {
         $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
@@ -106,32 +104,31 @@ class AuthController extends Controller
         $tipoPerfil = 'usuario';
 
         if (empty($email) || empty($senha) || empty($senha_confirmacao)) {
-            $this->redirecionarComMensagem('erro', 'Todos os campos são obrigatórios.', '/cadastro');
+            $this->responderJson('erro', 'Todos os campos são obrigatórios.');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->redirecionarComMensagem('erro', 'Insira um formato de e-mail válido.', '/cadastro');
+            $this->responderJson('erro', 'Insira um formato de e-mail válido.');
         }
 
         if ($senha !== $senha_confirmacao) {
-            $this->redirecionarComMensagem('erro', 'As senhas não coincidem.', '/cadastro');
+            $this->responderJson('erro', 'As senhas não coincidem.');
         }
 
         if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
-            $this->redirecionarComMensagem('erro', 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.', '/cadastro');
+            $this->responderJson('erro', 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.');
         }
 
         $usuarioModel = new Usuario();
 
         if ($usuarioModel->findByEmail($email)) {
-            $this->redirecionarComMensagem('erro', 'Este e-mail já está cadastrado em nosso sistema.', '/cadastro');
+            $this->responderJson('erro', 'Este e-mail já está cadastrado em nosso sistema.');
         }
 
         $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
         $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
-        // Salva os dados temporariamente na SESSÃO (sem inserir na tabela USUARIO ainda)
         $_SESSION['pendente_cadastro'] = [
             'email'       => $email,
             'senha'       => $hashSenha,
@@ -141,11 +138,9 @@ class AuthController extends Controller
         ];
         $_SESSION['email_pendente_verificacao'] = $email;
 
-        // Dispara o e-mail via PHPMailer
         \app\services\MailService::enviarCodigoVerificacao($email, $email, $codigo);
 
-        $this->redirect('/verificar-email');
-        exit;
+        $this->responderJson('sucesso', 'Verifique seu e-mail para continuar.', URL_BASE . '/verificar-email');
     }
 
     public function processarVerificacao()
@@ -154,12 +149,11 @@ class AuthController extends Controller
         $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
 
         if (!$dadosPendentes || empty($codigoInformado)) {
-            $this->redirecionarComMensagem('erro', 'Sessão expirada ou código vazio.', '/cadastro');
+            $this->responderJson('erro', 'Sessão expirada ou código vazio. Faça o cadastro novamente.');
         }
 
-        // Valida se o código bate e se ainda está no prazo de 15 minutos
         if ($dadosPendentes['codigo'] !== $codigoInformado || strtotime($dadosPendentes['expira_em']) < time()) {
-            $this->redirecionarComMensagem('erro', 'Código inválido ou expirado.', '/verificar-email');
+            $this->responderJson('erro', 'Código inválido ou expirado.');
         }
 
         $usuarioModel = new Usuario();
@@ -172,10 +166,9 @@ class AuthController extends Controller
         $usuarioId = $usuarioModel->create($dadosNovoUsuario);
 
         if (!$usuarioId) {
-            $this->redirecionarComMensagem('erro', 'Erro ao criar conta no banco de dados.', '/cadastro');
+            $this->responderJson('erro', 'Erro ao criar conta no banco de dados.');
         }
 
-        // Limpa os dados temporários da sessão e define o usuário como logado
         unset($_SESSION['pendente_cadastro']);
         unset($_SESSION['email_pendente_verificacao']);
 
@@ -183,7 +176,7 @@ class AuthController extends Controller
         $_SESSION['usuario_email'] = $dadosNovoUsuario['email'];
         $_SESSION['tipo_conta'] = $dadosNovoUsuario['tipo_perfil'];
 
-        $this->redirecionarComMensagem('sucesso', 'E-mail confirmado com sucesso! Complete seu perfil.', '/onboarding');
+        $this->responderJson('sucesso', 'E-mail confirmado com sucesso!', URL_BASE . '/onboarding');
     }
 
     public function logout()
@@ -197,45 +190,12 @@ class AuthController extends Controller
 
     public function telaVerificacao()
     {
-        $this->view('auth/verificar_email', ['titulo' => 'Verificação de E-mail', 'descricao' => 'Confirme o código.']);
-    }
-
-   
-
-    public function reenviarCodigo()
-    {
-        $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
-        $emailDestino = $_SESSION['email_pendente_verificacao'] ?? null;
-
-        if (!$dadosPendentes || !$emailDestino) {
-            $this->redirect('/cadastro');
-            return;
-        }
-
-        try {
-            // Gera um novo código e um novo tempo de expiração
-            $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $novoExpiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-
-            // Atualiza os dados na sessão
-            $_SESSION['pendente_cadastro']['codigo'] = $novoCodigo;
-            $_SESSION['pendente_cadastro']['expira_em'] = $novoExpiraEm;
-
-            // Dispara o e-mail novamente via MailService
-            \app\services\MailService::enviarCodigoVerificacao($emailDestino, $emailDestino, $novoCodigo);
-
-            $this->redirecionarComMensagem('sucesso', 'Um novo código foi enviado para o seu e-mail.', '/verificar-email');
-        } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', 'Erro ao reenviar código. Tente novamente.', '/verificar-email');
-        }
+        $this->view('auth/verificar_email', ['titulo' => 'Verificação de E-mail']);
     }
 
     public function esqueciSenha()
     {
-        $this->view('auth/esqueci_senha', [
-            'titulo'    => 'Esqueci minha senha',
-            'descricao' => 'Recupere o acesso à sua conta.'
-        ]);
+        $this->view('auth/esqueci_senha', ['titulo' => 'Esqueci minha senha']);
     }
 
     public function processarEsqueciSenha()
@@ -243,7 +203,7 @@ class AuthController extends Controller
         $email = trim($_POST['email'] ?? '');
 
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->redirecionarComMensagem('erro', 'Informe um e-mail válido.', '/esqueci-senha');
+            $this->responderJson('erro', 'Informe um e-mail válido.');
         }
 
         $usuarioModel = new Usuario();
@@ -260,8 +220,7 @@ class AuthController extends Controller
             \app\services\MailService::enviarEmailRecuperacao($email, $user->nome ?? 'Usuário', $codigo);
         }
 
-        // Exibe mensagem de sucesso independente de o e-mail existir, para evitar vazamento de dados
-        $this->redirecionarComMensagem('sucesso', 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.', '/login');
+        $this->responderJson('sucesso', 'Se o e-mail existir, enviaremos um link de recuperação.', URL_BASE . '/login');
     }
 
     public function redefinirSenha()
@@ -288,22 +247,22 @@ class AuthController extends Controller
         $senha_confirmacao = $_POST['senha_confirmacao'] ?? '';
 
         if (empty($email) || empty($codigo) || empty($senha) || empty($senha_confirmacao)) {
-            $this->redirecionarComMensagem('erro', 'Preencha todos os campos.', "/redefinir-senha?email=$email&codigo=$codigo");
+            $this->responderJson('erro', 'Preencha todos os campos.');
         }
 
         if ($senha !== $senha_confirmacao) {
-            $this->redirecionarComMensagem('erro', 'As senhas não coincidem.', "/redefinir-senha?email=$email&codigo=$codigo");
+            $this->responderJson('erro', 'As senhas não coincidem.');
         }
 
         if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
-            $this->redirecionarComMensagem('erro', 'A senha deve ter pelo menos 8 caracteres, letras maiúsculas, minúsculas, números e caractere especial.', "/redefinir-senha?email=$email&codigo=$codigo");
+            $this->responderJson('erro', 'A senha deve ter pelo menos 8 caracteres, letras maiúsculas, minúsculas, números e caractere especial.');
         }
 
         $usuarioModel = new Usuario();
         $user = $usuarioModel->findByEmail($email);
 
         if (!$user) {
-            $this->redirecionarComMensagem('erro', 'Usuário não encontrado.', '/login');
+            $this->responderJson('erro', 'Usuário não encontrado.');
         }
 
         $pdo = \app\database\ConnectionFactory::getConnection();
@@ -312,13 +271,13 @@ class AuthController extends Controller
         $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (!$registro) {
-            $this->redirecionarComMensagem('erro', 'O link de recuperação é inválido ou já expirou.', '/login');
+            $this->responderJson('erro', 'O link de recuperação é inválido ou já expirou.');
         }
 
         $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
         $pdo->prepare("UPDATE USUARIO SET senha = ? WHERE usuario_id = ?")->execute([$hashSenha, $user->usuario_id]);
         $pdo->prepare("UPDATE CODIGO_VERIFICACAO SET usado = TRUE WHERE codigo_id = ?")->execute([$registro['codigo_id']]);
 
-        $this->redirecionarComMensagem('sucesso', 'Senha redefinida com sucesso! Faça login para continuar.', '/login');
+        $this->responderJson('sucesso', 'Senha redefinida com sucesso! Redirecionando...', URL_BASE . '/login');
     }
 }

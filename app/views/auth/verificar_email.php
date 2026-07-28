@@ -62,6 +62,38 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
             linkReenviar.classList.remove('hidden');
         }
     }, 1000);
+
+    document.querySelector('form').addEventListener('submit', async function(event) {
+    event.preventDefault(); 
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const btnSubmit = form.querySelector('button[type="submit"]');
+    const btnTextoOriginal = btnSubmit.innerHTML;
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = 'Aguarde...';
+
+    try {
+        const response = await fetch(form.action, { method: 'POST', body: formData });
+        const result = await response.json();
+
+        if (result.status === 'erro') {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = btnTextoOriginal;
+            mostrarModalFeedback('erro', result.mensagem); 
+        } else if (result.status === 'sucesso') {
+            if (typeof limparAutoSave === 'function') limparAutoSave();
+            
+            mostrarModalFeedback('sucesso', result.mensagem);
+            setTimeout(() => { window.location.href = result.redirect_url; }, 1500);
+        }
+    } catch (error) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = btnTextoOriginal;
+        mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+    }
+});
 </script>
 
 <?php

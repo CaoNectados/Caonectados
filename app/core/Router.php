@@ -8,7 +8,8 @@ class Router
 {
     private array $routes = [];
 
-    public function get($route, $action){
+    public function get($route, $action)
+    {
         $this->routes[] = [
             'method' => 'get',
             'route' => $route,
@@ -16,7 +17,8 @@ class Router
         ];
     }
 
-    public function post($route, $action){
+    public function post($route, $action)
+    {
         $this->routes[] = [
             'method' => 'post',
             'route' => $route,
@@ -28,11 +30,11 @@ class Router
     {
         // Extrai apenas o caminho, removendo a query string (ex: ?simular_perfil=protetor)
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        
+
         // Define o caminho base onde o projeto está rodando (pasta public)
         $basePath = dirname($_SERVER['SCRIPT_NAME']);
         $basePath = str_replace('\\', '/', $basePath);
-        
+
         if ($basePath === '/') {
             $basePath = '';
         }
@@ -58,7 +60,7 @@ class Router
 
         foreach ($this->routes as $route) {
             $registeredRoute = $route['route'];
-            
+
             // Padroniza a rota registrada da mesma forma
             if ($registeredRoute !== '/') {
                 $registeredRoute = rtrim($registeredRoute, '/');
@@ -73,14 +75,17 @@ class Router
         exit('Rota não encontrada. Rota solicitada: ' . htmlspecialchars($uri));
     }
 
-    public function dispatch($route){
+    public function dispatch($route)
+    {
 
         list($controller, $method) = explode('@', $route['action']);
+
+        $controller = str_replace('/', '\\', $controller);
 
         $controllerClass = "app\\controllers\\$controller";
 
         if (!class_exists($controllerClass)) {
-            print "Controller $controller não encontrado";
+            print "Controller $controllerClass não encontrado";
             die;
         }
 
@@ -88,13 +93,13 @@ class Router
             print "Método $method não encontrado em $controllerClass";
             die;
         }
-        
-        $controller = new $controllerClass;
-        $controller->$method();
 
+        $controllerObj = new $controllerClass();
+        $controllerObj->$method();
     }
 
-    public function getAllRoutes(){
+    public function getAllRoutes()
+    {
         return $this->routes;
     }
 }

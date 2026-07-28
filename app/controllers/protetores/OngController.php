@@ -1,5 +1,5 @@
 <?php 
-namespace app\controllers;
+namespace app\controllers\protetores;
 use app\core\Controller;
 
 class OngController extends Controller

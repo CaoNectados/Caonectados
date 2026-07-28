@@ -24,17 +24,12 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     regiao_id INT UNSIGNED NULL,
     telefone VARCHAR(20) NOT NULL,
     senha VARCHAR(255) NOT NULL,
-    -- ATUALIZADO: Adicionado 'ong' ao tipo_perfil
-    tipo_perfil ENUM('usuario', 'adotante', 'protetor', 'ong', 'administrador') NOT NULL DEFAULT 'usuario',
-    -- ATUALIZADO: Usaremos este campo para bloquear os menus. Padrão no cadastro é 'pendente'
+    tipo_perfil ENUM('usuario', 'tutor', 'protetor', 'ong', 'administrador') NOT NULL DEFAULT 'usuario',
     status_conta ENUM('pendente', 'ativo', 'bloqueado', 'rejeitado', 'inativo') NOT NULL DEFAULT 'pendente',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email VARCHAR(150) NOT NULL,
     nome VARCHAR(150) NOT NULL,
-    num_morada VARCHAR(20) NOT NULL,
-    obs_casa TEXT NULL,
-    dt_nasc DATE NULL,
-    cpf VARCHAR(20) NOT NULL,
+    dt_nasc DATE NULL, 
     deletado_em TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_usuario_regiao
         FOREIGN KEY (regiao_id) REFERENCES REGIAO (regiao_id)
@@ -45,6 +40,8 @@ CREATE TABLE IF NOT EXISTS TUTOR (
     tutor_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     tipo_morada ENUM('casa', 'apartamento', 'sitio') NOT NULL,
+    num_morada VARCHAR(20) NOT NULL,
+    obs_casa TEXT NULL,
     foto_perfil VARCHAR(255) NULL,
     descricao TEXT NULL,
     tamanho_interno_morada ENUM('pequeno', 'medio', 'grande') NULL,
@@ -266,6 +263,7 @@ CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES USUARIO(usuario_id) ON DELETE CASCADE
 );
+
 -- ===========================================
 -- REGIÕES (Bairros de Foz do Iguaçu)
 -- ===========================================
@@ -348,14 +346,12 @@ INSERT INTO RACA (especie_id, nome) VALUES
 -- ===========================================
 -- USUÁRIO ADMINISTRADOR 
 -- ===========================================
-INSERT INTO USUARIO (telefone, senha, tipo_perfil, status_conta, email, nome, num_morada, cpf) 
+INSERT INTO USUARIO (telefone, senha, tipo_perfil, status_conta, email, nome) 
 VALUES (
     '45900000000', 
-    '$2y$10$w095tE50XzWp.H8H6/hQ8OG4/gY5.fU4W0W8I7kM3Q4O5M3Z6Z.Wq', 
+    '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi', 
     'administrador', 
     'ativo', 
     'caonectados2026@gmail.com', 
-    'Admin CãoNectados', 
-    '0', 
-    '00000000000'
+    'Admin CãoNectados'
 );

@@ -24,4 +24,29 @@ class TutorRepository
 
         return (int) $pdo->lastInsertId();
     }
+
+    public function buscarPorUsuarioId(int $usuarioId, PDO $pdo): ?array
+    {
+        $sql = "SELECT * FROM TUTOR WHERE usuario_id = :usuario_id AND deletado_em IS NULL";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $dados ?: null;
+    }
+
+    public function atualizarTutor(int $usuarioId, string $tipoMorada, ?string $fotoPerfil, PDO $pdo): bool
+    {
+        if ($fotoPerfil) {
+            $sql = "UPDATE TUTOR SET tipo_morada = :tipo_morada, foto_perfil = :foto_perfil WHERE usuario_id = :usuario_id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':foto_perfil', $fotoPerfil);
+        } else {
+            $sql = "UPDATE TUTOR SET tipo_morada = :tipo_morada WHERE usuario_id = :usuario_id";
+            $stmt = $pdo->prepare($sql);
+        }
+        $stmt->bindValue(':tipo_morada', $tipoMorada);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\controllers;
+namespace app\controllers\onboarding;
 
 use app\core\Controller;
 use app\services\OnboardingService;
@@ -23,9 +23,21 @@ class OnboardingController extends Controller
         $this->especieRepo = new EspecieRepository();
 
         $this->autenticacaoRequired();
-
-        // BLOQUEIO DE ACESSO: Se o usuário já tiver um perfil cadastrado, impede de refazer o onboarding
         $this->verificarSeJaPossuiPerfil();
+    }
+
+    /**
+     * Função auxiliar para retornar respostas em JSON para o AJAX
+     */
+    private function responderJson(string $status, string $mensagem, ?string $redirectUrl = null)
+    {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status'       => $status,
+            'mensagem'     => $mensagem,
+            'redirect_url' => $redirectUrl
+        ]);
+        exit;
     }
 
     private function verificarSeJaPossuiPerfil()
@@ -35,21 +47,17 @@ class OnboardingController extends Controller
         if ($usuarioId) {
             $pdo = ConnectionFactory::getConnection();
             
-            // Verifica se já existe registro como Tutor
-            $stmtTutor = $pdo->prepare("SELECT COUNT(*) FROM tutor WHERE usuario_id = ?");
+            $stmtTutor = $pdo->prepare("SELECT COUNT(*) FROM TUTOR WHERE usuario_id = ?");
             $stmtTutor->execute([$usuarioId]);
             $temTutor = $stmtTutor->fetchColumn() > 0;
 
-            // Verifica se já existe registro como Protetor/ONG
-            $stmtProtetor = $pdo->prepare("SELECT COUNT(*) FROM protetor WHERE usuario_id = ?");
+            $stmtProtetor = $pdo->prepare("SELECT COUNT(*) FROM PROTETOR WHERE usuario_id = ?");
             $stmtProtetor->execute([$usuarioId]);
             $temProtetor = $stmtProtetor->fetchColumn() > 0;
 
-            // Se já tiver qualquer um dos perfis cadastrados, redireciona para a home (ou feed)
             if ($temTutor || $temProtetor) {
-                // Evita loop caso ele já esteja tentando acessar a home
                 if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
-                    $this->redirect('/feed'); // Ou redirecione para '/' se preferir
+                    $this->redirect('/feed'); 
                     exit;
                 }
             }
@@ -64,7 +72,6 @@ class OnboardingController extends Controller
         ]);
     }
 
-    // Fluxo do Adotante/Tutor
     public function tutor()
     {
         $pdo = ConnectionFactory::getConnection();
@@ -77,7 +84,6 @@ class OnboardingController extends Controller
             'especies' => $especies
         ]);
     }
-
 
     public function ong()
     {
@@ -113,28 +119,25 @@ class OnboardingController extends Controller
                     throw new Exception("Sessão expirada. Faça login novamente.");
                 }
 
-                // 1. Validar campos obrigatórios nos dados brutos
                 ValidationService::validarCamposObrigatorios($_POST, ['nome_fantasia', 'cnpj_cpf', 'regiao_id']);
 
-                // 2. Validar CPF ou CNPJ
                 $tipoDoc = $_POST['tipo_documento'] ?? 'cpf';
-                $documento = $_POST['cnpj_cpf'];
+                $documentoBruto = $_POST['cnpj_cpf'];
+                $documentoLimpo = preg_replace('/[^0-9]/', '', $documentoBruto);
 
                 if ($tipoDoc === 'cnpj') {
-                    if (!ValidationService::validarCnpj($documento)) {
-                        throw new Exception("O CNPJ informado possui um formato inválido.");
+                    if (strlen($documentoLimpo) !== 14 || !ValidationService::validarCnpj($documentoLimpo)) {
+                        throw new Exception("Formato inválido. As ONGs devem informar um CNPJ válido com 14 dígitos.");
                     }
-
-                    if (!ValidationService::verificarExistenciaCnpjReal($documento)) {
+                    if (!ValidationService::verificarExistenciaCnpjReal($documentoLimpo)) {
                         throw new Exception("O CNPJ informado não consta como ativo na Receita Federal.");
                     }
                 } else {
-                    if (!ValidationService::validarCpf($documento)) {
-                        throw new Exception("O CPF informado possui um formato inválido.");
+                    if (strlen($documentoLimpo) !== 11 || !ValidationService::validarCpf($documentoLimpo)) {
+                        throw new Exception("Formato inválido. Protetores Independentes devem informar um CPF válido com 11 dígitos.");
                     }
                 }
 
-                // 3. Validar links sociais e chave PIX ANTES de sanitizar as strings
                 if (!empty($_POST['instagram']) && !ValidationService::validarLinkRedeSocial($_POST['instagram'], 'instagram')) {
                     throw new Exception("O link informado para o Instagram é inválido.");
                 }
@@ -147,14 +150,15 @@ class OnboardingController extends Controller
                     throw new Exception("A Chave PIX informada não é válida.");
                 }
 
-                // 4. Sanitizar os dados apenas ao final antes de enviar para o banco
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
-
                 $this->onboardingService->processarOng($dadosLimpos, $_FILES, $usuarioId);
 
-                $this->redirect('/aguardando-aprovacao');
+                // Em caso de sucesso, retorna JSON
+                $this->responderJson('sucesso', 'Cadastro enviado para análise com sucesso!', URL_BASE . '/aguardando-aprovacao');
+
             } catch (Exception $e) {
-                $this->redirecionarComMensagem('erro', $e->getMessage(), '/onboarding', $e->getMessage());
+                // Em caso de erro, retorna JSON
+                $this->responderJson('erro', $e->getMessage());
             }
         }
     }
@@ -169,29 +173,26 @@ class OnboardingController extends Controller
                     throw new Exception("Sessão expirada. Faça login novamente.");
                 }
 
-                // 1. Sanitizar dados contra scripts maliciosos
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
-
-                // 2. Validar campos obrigatórios do Tutor
                 ValidationService::validarCamposObrigatorios($dadosLimpos, ['regiao_id', 'nome_usuario']);
 
-                // Passamos os dados já higienizados para o Service
                 $this->onboardingService->processarTutor($dadosLimpos, $_FILES, $usuarioId);
 
-                // 3. DISPARA O MODAL DE BOAS-VINDAS NO FEED
                 $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
                 $_SESSION['boas_vindas_tipo'] = 'adotante';
 
-                $this->redirect('/feed');
+                // Em caso de sucesso, retorna JSON
+                $this->responderJson('sucesso', 'Seu perfil foi criado com sucesso!', URL_BASE . '/feed');
+
             } catch (Exception $e) {
-                $this->redirecionarComMensagem('erro', $e->getMessage(), '/onboarding/tutor', $e->getMessage());
+                // Em caso de erro, retorna JSON
+                $this->responderJson('erro', $e->getMessage());
             }
         }
     }
 
     public function aguardandoAprovacao()
     {
-        // Se já estiver aprovado, não tem porque ver essa tela, manda pra home
         $statusConta = $_SESSION['status_conta'] ?? 'pendente';
         if ($statusConta === 'ativo' || $statusConta === 'aprovado') {
             $this->redirect('/');
