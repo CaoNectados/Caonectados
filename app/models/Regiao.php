@@ -2,30 +2,32 @@
 
 namespace app\models;
 
-use PDO;
-
 class Regiao
 {
-    private int $regiao_id;
-    private string $nome_regiao;
-    public function getRegiaoId(): int
+    private ?int $regiaoId = null;
+    private string $nomeRegiao;
+
+    public function __construct() {}
+
+    public function getRegiaoId(): ?int
     {
-        return $this->regiao_id;
+        return $this->regiaoId;
     }
 
-    public function setRegiaoId(int $id): void
+    public function setRegiaoId(?int $regiaoId): self
     {
-        $this->regiao_id = $id;
+        $this->regiaoId = $regiaoId;
+        return $this;
     }
 
     public function getNomeRegiao(): string
     {
-        return $this->nome_regiao;
+        return $this->nomeRegiao;
     }
 
-    public function setNomeRegiao(string $nome): void
+    public function setNomeRegiao(string $nomeRegiao): self
     {
-        $this->nome_regiao = $nome;
+        $this->nomeRegiao = $nomeRegiao;
+        return $this;
     }
-
 }

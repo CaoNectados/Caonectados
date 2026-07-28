@@ -4,42 +4,57 @@ CREATE DATABASE IF NOT EXISTS caonectados
 
 USE caonectados;
 
-CREATE TABLE IF NOT EXISTS REGIAO (
-    regiao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nome_regiao VARCHAR(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS ESPECIE (
-    especie_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS TRACO (
     traco_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     traco VARCHAR(45) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS REGIAO (
+    regiao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome_regiao VARCHAR(100) NOT NULL
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ESPECIE (
+    especie_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS USUARIO (
     usuario_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     regiao_id INT UNSIGNED NULL,
     telefone VARCHAR(20) NOT NULL,
     senha VARCHAR(255) NOT NULL,
-    tipo_perfil ENUM('usuario', 'tutor', 'protetor', 'ong', 'administrador') NOT NULL DEFAULT 'usuario',
-    status_conta ENUM('pendente', 'ativo', 'bloqueado', 'rejeitado', 'inativo') NOT NULL DEFAULT 'pendente',
+    tipo_perfil ENUM(
+        'usuario',
+        'tutor',
+        'protetor',
+        'ong',
+        'administrador'
+    ) NOT NULL DEFAULT 'usuario',
+    status_conta ENUM(
+        'pendente',
+        'ativo',
+        'bloqueado',
+        'rejeitado',
+        'inativo'
+    ) NOT NULL DEFAULT 'pendente',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email VARCHAR(150) NOT NULL,
     nome VARCHAR(150) NOT NULL,
-    dt_nasc DATE NULL, 
+    dt_nasc DATE NULL,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_usuario_regiao
-        FOREIGN KEY (regiao_id) REFERENCES REGIAO (regiao_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_usuario_regiao FOREIGN KEY (regiao_id) REFERENCES REGIAO (regiao_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS TUTOR (
     tutor_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
-    tipo_morada ENUM('casa', 'apartamento', 'sitio') NOT NULL,
+    tipo_morada ENUM(
+        'casa',
+        'apartamento',
+        'sitio'
+    ) NOT NULL,
     num_morada VARCHAR(20) NOT NULL,
     obs_casa TEXT NULL,
     foto_perfil VARCHAR(255) NULL,
@@ -48,10 +63,8 @@ CREATE TABLE IF NOT EXISTS TUTOR (
     detalhes TEXT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_tutor_usuario
-        FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_tutor_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS PROTETOR (
     protetor_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -64,19 +77,16 @@ CREATE TABLE IF NOT EXISTS PROTETOR (
     comprovante_documento VARCHAR(255) NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_protetor_usuario
-        FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_protetor_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS RACA (
     raca_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     especie_id INT UNSIGNED NOT NULL,
     nome VARCHAR(100) NOT NULL,
-    CONSTRAINT fk_raca_especie
-        FOREIGN KEY (especie_id) REFERENCES ESPECIE (especie_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_raca_especie FOREIGN KEY (especie_id) REFERENCES ESPECIE (especie_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ANIMAL (
     animal_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -84,34 +94,43 @@ CREATE TABLE IF NOT EXISTS ANIMAL (
     raca_id INT UNSIGNED NOT NULL,
     nome VARCHAR(120) NOT NULL,
     dt_nasc DATE NULL,
-    sexo ENUM('macho', 'femea', 'indefinido') NOT NULL,
+    sexo ENUM(
+        'macho',
+        'femea',
+        'indefinido'
+    ) NOT NULL,
     porte ENUM('pequeno', 'medio', 'grande') NOT NULL,
-    status ENUM('disponivel', 'em_analise', 'adotado', 'desativado') NOT NULL DEFAULT 'disponivel',
+    status ENUM(
+        'disponivel',
+        'em_analise',
+        'adotado',
+        'desativado'
+    ) NOT NULL DEFAULT 'disponivel',
     descricao TEXT NULL,
     vacinado BOOLEAN NOT NULL DEFAULT FALSE,
     castrado BOOLEAN NOT NULL DEFAULT FALSE,
-    comportamento ENUM('calmo', 'ativo', 'docil', 'arisco', 'indefinido') NULL,
+    comportamento ENUM(
+        'calmo',
+        'ativo',
+        'docil',
+        'arisco',
+        'indefinido'
+    ) NULL,
     historico_saude TEXT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
     atualizado_em TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_animal_protetor
-        FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_animal_raca
-        FOREIGN KEY (raca_id) REFERENCES RACA (raca_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_animal_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_animal_raca FOREIGN KEY (raca_id) REFERENCES RACA (raca_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS FOTO_ANIMAL (
     foto_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     animal_id INT UNSIGNED NOT NULL,
     caminho_foto VARCHAR(255) NOT NULL,
     foto_principal BOOLEAN NOT NULL DEFAULT FALSE,
-    CONSTRAINT fk_foto_animal_animal
-        FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_foto_animal_animal FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS PAGINA (
     pagina_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -120,46 +139,54 @@ CREATE TABLE IF NOT EXISTS PAGINA (
     foto_fundo VARCHAR(255) NULL,
     foto_perfil VARCHAR(255) NULL,
     chave_pix VARCHAR(255) NULL,
-    CONSTRAINT fk_pagina_protetor
-        FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_pagina_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS REDE (
     rede_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     protetor_id INT UNSIGNED NOT NULL,
     link_rede VARCHAR(255) NOT NULL,
-    tipo_rede ENUM('instagram', 'facebook', 'whatsapp', 'site', 'tiktok', 'youtube', 'outro') NOT NULL,
-    CONSTRAINT fk_rede_protetor
-        FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    tipo_rede ENUM(
+        'instagram',
+        'facebook',
+        'whatsapp',
+        'site',
+        'tiktok',
+        'youtube',
+        'outro'
+    ) NOT NULL,
+    CONSTRAINT fk_rede_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS SOLICITACAO_ADOCAO (
     solicitacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     tutor_id INT UNSIGNED NOT NULL,
     animal_id INT UNSIGNED NOT NULL,
-    status_solicitacao ENUM('pendente', 'em_analise', 'aprovada', 'reprovada', 'cancelada') NOT NULL DEFAULT 'pendente',
+    status_solicitacao ENUM(
+        'pendente',
+        'em_analise',
+        'aprovada',
+        'reprovada',
+        'cancelada'
+    ) NOT NULL DEFAULT 'pendente',
     data_solicitacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     justificativa_recusa TEXT NULL,
     data_finalizacao TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_solicitacao_tutor
-        FOREIGN KEY (tutor_id) REFERENCES TUTOR (tutor_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_solicitacao_animal
-        FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_solicitacao_tutor FOREIGN KEY (tutor_id) REFERENCES TUTOR (tutor_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_solicitacao_animal FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CHAT (
     chat_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     solicitacao_id INT UNSIGNED NOT NULL,
-    status ENUM('ativo', 'encerrado', 'arquivado') NOT NULL DEFAULT 'ativo',
+    status ENUM(
+        'ativo',
+        'encerrado',
+        'arquivado'
+    ) NOT NULL DEFAULT 'ativo',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_chat_solicitacao
-        FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_chat_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS MENSAGEM (
     mensagem_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -168,26 +195,27 @@ CREATE TABLE IF NOT EXISTS MENSAGEM (
     texto TEXT NOT NULL,
     lida BOOLEAN NOT NULL DEFAULT FALSE,
     data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_mensagem_chat
-        FOREIGN KEY (chat_id) REFERENCES CHAT (chat_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_mensagem_usuario
-        FOREIGN KEY (remetente_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_mensagem_chat FOREIGN KEY (chat_id) REFERENCES CHAT (chat_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_mensagem_usuario FOREIGN KEY (remetente_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS NOTIFICACAO (
     notificacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     referencia_id INT UNSIGNED NULL,
     usuario_id INT UNSIGNED NOT NULL,
-    tipo_notificacao ENUM('solicitacao', 'mensagem', 'denuncia', 'contestacao', 'advertencia', 'sistema') NOT NULL,
+    tipo_notificacao ENUM(
+        'solicitacao',
+        'mensagem',
+        'denuncia',
+        'contestacao',
+        'advertencia',
+        'sistema'
+    ) NOT NULL,
     lida BOOLEAN NOT NULL DEFAULT FALSE,
     txt_notificacao TEXT NOT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_notificacao_usuario
-        FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_notificacao_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS DENUNCIA (
     denuncia_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -195,40 +223,48 @@ CREATE TABLE IF NOT EXISTS DENUNCIA (
     denunciado_id INT UNSIGNED NOT NULL,
     solicitacao_id INT UNSIGNED NULL,
     chat_id INT UNSIGNED NULL,
-    motivo ENUM('maus_tratos', 'abandono', 'fraude', 'assedio', 'outro') NOT NULL,
+    motivo ENUM(
+        'maus_tratos',
+        'abandono',
+        'fraude',
+        'assedio',
+        'outro'
+    ) NOT NULL,
     descricao TEXT NOT NULL,
-    status_denuncia ENUM('aberta', 'em_analise', 'aprovada', 'reprovada', 'arquivada') NOT NULL DEFAULT 'aberta',
-    decisao_admin ENUM('aprovar', 'reprovar', 'colocar_em_analise') NULL,
+    status_denuncia ENUM(
+        'aberta',
+        'em_analise',
+        'aprovada',
+        'reprovada',
+        'arquivada'
+    ) NOT NULL DEFAULT 'aberta',
+    decisao_admin ENUM(
+        'aprovar',
+        'reprovar',
+        'colocar_em_analise'
+    ) NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_denuncia_denunciante
-        FOREIGN KEY (denunciante_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_denuncia_denunciado
-        FOREIGN KEY (denunciado_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_denuncia_solicitacao
-        FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_denuncia_chat
-        FOREIGN KEY (chat_id) REFERENCES CHAT (chat_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_denuncia_denunciante FOREIGN KEY (denunciante_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_denuncia_denunciado FOREIGN KEY (denunciado_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_denuncia_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_denuncia_chat FOREIGN KEY (chat_id) REFERENCES CHAT (chat_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ADVERTENCIA (
     advertencia_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     denuncia_id INT UNSIGNED NOT NULL,
     data_fim DATE NULL,
-    status ENUM('ativa', 'suspensa', 'encerrada') NOT NULL DEFAULT 'ativa',
+    status ENUM(
+        'ativa',
+        'suspensa',
+        'encerrada'
+    ) NOT NULL DEFAULT 'ativa',
     peso_status ENUM('leve', 'media', 'grave') NOT NULL DEFAULT 'leve',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_advertencia_usuario
-        FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_advertencia_denuncia
-        FOREIGN KEY (denuncia_id) REFERENCES DENUNCIA (denuncia_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_advertencia_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_advertencia_denuncia FOREIGN KEY (denuncia_id) REFERENCES DENUNCIA (denuncia_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CONTESTACAO (
     contestacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -236,23 +272,17 @@ CREATE TABLE IF NOT EXISTS CONTESTACAO (
     justificativa TEXT NOT NULL,
     parecer_admin TEXT NULL,
     data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_contestacao_advertencia
-        FOREIGN KEY (advertencia_id) REFERENCES ADVERTENCIA (advertencia_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_contestacao_advertencia FOREIGN KEY (advertencia_id) REFERENCES ADVERTENCIA (advertencia_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
     animal_traco_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     animal_id INT UNSIGNED NOT NULL,
     traco_id INT UNSIGNED NOT NULL,
     opcao_id VARCHAR(200) NOT NULL,
-    CONSTRAINT fk_animal_traco_animal
-        FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id)
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_animal_traco_traco
-        FOREIGN KEY (traco_id) REFERENCES TRACO (traco_id)
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    CONSTRAINT fk_animal_traco_animal FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_animal_traco_traco FOREIGN KEY (traco_id) REFERENCES TRACO (traco_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     codigo_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -261,97 +291,81 @@ CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     expira_em DATETIME NOT NULL,
     usado BOOLEAN DEFAULT FALSE,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES USUARIO(usuario_id) ON DELETE CASCADE
+    FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON DELETE CASCADE
 );
 
 -- ===========================================
--- REGIÕES (Bairros de Foz do Iguaçu)
+-- USUÁRIO ADMINISTRADOR
 -- ===========================================
-INSERT INTO REGIAO (nome_regiao) VALUES
-('Alto da Boa Vista'),
-('Bourbon'),
-('Campos do Iguaçu'),
-('Carimã'),
-('Centro'),
-('Cognópolis'),
-('Conjunto Libra'),
-('Conjunto Residencial Aporã'),
-('Conjunto Residencial Arroio Dourado'),
-('Conjunto Residencial Lagoa Dourada'),
-('Conjunto Residencial Três Bandeiras'),
-('Curitibano'),
-('Gleba Guarani'),
-('Ipê'),
-('Jardim Alice'),
-('Jardim América'),
-('Jardim Central'),
-('Jardim das Flores'),
-('Jardim Eliza I'),
-('Jardim Eliza II'),
-('Jardim Europa'),
-('Jardim Itaipu'),
-('Jardim Jupira'),
-('Jardim Lancaster'),
-('Jardim Panorama'),
-('Jardim Polo Centro'),
-('Jardim São Paulo'),
-('Jardim Tarobá'),
-('Morumbi'),
-('Náutica'),
-('Parque Imperatriz'),
-('Polo Centro'),
-('Porto Belo'),
-('Porto Meira'),
-('Profilurb I'),
-('Profilurb II'),
-('Três Lagoas');
-
--- ===========================================
--- ESPÉCIES
--- ===========================================
-INSERT INTO ESPECIE (nome) VALUES
-('Cachorro'),
-('Gato'),
-('Ave'),
-('Roedor'),
-('Coelho');
-
--- ===========================================
--- RAÇAS (Mais comuns no Brasil)
--- ===========================================
-INSERT INTO RACA (especie_id, nome) VALUES
-(1, 'Sem Raça Definida (SRD) / Vira-lata'),
-(1, 'Shih Tzu'),
-(1, 'Yorkshire Terrier'),
-(1, 'Poodle'),
-(1, 'Pinscher'),
-(1, 'Bulldog Francês'),
-(1, 'Golden Retriever'),
-(1, 'Labrador'),
-(1, 'Pug'),
-(1, 'Spitz Alemão / Lulu da Pomerânia'),
-(1, 'Pitbull'),
-(1, 'Rottweiler'),
-(1, 'Dachshund (Salsicha)'),
-(1, 'Border Collie'),
-(1, 'Pastor Alemão'),
-(2, 'Sem Raça Definida (SRD) / Vira-lata'),
-(2, 'Siamês'),
-(2, 'Persa'),
-(2, 'Angorá'),
-(2, 'Maine Coon'),
-(2, 'Bengal'),
-(2, 'Sphynx');
-
--- ===========================================
--- USUÁRIO ADMINISTRADOR 
--- ===========================================
-INSERT INTO USUARIO (telefone, senha, tipo_perfil, status_conta, email, nome) 
+INSERT INTO
+    USUARIO (
+        telefone,
+        senha,
+        tipo_perfil,
+        status_conta,
+        email,
+        nome
+    )
 VALUES (
-    '45900000000', 
-    '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi', 
-    'administrador', 
-    'ativo', 
-    'caonectados2026@gmail.com', 
+    '45900000000',
+    '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
+    'administrador',
+    'ativo',
+    'caonectados2026@gmail.com',
     'Admin CãoNectados'
 );
+
+INSERT INTO
+    REGIAO (nome_regiao)
+VALUES ('Alvorada'),
+    ('Náutica'),
+    ('Três Lagoas'),
+    ('Cidade Nova'),
+    ('Itaipu Binacional'),
+    ('Itaipu C'),
+    ('Pólo Universitário'),
+    ('Porto Belo'),
+    ('Morumbi'),
+    ('Portal'),
+    ('Bourbon'),
+    ('Porto Meira'),
+    ('Três Fronteiras'),
+    ('Panorama'),
+    ('São Roque'),
+    ('América'),
+    ('Monjolo'),
+    ('Portes'),
+    ('Lancaster'),
+    ('Três Bandeiras'),
+    ('Itaipu A'),
+    ('Itaipu B'),
+    ('KLP'),
+    ('IPÊ'),
+    ('Centro'),
+    ('Maracanã'),
+    ('Yolanda'),
+    ('Polo Centro'),
+    ('Centro Cívico'),
+    ('Campos do Iguaçu'),
+    ('Carimã'),
+    ('Mata Verde'),
+    ('Cataratas'),
+    ('Cognópolis'),
+    ('Lote Grande'),
+    ('Remanso'),
+    ('Parque Nacional');
+
+INSERT INTO
+    ESPECIE (nome)
+VALUES ('Cão'),
+    ('Gato');
+
+-- Para associar as raças dinamicamente após o insert das espécies:
+INSERT INTO
+    RACA (nome, especie_id)
+VALUES ('Sem Raça Definida (SRD)', 1),
+    ('Labrador Retriever', 1),
+    ('Poodle', 1),
+    ('Sem Raça Definida (SRD)', 2),
+    ('Siamês', 2),
+    ('Persa', 2);

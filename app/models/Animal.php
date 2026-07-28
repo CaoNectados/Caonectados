@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-class Animais
+class Animal
 {
     private ?int $animalId = null;
     private int $protetorId;
@@ -201,3 +201,5 @@ class Animais
         return $this;
     }
 }
+
+//teste teste

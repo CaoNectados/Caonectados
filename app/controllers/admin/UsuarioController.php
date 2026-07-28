@@ -2,10 +2,32 @@
 
 namespace app\controllers\admin;
 
-class UsuarioController extends AdminBaseController
+use app\core\Controller;
+use app\database\ConnectionFactory;
+use Exception;
+
+class UsuarioController extends Controller
 {
-    public function index()
+    public function __construct()
     {
-        // Carregar tela de listagem de usuários
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (($_SESSION['tipo_conta'] ?? '') !== 'administrador') {
+            $this->redirect('/login');
+        }
+
+        $pdo = ConnectionFactory::getConnection();
+        // Inicializar repositório e service aqui quando criá-los
+    }
+
+    public function index(): void
+    {
+        // $usuarios = $this->service->listarTodos();
+        
+        $this->view('admin/usuarios/index', [
+            // 'usuarios' => $usuarios
+        ]);
     }
 }

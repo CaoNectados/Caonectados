@@ -2,31 +2,36 @@
 
 namespace app\models;
 
-use PDO;
-
 class Especie
 {
-    private int $especie_id;
-    private string $nome;
+    private ?int $id = null;
+    private string $nome = '';
+    private bool $ativo = true;
 
-
-    public function getEspecieId(): int
+    public function getId(): ?int
     {
-        return $this->especie_id;
+        return $this->id;
     }
-
-    public function setEspecieId(int $id): void
+    public function setId(?int $id): void
     {
-        $this->especie_id = $id;
+        $this->id = $id;
     }
 
     public function getNome(): string
     {
         return $this->nome;
     }
-
     public function setNome(string $nome): void
     {
         $this->nome = $nome;
+    }
+
+    public function isAtivo(): bool
+    {
+        return $this->ativo;
+    }
+    public function setAtivo(bool $ativo): void
+    {
+        $this->ativo = $ativo;
     }
 }
