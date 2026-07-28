@@ -24,6 +24,6 @@ define('URL_BASE', 'http://localhost/ModeloProjetoIntegrador/public');
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'caonectados');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', 'root');
 
 
