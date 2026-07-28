@@ -257,6 +257,15 @@ CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
+    codigo_id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    codigo VARCHAR(6) NOT NULL,
+    expira_em DATETIME NOT NULL,
+    usado BOOLEAN DEFAULT FALSE,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES USUARIO(usuario_id) ON DELETE CASCADE
+);
 -- ===========================================
 -- REGIÕES (Bairros de Foz do Iguaçu)
 -- ===========================================

@@ -2,15 +2,15 @@
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
-<!-- Formulário Principal Multietapas (4 ETAPAS) -->
 <form id="form-onboarding-tutor" action="<?= URL_BASE ?>/onboarding/salvar-tutor" method="POST" enctype="multipart/form-data" onsubmit="return validarEnvioFinal(event)" class="max-w-md mx-auto p-4">
 
-    <!-- BARRA DE PROGRESSO GLOBAL (4 ETAPAS) -->
+    <!-- BARRA DE PROGRESSO GLOBAL (AGORA COM 5 ETAPAS) -->
     <div class="flex justify-center gap-2 mb-6">
         <div id="progresso-1" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
         <div id="progresso-2" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
         <div id="progresso-3" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
         <div id="progresso-4" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-5" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
     </div>
 
     <!-- BOTÃO VOLTAR GLOBAL -->
@@ -136,7 +136,6 @@ require_once __DIR__ . '/../templates/header.php';
             <p class="text-sm text-gray-600 mb-6">Selecione suas preferências para montarmos o seu feed perfeito. Você pode escolher mais de uma opção!</p>
 
             <div class="space-y-4 mb-6 text-left">
-                <!-- Espécie -->
                 <div>
                     <span class="font-bold block mb-2">Espécie:</span>
                     <div class="space-y-2">
@@ -172,7 +171,6 @@ require_once __DIR__ . '/../templates/header.php';
                     </div>
                 </div>
 
-                <!-- Porte -->
                 <div>
                     <span class="font-bold block mb-2">Porte:</span>
                     <div class="space-y-2">
@@ -188,7 +186,6 @@ require_once __DIR__ . '/../templates/header.php';
                     </div>
                 </div>
 
-                <!-- Sexo -->
                 <div>
                     <span class="font-bold block mb-2">Sexo:</span>
                     <div class="space-y-2">
@@ -202,12 +199,33 @@ require_once __DIR__ . '/../templates/header.php';
                 </div>
             </div>
         </div>
-        <!-- Aceite de Termos (LGPD) -->
-        <div class="mb-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <label class="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" name="aceite_termos" required class="mt-1 w-5 h-5 text-pink-500 rounded focus:ring-pink-400">
-                <span class="text-xs text-gray-600 leading-relaxed">
-                    Li e concordo com o <strong>Termo de Responsabilidade</strong>. Declaro ser maior de 18 anos e autorizo o CãoNectados a armazenar meus dados conforme a LGPD para fins de intermediação de adoções. Compreendo que a plataforma não possui responsabilidade legal ou logística sobre o processo de adoção.
+
+        <div class="flex items-center justify-between mt-8">
+            <span class="font-medium">Ler os Termos</span>
+            <!-- BOTAO ALTERADO PARA AVANÇAR E NAO ENVIAR -->
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-pink-200 text-xl font-bold flex items-center justify-center">&rarr;</button>
+        </div>
+    </div>
+
+    <!-- ETAPA 5: TERMOS DE RESPONSABILIDADE (NOVA) -->
+    <div class="etapa-form hidden" id="etapa-5">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold mb-2 font-shantell">Termos de Responsabilidade</h1>
+            <p class="text-sm text-gray-600">Por favor, leia atentamente as regras da nossa plataforma antes de finalizar.</p>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm text-left max-h-60 overflow-y-auto text-sm text-gray-700 space-y-3">
+            <p><strong>1. Maioridade Civil:</strong> Declaro ser maior de 18 (dezoito) anos e ter plena capacidade civil para utilizar o sistema.</p>
+            <p><strong>2. Proteção de Dados (LGPD):</strong> Autorizo a coleta e o armazenamento dos meus dados pessoais necessários para a criação do perfil e intermediação de adoções.</p>
+            <p><strong>3. Responsabilidade da Plataforma:</strong> Compreendo que o CãoNectados atua exclusivamente como um <strong>intermediador digital</strong> (vitrine) para facilitar o encontro entre animais e adotantes.</p>
+            <p><strong>4. Isenção Legal:</strong> A plataforma <strong>não possui</strong> qualquer responsabilidade legal, logística, veterinária ou financeira sobre o processo de adoção, sendo esta responsabilidade inteiramente do tutor e do protetor/ONG envolvidos.</p>
+        </div>
+
+        <div class="mb-6 text-left">
+            <label class="flex items-center gap-3 cursor-pointer p-4 bg-pink-50 border border-pink-200 rounded-xl hover:bg-pink-100 transition">
+                <input type="checkbox" name="aceite_termos" required class="w-6 h-6 text-pink-500 rounded focus:ring-pink-400">
+                <span class="text-sm text-gray-800 font-medium">
+                    Li, compreendi e concordo com os Termos de Responsabilidade.
                 </span>
             </label>
         </div>
@@ -217,11 +235,12 @@ require_once __DIR__ . '/../templates/header.php';
             <button type="submit" class="w-12 h-12 rounded-full bg-pink-300 text-xl font-bold flex items-center justify-center">&rarr;</button>
         </div>
     </div>
+
 </form>
 
 <script>
     let etapaAtual = 1;
-    const totalEtapas = 4;
+    const totalEtapas = 5; // Atualizado para 5
     const urlSelecionarPerfil = "<?= URL_BASE ?>/onboarding";
 
     function atualizarVisualEtapas() {
@@ -269,7 +288,6 @@ require_once __DIR__ . '/../templates/header.php';
     }
 
     function proximaEtapa() {
-        // ETAPA 1: Localização
         if (etapaAtual === 1) {
             const inputHidden = document.getElementById('regiao_id_hidden');
             const msgErro = document.getElementById('erro-bairro-invalido');
@@ -284,7 +302,6 @@ require_once __DIR__ . '/../templates/header.php';
             }
         }
 
-        // ETAPA 2: Moradia
         if (etapaAtual === 2) {
             const moradia = document.getElementById('tipo_moradia').value;
             const interior = document.getElementById('espaco_interior').value;
@@ -296,7 +313,6 @@ require_once __DIR__ . '/../templates/header.php';
             }
         }
 
-        // ETAPA 3: Convivência
         if (etapaAtual === 3) {
             const criancas = document.getElementById('possui_criancas').value;
             const pets = document.getElementById('possui_outros_pets').value;
@@ -307,26 +323,35 @@ require_once __DIR__ . '/../templates/header.php';
             }
         }
 
+        // VALIDAÇÃO DA ETAPA 4 ANTES DE IR PROS TERMOS
+        if (etapaAtual === 4) {
+            const nomeInput = document.getElementById('nome_usuario');
+            if (!nomeInput || nomeInput.value.trim().length < 2) {
+                mostrarModalFeedback('erro', "Por favor, informe seu nome corretamente para prosseguir.");
+                nomeInput.focus();
+                return;
+            }
+
+            const opcoesEspecie = document.querySelectorAll('input[name="preferencias_especie[]"]:checked');
+            if (opcoesEspecie.length === 0) {
+                mostrarModalFeedback('aviso', "Selecione pelo menos uma preferência de espécie para montar o seu feed.");
+                return;
+            }
+        }
+
         if (etapaAtual < totalEtapas) {
             etapaAtual++;
             atualizarVisualEtapas();
         }
     }
 
-    // Intercepta a submissão final na Etapa 4
     function validarEnvioFinal(event) {
-        const nomeInput = document.getElementById('nome_usuario');
-        if (!nomeInput || nomeInput.value.trim().length < 2) {
+        // Valida apenas a caixinha na etapa final
+        const aceiteTermos = document.querySelector('input[name="aceite_termos"]');
+        if (!aceiteTermos || !aceiteTermos.checked) {
             event.preventDefault();
-            mostrarModalFeedback('erro', "Por favor, informe seu nome corretamente para prosseguir.");
-            nomeInput.focus();
-            return false;
-        }
-
-        const opcoesEspecie = document.querySelectorAll('input[name="preferencias_especie[]"]:checked');
-        if (opcoesEspecie.length === 0) {
-            event.preventDefault();
-            mostrarModalFeedback('aviso', "Selecione pelo menos uma preferência de espécie para montar o seu feed.");
+            mostrarModalFeedback('aviso', "Você deve ler e concordar com os Termos de Responsabilidade para continuar.");
+            aceiteTermos.focus();
             return false;
         }
 

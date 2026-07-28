@@ -122,8 +122,8 @@ $itemAuth   = $estaLogado
                 </span>
             </a>
 
-            <div class="pointer-events-none absolute inset-x-0 flex items-center justify-center px-14 lg:hidden">
-                <span class="max-w-full text-center font-shantell text-xl font-bold leading-tight text-white break-words sm:text-xl">
+            <div class="pointer-events-none absolute inset-x-0 flex items-center justify-center px-24 lg:hidden">
+                <span class="w-full text-center font-shantell text-sm sm:text-base font-bold leading-tight text-white break-words line-clamp-2">
                     <?= e($titulo) ?>
                 </span>
             </div>

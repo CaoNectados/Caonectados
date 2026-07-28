@@ -4,6 +4,8 @@ namespace app\controllers;
 
 use app\core\Controller;
 use app\models\Usuario;
+use app\database\ConnectionFactory;
+use Exception;
 
 class AuthController extends Controller
 {
@@ -22,7 +24,7 @@ class AuthController extends Controller
         ]);
     }
 
-   public function processarLogin()
+    public function processarLogin()
     {
         $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
@@ -96,14 +98,14 @@ class AuthController extends Controller
         ]);
     }
 
-    public function processarCadastro()
+   public function processarCadastro()
     {
         $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
         $senha_confirmacao = $_POST['senha_confirmacao'] ?? '';
         $tipoPerfil = 'usuario';
 
-        if (empty($email) || empty($senha) || empty($senha_confirmacao) || empty($tipoPerfil)) {
+        if (empty($email) || empty($senha) || empty($senha_confirmacao)) {
             $this->redirecionarComMensagem('erro', 'Todos os campos são obrigatórios.', '/cadastro');
         }
 
@@ -126,27 +128,62 @@ class AuthController extends Controller
         }
 
         $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
-        
-        $dadosNovoUsuario = [
+        $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+        // Salva os dados temporariamente na SESSÃO (sem inserir na tabela USUARIO ainda)
+        $_SESSION['pendente_cadastro'] = [
             'email'       => $email,
             'senha'       => $hashSenha,
-            'tipo_perfil' => $tipoPerfil ?: 'usuario'
+            'tipo_perfil' => $tipoPerfil,
+            'codigo'      => $codigo,
+            'expira_em'   => $expiraEm
+        ];
+        $_SESSION['email_pendente_verificacao'] = $email;
+
+        // Dispara o e-mail via PHPMailer
+        \app\services\MailService::enviarCodigoVerificacao($email, $email, $codigo);
+
+        $this->redirect('/verificar-email');
+        exit;
+    }
+
+    public function processarVerificacao()
+    {
+        $codigoInformado = trim($_POST['codigo'] ?? '');
+        $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
+
+        if (!$dadosPendentes || empty($codigoInformado)) {
+            $this->redirecionarComMensagem('erro', 'Sessão expirada ou código vazio.', '/cadastro');
+        }
+
+        // Valida se o código bate e se ainda está no prazo de 15 minutos
+        if ($dadosPendentes['codigo'] !== $codigoInformado || strtotime($dadosPendentes['expira_em']) < time()) {
+            $this->redirecionarComMensagem('erro', 'Código inválido ou expirado.', '/verificar-email');
+        }
+
+        $usuarioModel = new Usuario();
+        $dadosNovoUsuario = [
+            'email'       => $dadosPendentes['email'],
+            'senha'       => $dadosPendentes['senha'],
+            'tipo_perfil' => $dadosPendentes['tipo_perfil']
         ];
 
         $usuarioId = $usuarioModel->create($dadosNovoUsuario);
 
-        if ($usuarioId) {
-            $_SESSION['usuario_id'] = $usuarioId;
-            $_SESSION['tipo_conta'] = null;
-
-            $this->view('onboarding/selecionar_perfil', [
-                'titulo'    => 'Selecionar Perfil',
-                'descricao' => 'Escolha o tipo de perfil que deseja criar.',
-            ]);
-            exit;
+        if (!$usuarioId) {
+            $this->redirecionarComMensagem('erro', 'Erro ao criar conta no banco de dados.', '/cadastro');
         }
 
-        $this->redirecionarComMensagem('erro', 'Ocorreu um erro interno ao criar sua conta. Tente novamente.', '/cadastro');
+        // Limpa os dados temporários da sessão e define o usuário como logado
+        unset($_SESSION['pendente_cadastro']);
+        unset($_SESSION['email_pendente_verificacao']);
+
+        $_SESSION['usuario_id'] = $usuarioId;
+        $_SESSION['usuario_email'] = $dadosNovoUsuario['email'];
+        $_SESSION['tipo_conta'] = $dadosNovoUsuario['tipo_perfil'];
+
+        $this->redirecionarComMensagem('sucesso', 'E-mail confirmado com sucesso! Complete seu perfil.', '/onboarding');
     }
 
     public function logout()
@@ -156,5 +193,132 @@ class AuthController extends Controller
         }
         session_destroy();
         $this->redirect("/login");
+    }
+
+    public function telaVerificacao()
+    {
+        $this->view('auth/verificar_email', ['titulo' => 'Verificação de E-mail', 'descricao' => 'Confirme o código.']);
+    }
+
+   
+
+    public function reenviarCodigo()
+    {
+        $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
+        $emailDestino = $_SESSION['email_pendente_verificacao'] ?? null;
+
+        if (!$dadosPendentes || !$emailDestino) {
+            $this->redirect('/cadastro');
+            return;
+        }
+
+        try {
+            // Gera um novo código e um novo tempo de expiração
+            $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $novoExpiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+            // Atualiza os dados na sessão
+            $_SESSION['pendente_cadastro']['codigo'] = $novoCodigo;
+            $_SESSION['pendente_cadastro']['expira_em'] = $novoExpiraEm;
+
+            // Dispara o e-mail novamente via MailService
+            \app\services\MailService::enviarCodigoVerificacao($emailDestino, $emailDestino, $novoCodigo);
+
+            $this->redirecionarComMensagem('sucesso', 'Um novo código foi enviado para o seu e-mail.', '/verificar-email');
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', 'Erro ao reenviar código. Tente novamente.', '/verificar-email');
+        }
+    }
+
+    public function esqueciSenha()
+    {
+        $this->view('auth/esqueci_senha', [
+            'titulo'    => 'Esqueci minha senha',
+            'descricao' => 'Recupere o acesso à sua conta.'
+        ]);
+    }
+
+    public function processarEsqueciSenha()
+    {
+        $email = trim($_POST['email'] ?? '');
+
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirecionarComMensagem('erro', 'Informe um e-mail válido.', '/esqueci-senha');
+        }
+
+        $usuarioModel = new Usuario();
+        $user = $usuarioModel->findByEmail($email);
+
+        if ($user) {
+            $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $expiraEm = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+
+            $pdo = \app\database\ConnectionFactory::getConnection();
+            $stmt = $pdo->prepare("INSERT INTO CODIGO_VERIFICACAO (usuario_id, codigo, expira_em) VALUES (?, ?, ?)");
+            $stmt->execute([$user->usuario_id, $codigo, $expiraEm]);
+
+            \app\services\MailService::enviarEmailRecuperacao($email, $user->nome ?? 'Usuário', $codigo);
+        }
+
+        // Exibe mensagem de sucesso independente de o e-mail existir, para evitar vazamento de dados
+        $this->redirecionarComMensagem('sucesso', 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.', '/login');
+    }
+
+    public function redefinirSenha()
+    {
+        $email = $_GET['email'] ?? '';
+        $codigo = $_GET['codigo'] ?? '';
+
+        if (empty($email) || empty($codigo)) {
+            $this->redirecionarComMensagem('erro', 'Link de recuperação inválido.', '/login');
+        }
+
+        $this->view('auth/redefinir_senha', [
+            'titulo' => 'Criar Nova Senha',
+            'email'  => $email,
+            'codigo' => $codigo
+        ]);
+    }
+
+    public function processarRedefinirSenha()
+    {
+        $email = trim($_POST['email'] ?? '');
+        $codigo = trim($_POST['codigo'] ?? '');
+        $senha = $_POST['senha'] ?? '';
+        $senha_confirmacao = $_POST['senha_confirmacao'] ?? '';
+
+        if (empty($email) || empty($codigo) || empty($senha) || empty($senha_confirmacao)) {
+            $this->redirecionarComMensagem('erro', 'Preencha todos os campos.', "/redefinir-senha?email=$email&codigo=$codigo");
+        }
+
+        if ($senha !== $senha_confirmacao) {
+            $this->redirecionarComMensagem('erro', 'As senhas não coincidem.', "/redefinir-senha?email=$email&codigo=$codigo");
+        }
+
+        if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
+            $this->redirecionarComMensagem('erro', 'A senha deve ter pelo menos 8 caracteres, letras maiúsculas, minúsculas, números e caractere especial.', "/redefinir-senha?email=$email&codigo=$codigo");
+        }
+
+        $usuarioModel = new Usuario();
+        $user = $usuarioModel->findByEmail($email);
+
+        if (!$user) {
+            $this->redirecionarComMensagem('erro', 'Usuário não encontrado.', '/login');
+        }
+
+        $pdo = \app\database\ConnectionFactory::getConnection();
+        $stmt = $pdo->prepare("SELECT * FROM CODIGO_VERIFICACAO WHERE usuario_id = ? AND codigo = ? AND usado = FALSE AND expira_em >= NOW() ORDER BY codigo_id DESC LIMIT 1");
+        $stmt->execute([$user->usuario_id, $codigo]);
+        $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$registro) {
+            $this->redirecionarComMensagem('erro', 'O link de recuperação é inválido ou já expirou.', '/login');
+        }
+
+        $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
+        $pdo->prepare("UPDATE USUARIO SET senha = ? WHERE usuario_id = ?")->execute([$hashSenha, $user->usuario_id]);
+        $pdo->prepare("UPDATE CODIGO_VERIFICACAO SET usado = TRUE WHERE codigo_id = ?")->execute([$registro['codigo_id']]);
+
+        $this->redirecionarComMensagem('sucesso', 'Senha redefinida com sucesso! Faça login para continuar.', '/login');
     }
 }

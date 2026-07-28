@@ -23,6 +23,37 @@ class OnboardingController extends Controller
         $this->especieRepo = new EspecieRepository();
 
         $this->autenticacaoRequired();
+
+        // BLOQUEIO DE ACESSO: Se o usuário já tiver um perfil cadastrado, impede de refazer o onboarding
+        $this->verificarSeJaPossuiPerfil();
+    }
+
+    private function verificarSeJaPossuiPerfil()
+    {
+        $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
+
+        if ($usuarioId) {
+            $pdo = ConnectionFactory::getConnection();
+            
+            // Verifica se já existe registro como Tutor
+            $stmtTutor = $pdo->prepare("SELECT COUNT(*) FROM tutor WHERE usuario_id = ?");
+            $stmtTutor->execute([$usuarioId]);
+            $temTutor = $stmtTutor->fetchColumn() > 0;
+
+            // Verifica se já existe registro como Protetor/ONG
+            $stmtProtetor = $pdo->prepare("SELECT COUNT(*) FROM protetor WHERE usuario_id = ?");
+            $stmtProtetor->execute([$usuarioId]);
+            $temProtetor = $stmtProtetor->fetchColumn() > 0;
+
+            // Se já tiver qualquer um dos perfis cadastrados, redireciona para a home (ou feed)
+            if ($temTutor || $temProtetor) {
+                // Evita loop caso ele já esteja tentando acessar a home
+                if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
+                    $this->redirect('/feed'); // Ou redirecione para '/' se preferir
+                    exit;
+                }
+            }
+        }
     }
 
     public function index()

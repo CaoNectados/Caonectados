@@ -2,23 +2,23 @@
 
 namespace app\services;
 
-use app\models\Protetores;
-use app\repositories\ProtetoresRepository;
+use app\models\Protetor;
+use app\repositories\ProtetorRepository;
 
-class ProtetoresService
+class ProtetoreService
 {
-    private ProtetoresRepository $protetoresRepository;
+    private ProtetorRepository $protetorRepository;
 
-    public function __construct(ProtetoresRepository $protetoresRepository)
+    public function __construct(ProtetorRepository $protetorRepository)
     {
-        $this->protetoresRepository = $protetoresRepository;
+        $this->protetorRepository = $protetorRepository;
     }
 
-    public function aprovarCadastro(Protetores $protetor): void
+    public function aprovarCadastro(Protetor $protetor): void
     {
     }
 
-    public function reprovarCadastro(Protetores $protetor): void
+    public function reprovarCadastro(Protetor $protetor): void
     {
     }
 }

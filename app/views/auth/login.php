@@ -19,7 +19,7 @@ require_once __DIR__ . '/../templates/header.php';
                 <label for="senha" style="display:none;">Senha</label>
                 <input type="password" name="senha" id="senha" required placeholder="Digite sua senha">
             </div>
-            <a href="<?= URL_BASE ?>/recuperar-senha">Esqueceu sua senha?</a>
+            <a href="<?= URL_BASE ?>/esqueci-senha">Esqueceu sua senha?</a>
 
             <button type="submit">Entrar</button>
         </form>
