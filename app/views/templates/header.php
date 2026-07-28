@@ -70,7 +70,7 @@ if ($tipoPerfil === 'administrador') {
     }
 
     // ---------------- PERFIL: ADOTANTE ----------------
-} elseif ($tipoPerfil === 'adotante') {
+} elseif ($tipoPerfil === 'tutor') {
     $menuItens[] = ['url' =>  URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg',      'apenas_desktop' => true];
     $menuItens[] = ['url' =>  URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' =>  URL_BASE .'/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];

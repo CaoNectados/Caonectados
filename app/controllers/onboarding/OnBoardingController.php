@@ -43,10 +43,9 @@ class OnboardingController extends Controller
     private function verificarSeJaPossuiPerfil()
     {
         $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
-
         if ($usuarioId) {
             $pdo = ConnectionFactory::getConnection();
-            
+
             $stmtTutor = $pdo->prepare("SELECT COUNT(*) FROM TUTOR WHERE usuario_id = ?");
             $stmtTutor->execute([$usuarioId]);
             $temTutor = $stmtTutor->fetchColumn() > 0;
@@ -57,10 +56,13 @@ class OnboardingController extends Controller
 
             if ($temTutor || $temProtetor) {
                 if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
-                    $this->redirect('/feed'); 
+                    $this->redirect('/feed');
                     exit;
                 }
             }
+        }else {
+            $this->redirect('/login');
+            exit;
         }
     }
 
@@ -155,7 +157,6 @@ class OnboardingController extends Controller
 
                 // Em caso de sucesso, retorna JSON
                 $this->responderJson('sucesso', 'Cadastro enviado para análise com sucesso!', URL_BASE . '/aguardando-aprovacao');
-
             } catch (Exception $e) {
                 // Em caso de erro, retorna JSON
                 $this->responderJson('erro', $e->getMessage());
@@ -183,7 +184,6 @@ class OnboardingController extends Controller
 
                 // Em caso de sucesso, retorna JSON
                 $this->responderJson('sucesso', 'Seu perfil foi criado com sucesso!', URL_BASE . '/feed');
-
             } catch (Exception $e) {
                 // Em caso de erro, retorna JSON
                 $this->responderJson('erro', $e->getMessage());
