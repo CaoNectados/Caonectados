@@ -2,9 +2,11 @@
 
 namespace app\core;
 
+use RuntimeException;
+
 class Controller
 {
-    public function view(string $view, ?array $data = null)
+    public function view(string $view, ?array $data = null): void
     {
         if ($data) {
             extract($data);
@@ -15,11 +17,19 @@ class Controller
         if (file_exists($path)) {
             require_once $path;
         } else {
-            print 'A view solicitada não foi encontrada: ' . $view;
+            throw new RuntimeException("A view solicitada não foi encontrada: {$view}");
         }
     }
 
-    public function redirect(string $url)
+    public function json(int $statusCode, array $payload): void
+    {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    public function redirect(string $url): void
     {
         header('Location: ' . URL_BASE . $url);
         exit();
@@ -41,11 +51,11 @@ class Controller
             $this->redirecionarComMensagem('aviso', 'Você precisa estar logado para acessar esta página.', '/login');
         }
 
-        // Se informou perfis específicos, verifica se o usuário tem a permissão
+        // Se informou perfis específicos, verifica se o usuário tem permissão (checa todas as variações de chave)
         if (!empty($perfisPermitidos)) {
-            $tipoUsuario = $_SESSION['tipo_conta'] ?? 'usuario';
+            $tipoUsuario =  $_SESSION['tipo_perfil']  ?? 'usuario';
 
-            if (!in_array($tipoUsuario, $perfisPermitidos)) {
+            if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
                 $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/home');
             }
         }
@@ -53,11 +63,6 @@ class Controller
 
     /**
      * Redireciona para uma rota salvando o tipo de feedback e a mensagem na sessão.
-     *
-     * @param string $tipo          'erro' | 'aviso' | 'sucesso' | 'informativo'
-     * @param string $mensagem      Texto a ser exibido no modal
-     * @param string $rota          Rota para onde o usuário será redirecionado
-     * @param string|null $erroDetalhado Mensagem técnica do erro / Exception (opcional)
      */
     protected function redirecionarComMensagem(string $tipo, string $mensagem, string $rota, ?string $erroDetalhado = null): void
     {
@@ -65,7 +70,6 @@ class Controller
             session_start();
         }
 
-        // Se o ambiente for de desenvolvimento (DEV_ENVIRONMENT) e houver erro detalhado
         if (defined('DEV_ENVIRONMENT') && DEV_ENVIRONMENT === true && !empty($erroDetalhado)) {
             $mensagem .= " <br><br><small class='text-left block text-xs bg-red-100 p-2 rounded border border-red-300 font-mono text-red-800 break-words'><strong>[DEV ERROR]:</strong> " . htmlspecialchars($erroDetalhado) . "</small>";
         }

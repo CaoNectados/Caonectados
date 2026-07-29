@@ -2,15 +2,15 @@
 
 namespace app\core;
 
+use app\database\ConnectionFactory;
 use PDO;
 
 abstract class BaseRepository
 {
     protected PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct(?PDO $db = null)
     {
-        $this->db = $db;
+        $this->db = $db ?? ConnectionFactory::getConnection();
     }
 }
-

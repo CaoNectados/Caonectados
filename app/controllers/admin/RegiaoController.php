@@ -20,7 +20,7 @@ class RegiaoController extends Controller
             session_start();
         }
 
-        if (($_SESSION['tipo_conta'] ?? '') !== 'administrador') {
+        if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
             $this->redirect('/login');
         }
 
@@ -32,9 +32,10 @@ class RegiaoController extends Controller
     public function index(): void
     {
         try {
-            $regioes = $this->regiaoRepo->listarRegioes();
-            $this->view('admin/regioes/index', [
-                'regioes' => $regioes
+            $regioes = $this->regiaoRepo->buscarTodas();
+            $this->view('regiao/index', [
+                'regioes' => $regioes,
+                'titulo' => 'Gerenciar Bairros'
             ]);
         } catch (Exception $e) {
             echo "Erro ao listar regiões: " . $e->getMessage();
@@ -43,7 +44,9 @@ class RegiaoController extends Controller
 
     public function create(): void
     {
-        $this->view('admin/regioes/cadastrar');
+        $this->view('regiao/cadastrar', [
+            'titulo' => 'Cadastrar Bairro'
+        ]);
     }
 
     public function store(): void
@@ -59,7 +62,7 @@ class RegiaoController extends Controller
             // Tratamento de erro
         }
 
-        $this->redirect('/admin/regioes');
+        $this->redirect('/admin/regiao');
     }
 
     public function edit(): void
@@ -69,14 +72,15 @@ class RegiaoController extends Controller
             $regiao = $this->regiaoRepo->buscarPorId($id);
 
             if ($regiao === null) {
-                $this->redirect('/admin/regioes');
+                $this->redirect('/admin/regiao');
             }
 
-            $this->view('admin/regioes/editar', [
-                'regiao' => $regiao
+            $this->view('regiao/editar', [
+                'regiao' => $regiao,
+                'titulo' => 'Editar Bairro'
             ]);
         } catch (Exception $e) {
-            $this->redirect('/admin/regioes');
+            $this->redirect('/admin/regiao');
         }
     }
 
@@ -95,7 +99,7 @@ class RegiaoController extends Controller
             // Tratamento de erro
         }
 
-        $this->redirect('/admin/regioes');
+        $this->redirect('/admin/regiao');
     }
 
     public function deleteView(): void
@@ -105,14 +109,15 @@ class RegiaoController extends Controller
             $regiao = $this->regiaoRepo->buscarPorId($id);
 
             if ($regiao === null) {
-                $this->redirect('/admin/regioes');
+                $this->redirect('/admin/regiao');
             }
 
-            $this->view('admin/regioes/excluir', [
-                'regiao' => $regiao
+            $this->view('regiao/excluir', [
+                'regiao' => $regiao,
+                'titulo' => 'Excluir Bairro'
             ]);
         } catch (Exception $e) {
-            $this->redirect('/admin/regioes');
+            $this->redirect('/admin/regiao');
         }
     }
 
@@ -127,14 +132,13 @@ class RegiaoController extends Controller
             // Tratamento de erro
         }
 
-        $this->redirect('/admin/regioes');
+        $this->redirect('/admin/regiao');
     }
 
     public function buscarJson()
     {
         try {
-            $pdo = ConnectionFactory::getConnection();
-            $regioes = $this->regiaoRepo->buscarTodas($pdo);
+            $regioes = $this->regiaoRepo->buscarTodas();
             
             header('Content-Type: application/json');
             echo json_encode(['sucesso' => true, 'dados' => $regioes]);

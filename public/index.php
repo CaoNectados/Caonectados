@@ -1,7 +1,26 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../app/core/Autoload.php';
 require_once __DIR__ . '/../app/config/config.php';
+
+set_exception_handler(function (\Throwable $e) {
+    http_response_code(500);
+    $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+
+    $isDev = defined('DEV_ENVIRONMENT') && DEV_ENVIRONMENT === true;
+    
+    $mensagem = $isDev 
+        ? $e->getMessage() . " em " . $e->getFile() . ":" . $e->getLine()
+        : "Ocorreu um erro interno no servidor. Tente novamente mais tarde.";
+
+    if (strpos($accept, 'application/json') !== false) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => $mensagem], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    echo "<h1>Ops! Algo deu errado.</h1><p>" . htmlspecialchars($mensagem) . "</p>";
+    exit;
+});
 
 use app\core\Router;
 
@@ -75,51 +94,54 @@ $router->get('/admin/validacao-cadastros', 'admin/SolicitacaoController@index');
 // Gerenciamento de Usuários
 $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
 
+//Raças e especies
+$router->get('/admin/gerenciar-especies-racas', 'admin/RacaController@gerenciarEspeciesRacas');
+
 
 // ==========================================
 // ROTAS CRUD REGIÃO (ADMIN)
 // ==========================================
-$router->get('/admin/regioes', 'admin/RegiaoController@index');
-$router->get('/admin/regioes/cadastrar', 'admin/RegiaoController@create');
-$router->get('/admin/regioes/editar', 'admin/RegiaoController@edit');
-$router->get('/admin/regioes/excluir', 'admin/RegiaoController@deleteView');
+$router->get('/admin/regiao', 'admin/RegiaoController@index');
+$router->get('/admin/regiao/cadastrar', 'admin/RegiaoController@create');
+$router->get('/admin/regiao/editar', 'admin/RegiaoController@edit');
+$router->get('/admin/regiao/excluir', 'admin/RegiaoController@deleteView');
 
-$router->post('/admin/regioes/salvar', 'admin/RegiaoController@store');
-$router->post('/admin/regioes/atualizar', 'admin/RegiaoController@update');
-$router->post('/admin/regioes/deletar', 'admin/RegiaoController@destroy');
+$router->post('/admin/regiao/salvar', 'admin/RegiaoController@store');
+$router->post('/admin/regiao/atualizar', 'admin/RegiaoController@update');
+$router->post('/admin/regiao/deletar', 'admin/RegiaoController@destroy');
 
-$router->get('/admin/regioes/json', 'admin/RegiaoController@buscarJson');
+$router->get('/admin/regiao/json', 'admin/RegiaoController@buscarJson');
 
 // ==========================================
 // ROTAS CRUD ESPECIE (ADMIN)
 // ==========================================
-$router->get('/admin/especies', 'admin/EspecieController@index');
-$router->get('/admin/especies/cadastrar', 'admin/EspecieController@create');
-$router->get('/admin/especies/editar', 'admin/EspecieController@edit');
-$router->get('/admin/especies/excluir', 'admin/EspecieController@deleteView');
-$router->get('/admin/especies/reativar', 'admin/EspecieController@reativar');
+$router->get('/admin/especie', 'admin/EspecieController@index');
+$router->get('/admin/especie/cadastrar', 'admin/EspecieController@create');
+$router->get('/admin/especie/editar', 'admin/EspecieController@edit');
+$router->get('/admin/especie/excluir', 'admin/EspecieController@deleteView');
+$router->get('/admin/especie/reativar', 'admin/EspecieController@reativar');
 
-$router->post('/admin/especies/salvar', 'admin/EspecieController@store');
-$router->post('/admin/especies/atualizar', 'admin/EspecieController@update');
-$router->post('/admin/especies/deletar', 'admin/EspecieController@destroy');
+$router->post('/admin/especie/salvar', 'admin/EspecieController@store');
+$router->post('/admin/especie/atualizar', 'admin/EspecieController@update');
+$router->post('/admin/especie/deletar', 'admin/EspecieController@destroy');
 
-$router->get('/admin/especies/json', 'admin/EspecieController@buscarJson');
+$router->get('/admin/especie/json', 'admin/EspecieController@buscarJson');
 
 // ==========================================
 // ROTAS CRUD RACA (ADMIN)
 // ==========================================
-$router->get('/admin/racas', 'admin/RacaController@index');
-$router->get('/admin/racas/cadastrar', 'admin/RacaController@create');
-$router->get('/admin/racas/editar', 'admin/RacaController@edit');
-$router->get('/admin/racas/excluir', 'admin/RacaController@deleteView');
-$router->get('/admin/racas/reativar', 'admin/RacaController@reativar');
+$router->get('/admin/raca', 'admin/RacaController@index');
+$router->get('/admin/raca/cadastrar', 'admin/RacaController@create');
+$router->get('/admin/raca/editar', 'admin/RacaController@edit');
+$router->get('/admin/raca/excluir', 'admin/RacaController@deleteView');
+$router->get('/admin/raca/reativar', 'admin/RacaController@reativar');
 
-$router->post('/admin/racas/salvar', 'admin/RacaController@store');
-$router->post('/admin/racas/atualizar', 'admin/RacaController@update');
-$router->post('/admin/racas/deletar', 'admin/RacaController@destroy');
-$router->post('/admin/racas/importar', 'admin/RacaController@importar');
+$router->post('/admin/raca/salvar', 'admin/RacaController@store');
+$router->post('/admin/raca/atualizar', 'admin/RacaController@update');
+$router->post('/admin/raca/deletar', 'admin/RacaController@destroy');
+$router->post('/admin/raca/importar', 'admin/RacaController@importar');
 
-$router->get('/admin/racas/json', 'admin/RacaController@buscarJson');
+$router->get('/admin/raca/json', 'admin/RacaController@buscarJson');
 
 // ==========================================
 // ROTAS CRUD ANIMAL
@@ -133,3 +155,4 @@ $router->post('/animal/reativar', 'animal/AnimalController@reativar');
 $router->post('/animal/excluir', 'animal/AnimalController@destroy');
 
 $router->run();
+

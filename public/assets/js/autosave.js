@@ -1,15 +1,14 @@
-
 document.addEventListener("DOMContentLoaded", function() {
     // Procura o formulário principal da página
     const form = document.querySelector('form');
     
-    // Se não tiver formulário nesta página, o script para aqui 
-    if (!form) return;
+    // Se não tiver formulário ou se tiver a flag 'data-no-autosave', cancela
+    if (!form || form.hasAttribute('data-no-autosave')) return;
 
-    // Cria uma chave única baseada na URL atual (ex: /cadastro, /onboarding)
-    const storageKey = 'caonectados_backup_' + window.location.pathname;
+    // Inclui a query string (?id=X) para não misturar rascunhos de itens diferentes
+    const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search;
 
-    // 1. RECUPERAÇÃO MÁGICA: Preenche os dados se a página for recarregada
+    // 1. RECUPERAÇÃO MÁGICA
     const savedData = sessionStorage.getItem(storageKey);
     if (savedData) {
         const parsedData = JSON.parse(savedData);
@@ -30,13 +29,12 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    //Salva cada letra que o usuário digita
+    // Salva cada letra que o usuário digita
     form.addEventListener('input', function() {
         const formData = new FormData(form);
         const data = {};
         
         for (let [key, value] of formData.entries()) {
-            // Regra de Segurança: Nunca salva senhas ou arquivos localmente
             if (key.includes('senha') || key.includes('foto') || key.includes('comprovante')) continue;
 
             if (key.endsWith('[]')) {
@@ -51,8 +49,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-// Função para limpar o rascunho (chamar essa função quando o AJAX der sucesso)
 function limparAutoSave() {
-    const storageKey = 'caonectados_backup_' + window.location.pathname;
+    const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search;
     sessionStorage.removeItem(storageKey);
 }

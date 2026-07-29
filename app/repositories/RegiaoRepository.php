@@ -11,7 +11,6 @@ class RegiaoRepository extends BaseRepository
 {
     public function cadastrarRegiao(Regiao $regiao): int
     {
-        $sql = "INSERT INTO REGIOES (nome_regiao) VALUES (:nome_regiao)"; // Mantido REGIOES se a tabela for plural, mas o ideal é alterar para REGIAO no banco. Assumindo REGIAO conforme seu script SQL.
         $sql = "INSERT INTO REGIAO (nome_regiao) VALUES (:nome_regiao)";
 
         $stmt = $this->db->prepare($sql);
@@ -23,7 +22,6 @@ class RegiaoRepository extends BaseRepository
 
     public function buscarPorId(int $id): ?Regiao
     {
-        $sql = "SELECT regiao_id, nome_regiao FROM REGIOES WHERE regiao_id = :regiao_id";
         $sql = "SELECT regiao_id, nome_regiao FROM REGIAO WHERE regiao_id = :regiao_id";
 
         $stmt = $this->db->prepare($sql);
@@ -38,14 +36,14 @@ class RegiaoRepository extends BaseRepository
     public function buscarPorNome(string $nomeRegiao, ?int $ignorarId = null): ?Regiao
     {
         $sql = "SELECT regiao_id, nome_regiao FROM REGIAO WHERE LOWER(nome_regiao) = LOWER(:nome_regiao)";
-        
+
         if ($ignorarId !== null) {
             $sql .= " AND regiao_id != :ignorar_id";
         }
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':nome_regiao', trim($nomeRegiao), PDO::PARAM_STR);
-        
+
         if ($ignorarId !== null) {
             $stmt->bindValue(':ignorar_id', $ignorarId, PDO::PARAM_INT);
         }
@@ -56,16 +54,14 @@ class RegiaoRepository extends BaseRepository
         return $row === false ? null : $this->mapRegiao($row);
     }
 
-    public function listarRegioes(): array
+    public function buscarTodas(): array
     {
         $sql = "SELECT regiao_id, nome_regiao FROM REGIAO ORDER BY nome_regiao ASC";
 
         $stmt = $this->db->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_map(function (array $row): Regiao {
-            return $this->mapRegiao($row);
-        }, $rows);
+        return array_map(fn(array $row) => $this->mapRegiao($row), $rows);
     }
 
     public function editarRegiao(Regiao $regiao): bool
@@ -82,7 +78,6 @@ class RegiaoRepository extends BaseRepository
 
     public function excluirRegiao(int $id): bool
     {
-        $sql = "DELETE FROM REGIOO WHERE regiao_id = :regiao_id";
         $sql = "DELETE FROM REGIAO WHERE regiao_id = :regiao_id";
 
         $stmt = $this->db->prepare($sql);

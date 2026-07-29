@@ -89,7 +89,7 @@ class RegiaoService
             session_start();
         }
 
-        $tipoPerfil = $_SESSION['tipo_conta'] ?? $_SESSION['tipo_perfil'] ?? null;
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? null;
 
         if ($tipoPerfil !== 'administrador') {
             throw new InvalidArgumentException('Apenas administradores podem realizar esta operação.');

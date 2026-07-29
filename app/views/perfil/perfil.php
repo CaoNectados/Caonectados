@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
 
-$tipoPerfil = $_SESSION['tipo_conta'] ?? 'tutor';
+$tipoPerfil = $_SESSION['tipo_perfil'] ?? 'tutor';
 $nomeUsuario = $_SESSION['usuario_nome'] ?? 'NomeUsuário';
 
 // Configurações padrão

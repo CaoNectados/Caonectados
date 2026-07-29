@@ -38,7 +38,7 @@ class PerfilController extends Controller
     {
         $pdo = ConnectionFactory::getConnection();
         $usuarioId = $_SESSION['usuario_id'];
-        $tipoPerfil = $_SESSION['tipo_conta'] ?? '';
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
 
         $fotoPerfil = null;
 
@@ -75,10 +75,10 @@ class PerfilController extends Controller
         $regiaoRepo = new RegiaoRepository();
 
         $usuarioId = $_SESSION['usuario_id'];
-        $tipoPerfil = $_SESSION['tipo_conta'];
+        $tipoPerfil = $_SESSION['tipo_perfil'];
 
-        $usuario = $usuarioRepo->buscarPorId($usuarioId, $pdo);
-        $regioes = $regiaoRepo->buscarTodas($pdo);
+        $usuario = $usuarioRepo->buscarPorId($usuarioId);
+        $regioes = $regiaoRepo->buscarTodas();
 
         $dadosEspecificos = [];
 
@@ -129,7 +129,7 @@ class PerfilController extends Controller
 
         $pdo = ConnectionFactory::getConnection();
         $usuarioId = $_SESSION['usuario_id'];
-        $tipoPerfil = $_SESSION['tipo_conta'];
+        $tipoPerfil = $_SESSION['tipo_perfil'];
 
         // Captura os dados globais de usuário
         $nome = trim($_POST['nome'] ?? '');
@@ -299,7 +299,7 @@ class PerfilController extends Controller
     {
         $pdo = ConnectionFactory::getConnection();
         $usuarioId = $_SESSION['usuario_id'];
-        $tipoPerfil = $_SESSION['tipo_conta'] ?? '';
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
         $fotoAtual = null;
 
         if ($tipoPerfil === 'tutor' ) {
@@ -329,7 +329,7 @@ class PerfilController extends Controller
 
         $pdo = ConnectionFactory::getConnection();
         $usuarioId = $_SESSION['usuario_id'];
-        $tipoPerfil = $_SESSION['tipo_conta'];
+        $tipoPerfil = $_SESSION['tipo_perfil'];
 
         $base64Data = $_POST['foto_cortada'] ?? '';
         if (empty($base64Data)) {

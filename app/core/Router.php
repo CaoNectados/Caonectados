@@ -2,36 +2,35 @@
 
 namespace app\core;
 
-use Exception;
+use RuntimeException;
 
 class Router
 {
     private array $routes = [];
 
-    public function get($route, $action)
+    public function get(string $route, string $action): void
+    {
+        $this->addRoute('get', $route, $action);
+    }
+
+    public function post(string $route, string $action): void
+    {
+        $this->addRoute('post', $route, $action);
+    }
+
+    private function addRoute(string $method, string $route, string $action): void
     {
         $this->routes[] = [
-            'method' => 'get',
-            'route' => $route,
+            'method' => $method,
+            'route'  => $route,
             'action' => $action
         ];
     }
 
-    public function post($route, $action)
+    public function run(): void
     {
-        $this->routes[] = [
-            'method' => 'post',
-            'route' => $route,
-            'action' => $action
-        ];
-    }
-
-    public function run()
-    {
-        // Extrai apenas o caminho, removendo a query string (ex: ?simular_perfil=protetor)
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        // Define o caminho base onde o projeto está rodando (pasta public)
         $basePath = dirname($_SERVER['SCRIPT_NAME']);
         $basePath = str_replace('\\', '/', $basePath);
 
@@ -39,66 +38,87 @@ class Router
             $basePath = '';
         }
 
-        // Remove a pasta base da URI para termos apenas a rota final
         if (strpos($uri, $basePath) === 0) {
             $uri = substr($uri, strlen($basePath));
         }
 
-        // --- CORREÇÃO DA BARRA DUPLA AQUI ---
-        // Se vier //login da URL, ele transforma em /login limpo
         $uri = preg_replace('#/+#', '/', $uri);
 
-        // Se a URI ficar vazia após remover o basePath, ou for apenas uma barra, a rota é '/'
         if (empty($uri) || $uri === '/') {
             $uri = '/';
         } else {
-            // Para outras rotas (ex: /cadastro/), removemos a barra final para padronizar
             $uri = rtrim($uri, '/');
         }
 
         $method = strtolower($_SERVER['REQUEST_METHOD']);
 
         foreach ($this->routes as $route) {
-            $registeredRoute = $route['route'];
+            $registeredRoute = $route['route'] !== '/' ? rtrim($route['route'], '/') : '/';
 
-            // Padroniza a rota registrada da mesma forma
-            if ($registeredRoute !== '/') {
-                $registeredRoute = rtrim($registeredRoute, '/');
-            }
+            // Converte parâmetros dinâmicos como {id} para regex (?P<id>[^/]+)
+            $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $registeredRoute);
+            $pattern = '#^' . $pattern . '$#';
 
-            if ($registeredRoute === $uri && $route['method'] === $method) {
-                return $this->dispatch($route);
+            if ($route['method'] === $method && preg_match($pattern, $uri, $matches)) {
+                // Extrai apenas os parâmetros nomeados capturados
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                $this->dispatch($route, $params);
+                return;
             }
         }
 
-        http_response_code(404);
-        exit('Rota não encontrada. Rota solicitada: ' . htmlspecialchars($uri));
+        $this->handleNotFound($uri);
     }
 
-    public function dispatch($route)
+    private function dispatch(array $route, array $params = []): void
     {
-
         list($controller, $method) = explode('@', $route['action']);
 
         $controller = str_replace('/', '\\', $controller);
-
         $controllerClass = "app\\controllers\\$controller";
 
         if (!class_exists($controllerClass)) {
-            print "Controller $controllerClass não encontrado";
-            die;
-        }
-
-        if (!method_exists($controllerClass, $method)) {
-            print "Método $method não encontrado em $controllerClass";
-            die;
+            throw new RuntimeException("Controller {$controllerClass} não encontrado.");
         }
 
         $controllerObj = new $controllerClass();
-        $controllerObj->$method();
+
+        if (!method_exists($controllerObj, $method)) {
+            throw new RuntimeException("Método {$method} não encontrado em {$controllerClass}.");
+        }
+
+        // Executa o método do controller passando os parâmetros dinâmicos da URL
+        call_user_func_array([$controllerObj, $method], $params);
     }
 
-    public function getAllRoutes()
+    private function handleNotFound(string $uri): void
+{
+    http_response_code(404);
+
+    $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+    // Se for explicitamente requisição de API / Fetch
+    if ($isAjax || (strpos($accept, 'application/json') !== false && strpos($accept, 'text/html') === false)) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'status'  => 'erro',
+            'message' => "Rota não encontrada: {$uri}"
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Se for navegação no navegador, renderiza a View 404
+    $viewPath = __DIR__ . '/../views/errors/404.php';
+    if (file_exists($viewPath)) {
+        require_once $viewPath;
+    } else {
+        echo "<h1>404 - Página não encontrada</h1>";
+    }
+    exit;
+}
+
+    public function getAllRoutes(): array
     {
         return $this->routes;
     }

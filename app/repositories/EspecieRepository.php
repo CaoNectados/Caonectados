@@ -2,18 +2,12 @@
 
 namespace app\repositories;
 
+use app\core\BaseRepository;
 use app\models\Especie;
 use PDO;
 
-class EspecieRepository
+class EspecieRepository extends BaseRepository
 {
-    private ?PDO $db;
-
-    public function __construct(?PDO $db = null)
-    {
-        $this->db = $db;
-    }
-
     public function listarTodas(string $status = 'todos'): array
     {
         $sql = "SELECT * FROM ESPECIE";
@@ -29,70 +23,61 @@ class EspecieRepository
         $stmt = $this->db->query($sql);
         $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $especies = [];
-        foreach ($dados as $d) {
-            $e = new Especie();
-            $e->setId((int)$d['especie_id']);
-            $e->setNome($d['nome']);
-            $e->setAtivo((bool)$d['ativo']);
-            $especies[] = $e;
-        }
-
-        return $especies;
+        return array_map(fn(array $row) => $this->mapEspecie($row), $dados);
     }
 
     public function buscarPorId(int $id): ?Especie
     {
-        $stmt = $this->db->prepare("SELECT * FROM ESPECIE WHERE especie_id = :id");
-        $stmt->execute([':id' => $id]);
-        $d = $stmt->fetch(PDO::FETCH_ASSOC);
+        $sql = "SELECT * FROM ESPECIE WHERE especie_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$d) return null;
-
-        $e = new Especie();
-        $e->setId((int)$d['especie_id']);
-        $e->setNome($d['nome']);
-        $e->setAtivo((bool)$d['ativo']);
-        return $e;
+        return $row === false ? null : $this->mapEspecie($row);
     }
 
     public function buscarOuCriarPorNome(string $nome): Especie
     {
-        $stmt = $this->db->prepare("SELECT * FROM ESPECIE WHERE LOWER(nome) = LOWER(:nome)");
-        $stmt->execute([':nome' => $nome]);
+        $sql = "SELECT * FROM ESPECIE WHERE LOWER(nome) = LOWER(:nome)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $nome, PDO::PARAM_STR);
+        $stmt->execute();
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($dados) {
-            $especie = new Especie();
-            $especie->setId((int)$dados['especie_id']);
-            $especie->setNome($dados['nome']);
-            $especie->setAtivo((bool)$dados['ativo']);
-            return $especie;
+            return $this->mapEspecie($dados);
         }
 
         $stmtInsert = $this->db->prepare("INSERT INTO ESPECIE (nome) VALUES (:nome)");
-        $stmtInsert->execute([':nome' => $nome]);
+        $stmtInsert->bindValue(':nome', $nome, PDO::PARAM_STR);
+        $stmtInsert->execute();
 
         $especie = new Especie();
-        $especie->setId((int)$this->db->lastInsertId());
+        $especie->setId((int) $this->db->lastInsertId());
         $especie->setNome($nome);
         $especie->setAtivo(true);
+
         return $especie;
     }
 
     public function cadastrar(Especie $especie): bool
     {
-        $stmt = $this->db->prepare("INSERT INTO ESPECIE (nome) VALUES (:nome)");
-        return $stmt->execute([':nome' => $especie->getNome()]);
+        $sql = "INSERT INTO ESPECIE (nome) VALUES (:nome)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $especie->getNome(), PDO::PARAM_STR);
+
+        return $stmt->execute();
     }
 
     public function atualizar(Especie $especie): bool
     {
-        $stmt = $this->db->prepare("UPDATE ESPECIE SET nome = :nome WHERE especie_id = :id");
-        return $stmt->execute([
-            ':nome' => $especie->getNome(),
-            ':id' => $especie->getId()
-        ]);
+        $sql = "UPDATE ESPECIE SET nome = :nome WHERE especie_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $especie->getNome(), PDO::PARAM_STR);
+        $stmt->bindValue(':id', $especie->getId(), PDO::PARAM_INT);
+
+        return $stmt->execute();
     }
 
     public function excluir(int $id): bool
@@ -101,10 +86,12 @@ class EspecieRepository
             $this->db->beginTransaction();
 
             $stmtEspecie = $this->db->prepare("UPDATE ESPECIE SET ativo = FALSE WHERE especie_id = :id");
-            $stmtEspecie->execute([':id' => $id]);
+            $stmtEspecie->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmtEspecie->execute();
 
             $stmtRacas = $this->db->prepare("UPDATE RACA SET ativo = FALSE WHERE especie_id = :id");
-            $stmtRacas->execute([':id' => $id]);
+            $stmtRacas->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmtRacas->execute();
 
             return $this->db->commit();
         } catch (\PDOException $e) {
@@ -121,10 +108,12 @@ class EspecieRepository
             $this->db->beginTransaction();
 
             $stmtEspecie = $this->db->prepare("UPDATE ESPECIE SET ativo = TRUE WHERE especie_id = :id");
-            $stmtEspecie->execute([':id' => $id]);
+            $stmtEspecie->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmtEspecie->execute();
 
             $stmtRacas = $this->db->prepare("UPDATE RACA SET ativo = TRUE WHERE especie_id = :id");
-            $stmtRacas->execute([':id' => $id]);
+            $stmtRacas->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmtRacas->execute();
 
             return $this->db->commit();
         } catch (\PDOException $e) {
@@ -135,10 +124,21 @@ class EspecieRepository
         }
     }
 
-    public function buscarTodas(?PDO $pdo = null): array
+    public function buscarTodas(): array
     {
-        $conexao = $pdo ?? $this->db;
-        $stmt = $conexao->query("SELECT especie_id, nome FROM ESPECIE WHERE ativo = TRUE ORDER BY nome ASC");
+        $sql = "SELECT especie_id, nome FROM ESPECIE WHERE ativo = TRUE ORDER BY nome ASC";
+        $stmt = $this->db->query($sql);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function mapEspecie(array $row): Especie
+    {
+        $especie = new Especie();
+        $especie->setId((int) $row['especie_id']);
+        $especie->setNome($row['nome']);
+        $especie->setAtivo((bool) $row['ativo']);
+
+        return $especie;
     }
 }

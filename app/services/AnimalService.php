@@ -157,7 +157,7 @@ class AnimalService
 
         $usuarioId = $_SESSION['usuario_id'] ?? null;
         $protetorId = $_SESSION['protetor_id'] ?? null;
-        $tipoPerfil = $_SESSION['tipo_perfil'] ?? $_SESSION['tipo_conta'] ?? null;
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? $_SESSION['tipo_perfil'] ?? null;
 
         if ($usuarioId === null && $protetorId === null) {
             throw new InvalidArgumentException('Usuário não autenticado.');

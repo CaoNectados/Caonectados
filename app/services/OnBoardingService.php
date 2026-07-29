@@ -84,7 +84,7 @@ class OnboardingService
                 session_start();
             }
 
-            $_SESSION['tipo_conta']   = 'adotante';
+            $_SESSION['tipo_perfil']   = 'adotante';
             $_SESSION['status_conta'] = 'ativo'; // Garante que o menu libere todas as opções do Adotante
             $_SESSION['tutor_id']     = $tutorId;
             $_SESSION['usuario_nome'] = $dados['nome_usuario'];
@@ -157,7 +157,7 @@ class OnboardingService
                 session_start();
             }
 
-            $_SESSION['tipo_conta']   = $tipoPerfil;
+            $_SESSION['tipo_perfil']   = $tipoPerfil;
             $_SESSION['status_conta'] = 'pendente';
             $_SESSION['protetor_id']  = $protetorId;
             $_SESSION['usuario_nome'] = $dados['nome_fantasia'];

@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Raças</title>
-</head>
-
-<body>
+<?php 
+require_once __DIR__ . '/../templates/header.php';
+?>
     <h1>Raças Cadastradas</h1>
 
-    <a href="/racas/cadastrar">Cadastrar Nova Raça</a> | <a href="/especies">Ir para Espécies</a>
+    <a href="<?= URL_BASE ?>/admin/raca/cadastrar">Cadastrar Nova Raça</a> | <a href="<?= URL_BASE ?>/admin/especie">Ir para Espécies</a>
     <br><br>
 
     <!-- Formulário de Filtro -->
-    <form method="GET" action="/racas">
+    <form method="GET" action="<?= URL_BASE ?>/admin/raca/">
         <label for="status">Filtrar por Status:</label>
         <select name="status" id="status" onchange="this.form.submit()">
             <option value="todos" <?= ($_GET['status'] ?? 'todos') === 'todos' ? 'selected' : '' ?>>Todos</option>
@@ -44,13 +38,13 @@
                         <!-- Nova coluna mostrando se está Ativo ou Inativo -->
                         <td><?= $r->isAtivo() ? 'Ativo' : 'Inativo'; ?></td>
                         <td>
-                            <a href="/racas/editar?id=<?= $r->getId(); ?>">Editar</a> |
+                            <a href="<?= URL_BASE ?>/admin/raca/editar?id=<?= $r->getId(); ?>">Editar</a> |
 
                             <!-- Muda a ação dependendo do status atual -->
                             <?php if ($r->isAtivo()): ?>
-                                <a href="/racas/excluir?id=<?= $r->getId(); ?>" style="color: red;">Desativar</a>
+                                <a href="<?= URL_BASE ?>/admin/raca/excluir?id=<?= $r->getId(); ?>" style="color: red;">Desativar</a>
                             <?php else: ?>
-                                <a href="/racas/reativar?id=<?= $r->getId(); ?>" style="color: green;">Ativar</a>
+                                <a href="<?= URL_BASE ?>/admin/raca/reativar?id=<?= $r->getId(); ?>" style="color: green;">Ativar</a>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -62,6 +56,6 @@
             <?php endif; ?>
         </tbody>
     </table>
-</body>
-
-</html>
+<?php 
+require_once __DIR__ . '/../templates/footer.php';
+?>

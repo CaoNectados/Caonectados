@@ -5,7 +5,7 @@ namespace app\repositories;
 use app\core\BaseRepository;
 use app\models\Animal;
 use PDO;
-use PDOStatement; 
+use PDOStatement;
 
 class AnimalRepository extends BaseRepository
 {
@@ -105,9 +105,7 @@ class AnimalRepository extends BaseRepository
         $stmt = $this->db->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_map(function (array $row): Animal {
-            return $this->mapAnimal($row);
-        }, $rows);
+        return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
     public function editarAnimal(Animal $animal): bool
@@ -199,9 +197,7 @@ class AnimalRepository extends BaseRepository
 
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_map(function (array $row): Animal {
-            return $this->mapAnimal($row);
-        }, $rows);
+        return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
     public function verificarExistencia(int $id): bool

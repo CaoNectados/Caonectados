@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../helpers/ViewHelper.php';
 // LÓGICA DE AUTENTICAÇÃO E PERFIL
 // ------------------------------------------------------------------
 $titulo = $titulo ?? 'CãoNectados';
-$tipoPerfil = $_SESSION['tipo_conta'] ?? null;
+$tipoPerfil = $_SESSION['tipo_perfil'] ?? null;
 $statusConta = $_SESSION['status_conta'] ?? 'ativo';
 
 $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -44,7 +44,7 @@ if ($tipoPerfil === 'administrador') {
     $menuItens[] = ['url' => URL_BASE . '/admin/dashboard', 'label' => 'Dashboard', 'icone' => 'dashboard.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/solicitacoes', 'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários', 'icone' => 'usuarios.svg'];
-    $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-bairros', 'label' => 'Gerenciar Bairros', 'icone' => 'bairros.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/regiao', 'label' => 'Gerenciar Bairros', 'icone' => 'bairros.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/denuncias', 'label' => 'Denúncias', 'icone' => 'denuncia.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/auditoria-logs', 'label' => 'Auditoria e Logs', 'icone' => 'auditoria.svg'];

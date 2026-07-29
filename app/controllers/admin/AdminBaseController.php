@@ -12,7 +12,7 @@ class AdminBaseController extends Controller
             session_start();
         }
 
-        if (($_SESSION['tipo_conta'] ?? '') !== 'administrador') {
+        if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
             $this->redirect('/login');
             exit;
         }

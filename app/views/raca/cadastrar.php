@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastrar Raça</title>
-</head>
-
-<body>
+<?php 
+require_once __DIR__ . '/../templates/header.php';
+?>
     <h1>Cadastrar Nova Raça</h1>
-    <form action="/racas/salvar" method="POST">
+    <form action="<?= URL_BASE ?>/admin/raca/salvar" method="POST">
         <label for="especie_id">Espécie Pertencente:</label>
         <select id="especie_id" name="especie_id" required>
             <option value="">-- Selecione uma Espécie --</option>
@@ -22,7 +16,7 @@
         <br><br>
         <button type="submit">Salvar Raça</button>
     </form>
-    <br><a href="/racas">Voltar</a>
-</body>
-
-</html>
+    <br><a href="<?= URL_BASE ?>/admin/raca/">Voltar</a>
+<?php 
+require_once __DIR__ . '/../templates/footer.php';
+?>

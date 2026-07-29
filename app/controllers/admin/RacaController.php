@@ -24,7 +24,7 @@ class RacaController extends Controller
             session_start();
         }
 
-        if (($_SESSION['tipo_conta'] ?? '') !== 'administrador') {
+        if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
             $this->redirect('/login');
         }
 
@@ -42,18 +42,20 @@ class RacaController extends Controller
         $status = $_GET['status'] ?? 'todos';
         $racas = $this->service->listarTodas($status);
 
-        $this->view('admin/racas/index', [
+        $this->view('raca/index', [
             'racas' => $racas,
-            'status' => $status
+            'status' => $status,
+            'titulo'   => 'Gerenciar Raças'
         ]);
     }
 
     public function create(): void
     {
         $especies = $this->especieService->listarTodas();
-        
-        $this->view('admin/racas/cadastrar', [
-            'especies' => $especies
+
+        $this->view('raca/cadastrar', [
+            'especies' => $especies,
+            'titulo'   => 'Cadastrar Raça'
         ]);
     }
 
@@ -72,23 +74,25 @@ class RacaController extends Controller
             // Tratamento de erro silencioso ou log
         }
 
-        $this->redirect('/admin/racas');
+        $this->redirect('/admin/raca');
     }
 
     public function edit(): void
     {
         $id = (int)($_GET['id'] ?? 0);
         $raca = $this->service->buscarPorId($id);
-
+       
         if (!$raca) {
-            $this->redirect('/admin/racas');
+            $this->redirect('/admin/raca');
         }
 
         $especies = $this->especieService->listarTodas();
-        
-        $this->view('admin/racas/editar', [
+
+        $this->view('raca/editar', [
             'raca' => $raca,
-            'especies' => $especies
+            'especies' => $especies,
+            'titulo'   => 'Editar Raça'
+
         ]);
     }
 
@@ -109,7 +113,7 @@ class RacaController extends Controller
             // Tratamento de erro
         }
 
-        $this->redirect('/admin/racas');
+        $this->redirect('/admin/raca');
     }
 
     public function deleteView(): void
@@ -118,11 +122,13 @@ class RacaController extends Controller
         $raca = $this->service->buscarPorId($id);
 
         if (!$raca) {
-            $this->redirect('/admin/racas');
+            $this->redirect('/admin/raca');
         }
 
-        $this->view('admin/racas/excluir', [
-            'raca' => $raca
+        $this->view('raca/excluir', [
+            'raca' => $raca,
+            'titulo'   => 'Excluir Raça'
+
         ]);
     }
 
@@ -133,7 +139,7 @@ class RacaController extends Controller
             $this->service->excluir($id);
         }
 
-        $this->redirect('/admin/racas');
+        $this->redirect('/admin/raca');
     }
 
     public function importar(): void
@@ -146,7 +152,7 @@ class RacaController extends Controller
             $_SESSION['erro'] = "Erro durante a importação: " . $e->getMessage();
         }
 
-        $this->redirect('/admin/racas');
+        $this->redirect('/admin/raca');
     }
 
     public function reativar(): void
@@ -156,7 +162,7 @@ class RacaController extends Controller
             $this->service->reativar($id);
         }
 
-        $this->redirect('/admin/racas');
+        $this->redirect('/admin/raca');
     }
 
     public function buscarJson()
@@ -164,13 +170,13 @@ class RacaController extends Controller
         try {
             $pdo = ConnectionFactory::getConnection();
             $especieId = filter_input(INPUT_GET, 'especie_id', FILTER_VALIDATE_INT);
-            
+
             if ($especieId) {
-                $racas = $this->racaRepo->buscarPorEspecie($pdo, $especieId);
+                $racas = $this->racaRepo->buscarPorEspecie($especieId);
             } else {
-                $racas = $this->racaRepo->buscarTodas($pdo);
+                $racas = $this->racaRepo->buscarTodas();
             }
-            
+
             header('Content-Type: application/json');
             echo json_encode(['sucesso' => true, 'dados' => $racas]);
         } catch (Exception $e) {
@@ -178,5 +184,34 @@ class RacaController extends Controller
             echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao buscar raças.']);
         }
         exit;
+    }
+
+    public function gerenciarEspeciesRacas(): void
+    {
+        // Busca todas as espécies e raças ativas
+        $especies = $this->especieService->listarTodas('ativos');
+        $racas = $this->service->listarTodas('ativos');
+
+        // Cria um array agrupando as raças dentro de suas respectivas espécies
+        $especiesComRacas = [];
+        foreach ($especies as $especie) {
+            $especiesComRacas[$especie->getId()] = [
+                'especie' => $especie,
+                'racas' => []
+            ];
+        }
+
+        foreach ($racas as $raca) {
+            $especieId = $raca->getEspecieId();
+            if (isset($especiesComRacas[$especieId])) {
+                $especiesComRacas[$especieId]['racas'][] = $raca;
+            }
+        }
+
+        // Envia para a View
+        $this->view('admin/gerenciar_especies_racas', [
+            'titulo' => 'Visão Geral: Espécies e Raças',
+            'especiesComRacas' => $especiesComRacas
+        ]);
     }
 }

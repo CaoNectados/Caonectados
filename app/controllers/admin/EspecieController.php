@@ -29,15 +29,18 @@ class EspecieController extends Controller
         $status = $_GET['status'] ?? 'todos';
         $especies = $this->service->listarTodas($status);
 
-        $this->view('admin/especies/index', [
+        $this->view('especie/index', [
             'especies' => $especies,
-            'status'   => $status
+            'status'   => $status,
+            'titulo'   => 'Gerenciar Espécies'
         ]);
     }
 
     public function create(): void
     {
-        $this->view('admin/especies/cadastrar');
+        $this->view('especie/cadastrar', [
+            'titulo' => 'Cadastrar Espécie'
+        ]);
     }
 
     public function store(): void
@@ -48,9 +51,9 @@ class EspecieController extends Controller
             $especie->setNome($nome);
             $this->service->cadastrar($especie);
 
-            $this->redirecionarComMensagem('sucesso', 'Espécie cadastrada com sucesso!', '/admin/especies');
+            $this->redirecionarComMensagem('sucesso', 'Espécie cadastrada com sucesso!', '/admin/especie');
         } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', 'Erro ao cadastrar espécie.', '/admin/especies', $e->getMessage());
+            $this->redirecionarComMensagem('erro', 'Erro ao cadastrar espécie.', '/admin/especie', $e->getMessage());
         }
     }
 
@@ -60,11 +63,12 @@ class EspecieController extends Controller
         $especie = $this->service->buscarPorId($id);
 
         if (!$especie) {
-            $this->redirecionarComMensagem('aviso', 'Espécie não encontrada.', '/admin/especies');
+            $this->redirecionarComMensagem('aviso', 'Espécie não encontrada.', '/admin/especie');
         }
 
-        $this->view('admin/especies/editar', [
-            'especie' => $especie
+        $this->view('especie/editar', [
+            'especie' => $especie,
+             'titulo'   => 'Editar Espécie'
         ]);
     }
 
@@ -80,9 +84,9 @@ class EspecieController extends Controller
 
             $this->service->atualizar($especie);
 
-            $this->redirecionarComMensagem('sucesso', 'Espécie atualizada com sucesso!', '/admin/especies');
+            $this->redirecionarComMensagem('sucesso', 'Espécie atualizada com sucesso!', '/admin/especie');
         } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', 'Erro ao atualizar espécie.', '/admin/especies', $e->getMessage());
+            $this->redirecionarComMensagem('erro', 'Erro ao atualizar espécie.', '/admin/especie', $e->getMessage());
         }
     }
 
@@ -92,11 +96,12 @@ class EspecieController extends Controller
         $especie = $this->service->buscarPorId($id);
 
         if (!$especie) {
-            $this->redirecionarComMensagem('aviso', 'Espécie não encontrada.', '/admin/especies');
+            $this->redirecionarComMensagem('aviso', 'Espécie não encontrada.', '/admin/especie');
         }
 
-        $this->view('admin/especies/excluir', [
-            'especie' => $especie
+        $this->view('especie/excluir', [
+            'especie' => $especie,
+             'titulo'   => 'Desativar Espécie'
         ]);
     }
 
@@ -106,11 +111,11 @@ class EspecieController extends Controller
             $id = (int)($_GET['id'] ?? 0);
             if ($id > 0) {
                 $this->service->excluir($id);
-                $this->redirecionarComMensagem('sucesso', 'Espécie excluída com sucesso!', '/admin/especies');
+                $this->redirecionarComMensagem('sucesso', 'Espécie desativada com sucesso!', '/admin/especie');
             }
-            $this->redirect('/admin/especies');
+            $this->redirect('/admin/especie');
         } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', 'Erro ao excluir espécie.', '/admin/especies', $e->getMessage());
+            $this->redirecionarComMensagem('erro', 'Erro ao desativar a espécie.', '/admin/especie', $e->getMessage());
         }
     }
 
@@ -120,11 +125,11 @@ class EspecieController extends Controller
             $id = (int)($_GET['id'] ?? 0);
             if ($id > 0) {
                 $this->service->reativar($id);
-                $this->redirecionarComMensagem('sucesso', 'Espécie reativada com sucesso!', '/admin/especies');
+                $this->redirecionarComMensagem('sucesso', 'Espécie reativada com sucesso!', '/admin/especie');
             }
-            $this->redirect('/admin/especies');
+            $this->redirect('/admin/especie');
         } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', 'Erro ao reativar espécie.', '/admin/especies', $e->getMessage());
+            $this->redirecionarComMensagem('erro', 'Erro ao reativar espécie.', '/admin/especie', $e->getMessage());
         }
     }
 

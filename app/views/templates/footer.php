@@ -39,7 +39,6 @@
     <!-- 1. Scripts globais da aplicação -->
     <script src="<?= e(URL_BASE) ?>/assets/js/menu.js" defer></script>
     <script src="<?= e(URL_BASE) ?>/assets/js/validacoes.js"></script>
-    <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <!-- 2. Lógica do Modal de Feedback -->

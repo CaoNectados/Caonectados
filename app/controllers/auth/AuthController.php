@@ -3,31 +3,20 @@
 namespace app\controllers\auth;
 
 use app\core\Controller;
-use app\models\Usuario;
-use app\database\ConnectionFactory;
+use app\services\AuthService;
+use app\services\MailService;
 use Exception;
 
 class AuthController extends Controller
 {
+    private AuthService $authService;
+
     public function __construct()
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-    }
-
-    /**
-     * Função auxiliar para retornar respostas em JSON para o AJAX
-     */
-    private function responderJson(string $status, string $mensagem, ?string $redirectUrl = null)
-    {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'status'       => $status,
-            'mensagem'     => $mensagem,
-            'redirect_url' => $redirectUrl
-        ]);
-        exit;
+        $this->authService = new AuthService();
     }
 
     public function login()
@@ -44,48 +33,38 @@ class AuthController extends Controller
         $senha = $_POST['senha'] ?? '';
 
         if (empty($email) || empty($senha)) {
-            $this->responderJson('erro', 'Por favor, preencha todos os campos.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Por favor, preencha todos os campos.']);
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->responderJson('erro', 'Informe um e-mail válido.');
+        try {
+            // Toda a regra de login, status da conta e bloqueios estão agora no Service
+            $usuario = $this->authService->autenticar($email, $senha);
+            
+            // Cria a sessão com segurança (regenerate_id)
+            $this->authService->iniciarSessao($usuario);
+
+            $tipoPerfil = $_SESSION['tipo_perfil'];
+            $statusConta = $_SESSION['status_conta'];
+
+            // Define a URL de redirecionamento
+            $urlRedirect = '/home';
+            if ($tipoPerfil === 'usuario') {
+                $urlRedirect = '/onboarding';
+            } elseif ($statusConta === 'pendente') {
+                $urlRedirect = '/aguardando-aprovacao';
+            } elseif ($tipoPerfil === 'administrador') {
+                $urlRedirect = '/admin/dashboard';
+            }
+
+            $this->json(200, [
+                'status' => 'sucesso', 
+                'mensagem' => 'Login efetuado com sucesso!', 
+                'redirect_url' => URL_BASE . $urlRedirect
+            ]);
+
+        } catch (Exception $e) {
+            $this->json(401, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
-
-        $usuarioModel = new Usuario();
-        $user = $usuarioModel->findByEmail($email);
-
-        if (!$user || !password_verify($senha, $user->senha)) {
-            $this->responderJson('erro', 'E-mail ou senha incorretos.');
-        }
-
-        $tipoPerfil = $user->tipo_perfil ?? $user->tipo_atual ?? 'usuario';
-        $statusConta = $user->status_conta ?? 'pendente';
-
-        if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado'])) {
-            $this->responderJson('erro', 'Sua conta está inativa ou bloqueada. Entre em contato com o suporte.');
-        }
-
-        $_SESSION['usuario_id']    = $user->usuario_id;
-        $_SESSION['usuario_email'] = $user->email;
-        $_SESSION['usuario_nome']  = $user->nome;
-        $_SESSION['tipo_conta']    = $tipoPerfil;
-        $_SESSION['status_conta']  = $statusConta;
-
-        // Define a URL de redirecionamento baseada no status/tipo
-        $urlRedirect = '/home';
-
-        if (empty($tipoPerfil) || $tipoPerfil === 'usuario') {
-            $urlRedirect = '/onboarding';
-        } elseif ($statusConta === 'pendente') {
-            $urlRedirect = '/aguardando-aprovacao';
-        } elseif ($tipoPerfil === 'administrador') {
-            $urlRedirect = '/admin/dashboard';
-        } elseif (in_array($tipoPerfil, ['ong', 'protetor']) && $statusConta === 'ativo') {
-            $_SESSION['boas_vindas_nome'] = $user->nome;
-            $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
-        }
-
-        $this->responderJson('sucesso', 'Login efetuado com sucesso!', URL_BASE . $urlRedirect);
     }
 
     public function cadastro()
@@ -101,82 +80,120 @@ class AuthController extends Controller
         $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
         $senha_confirmacao = $_POST['senha_confirmacao'] ?? '';
-        $tipoPerfil = 'usuario';
 
         if (empty($email) || empty($senha) || empty($senha_confirmacao)) {
-            $this->responderJson('erro', 'Todos os campos são obrigatórios.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Todos os campos são obrigatórios.']);
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->responderJson('erro', 'Insira um formato de e-mail válido.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Insira um formato de e-mail válido.']);
         }
 
         if ($senha !== $senha_confirmacao) {
-            $this->responderJson('erro', 'As senhas não coincidem.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'As senhas não coincidem.']);
         }
 
         if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
-            $this->responderJson('erro', 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.']);
         }
 
-        $usuarioModel = new Usuario();
-
-        if ($usuarioModel->findByEmail($email)) {
-            $this->responderJson('erro', 'Este e-mail já está cadastrado em nosso sistema.');
-        }
-
-        $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
+        // Em vez de inserir direto, mantemos no estado pendente de sessão
         $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-
+        
         $_SESSION['pendente_cadastro'] = [
             'email'       => $email,
-            'senha'       => $hashSenha,
-            'tipo_perfil' => $tipoPerfil,
+            'senha'       => $senha, // Guardamos a senha crua na sessão temporária, será linkada pelo Service no final
+            'tipo_perfil' => 'usuario',
             'codigo'      => $codigo,
-            'expira_em'   => $expiraEm
+            'expira_em'   => date('Y-m-d H:i:s', strtotime('+15 minutes'))
         ];
         $_SESSION['email_pendente_verificacao'] = $email;
 
-        \app\services\MailService::enviarCodigoVerificacao($email, $email, $codigo);
-
-        $this->responderJson('sucesso', 'Verifique seu e-mail para continuar.', URL_BASE . '/verificar-email');
+        try {
+            MailService::enviarCodigoVerificacao($email, $email, $codigo);
+            $this->json(200, [
+                'status' => 'sucesso', 
+                'mensagem' => 'Verifique seu e-mail para continuar.', 
+                'redirect_url' => URL_BASE . '/verificar-email'
+            ]);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => 'Erro ao enviar e-mail.']);
+        }
     }
 
     public function processarVerificacao()
     {
-        $codigoInformado = trim($_POST['codigo'] ?? '');
+        $input = json_decode(file_get_contents('php://input'), true);
+        $codigoInformado = trim($_POST['codigo'] ?? $input['codigo'] ?? '');
         $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
 
         if (!$dadosPendentes || empty($codigoInformado)) {
-            $this->responderJson('erro', 'Sessão expirada ou código vazio. Faça o cadastro novamente.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Sessão expirada ou código vazio. Faça o cadastro novamente.']);
         }
 
+        // Verifica expiração e precisão
         if ($dadosPendentes['codigo'] !== $codigoInformado || strtotime($dadosPendentes['expira_em']) < time()) {
-            $this->responderJson('erro', 'Código inválido ou expirado.');
+            // Anti-brute force
+            $_SESSION['falhas_codigo'] = ($_SESSION['falhas_codigo'] ?? 0) + 1;
+            if ($_SESSION['falhas_codigo'] >= 5) {
+                unset($_SESSION['pendente_cadastro']);
+                $this->json(429, ['status' => 'erro', 'mensagem' => 'Muitas tentativas falhas. O seu cadastro foi cancelado por segurança.']);
+            }
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Código inválido ou expirado.']);
         }
 
-        $usuarioModel = new Usuario();
-        $dadosNovoUsuario = [
-            'email'       => $dadosPendentes['email'],
-            'senha'       => $dadosPendentes['senha'],
-            'tipo_perfil' => $dadosPendentes['tipo_perfil']
-        ];
+        try {
+            // O Service cuida da inserção, hash da senha e banco!
+            $usuarioId = $this->authService->registrar(
+                $dadosPendentes['email'], 
+                $dadosPendentes['senha'], 
+                $dadosPendentes['tipo_perfil']
+            );
 
-        $usuarioId = $usuarioModel->create($dadosNovoUsuario);
+            unset($_SESSION['pendente_cadastro'], $_SESSION['email_pendente_verificacao'], $_SESSION['falhas_codigo']);
 
-        if (!$usuarioId) {
-            $this->responderJson('erro', 'Erro ao criar conta no banco de dados.');
+            // Criamos a sessão oficial
+            $_SESSION['usuario_id']    = $usuarioId;
+            $_SESSION['usuario_email'] = $dadosPendentes['email'];
+            $_SESSION['tipo_perfil']   = $dadosPendentes['tipo_perfil'];
+
+            $this->json(200, [
+                'status' => 'sucesso', 
+                'mensagem' => 'E-mail confirmado com sucesso!', 
+                'redirect_url' => URL_BASE . '/onboarding'
+            ]);
+
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * O Método novo para Reenviar Código com Rate Limit!
+     */
+    public function reenviarCodigo()
+    {
+        $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
+
+        if (!$dadosPendentes) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Nenhum cadastro pendente encontrado.']);
         }
 
-        unset($_SESSION['pendente_cadastro']);
-        unset($_SESSION['email_pendente_verificacao']);
+        try {
+            // Proteção contra múltiplos cliques
+            $this->authService->validarRateLimitReenvioCodigo();
 
-        $_SESSION['usuario_id'] = $usuarioId;
-        $_SESSION['usuario_email'] = $dadosNovoUsuario['email'];
-        $_SESSION['tipo_conta'] = $dadosNovoUsuario['tipo_perfil'];
+            // Gera novo código
+            $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $_SESSION['pendente_cadastro']['codigo'] = $novoCodigo;
+            $_SESSION['pendente_cadastro']['expira_em'] = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
-        $this->responderJson('sucesso', 'E-mail confirmado com sucesso!', URL_BASE . '/onboarding');
+            MailService::enviarCodigoVerificacao($dadosPendentes['email'], $dadosPendentes['email'], $novoCodigo);
+
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
+        } catch (Exception $e) {
+            $this->json(429, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        }
     }
 
     public function logout()
@@ -184,6 +201,7 @@ class AuthController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        session_unset();
         session_destroy();
         $this->redirect("/login");
     }
@@ -203,24 +221,20 @@ class AuthController extends Controller
         $email = trim($_POST['email'] ?? '');
 
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->responderJson('erro', 'Informe um e-mail válido.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Informe um e-mail válido.']);
         }
 
-        $usuarioModel = new Usuario();
-        $user = $usuarioModel->findByEmail($email);
-
-        if ($user) {
-            $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $expiraEm = date('Y-m-d H:i:s', strtotime('+30 minutes'));
-
-            $pdo = \app\database\ConnectionFactory::getConnection();
-            $stmt = $pdo->prepare("INSERT INTO CODIGO_VERIFICACAO (usuario_id, codigo, expira_em) VALUES (?, ?, ?)");
-            $stmt->execute([$user->usuario_id, $codigo, $expiraEm]);
-
-            \app\services\MailService::enviarEmailRecuperacao($email, $user->nome ?? 'Usuário', $codigo);
+        try {
+            $this->authService->solicitarRecuperacaoSenha($email);
+            // Mensagem genérica para não permitir varredura de e-mails existentes (Blindagem)
+            $this->json(200, [
+                'status' => 'sucesso', 
+                'mensagem' => 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.', 
+                'redirect_url' => URL_BASE . '/login'
+            ]);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => 'Ocorreu um erro interno. Tente novamente mais tarde.']);
         }
-
-        $this->responderJson('sucesso', 'Se o e-mail existir, enviaremos um link de recuperação.', URL_BASE . '/login');
     }
 
     public function redefinirSenha()
@@ -229,7 +243,7 @@ class AuthController extends Controller
         $codigo = $_GET['codigo'] ?? '';
 
         if (empty($email) || empty($codigo)) {
-            $this->redirecionarComMensagem('erro', 'Link de recuperação inválido.', '/login');
+            $this->redirecionarComMensagem('erro', 'Link de recuperación inválido.', '/login');
         }
 
         $this->view('auth/redefinir_senha', [
@@ -247,37 +261,26 @@ class AuthController extends Controller
         $senha_confirmacao = $_POST['senha_confirmacao'] ?? '';
 
         if (empty($email) || empty($codigo) || empty($senha) || empty($senha_confirmacao)) {
-            $this->responderJson('erro', 'Preencha todos os campos.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Preencha todos os campos.']);
         }
 
         if ($senha !== $senha_confirmacao) {
-            $this->responderJson('erro', 'As senhas não coincidem.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'As senhas não coincidem.']);
         }
 
         if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
-            $this->responderJson('erro', 'A senha deve ter pelo menos 8 caracteres, letras maiúsculas, minúsculas, números e caractere especial.');
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'A senha deve conter 8 caracteres, maiúsculas, minúsculas, números e um caractere especial.']);
         }
 
-        $usuarioModel = new Usuario();
-        $user = $usuarioModel->findByEmail($email);
-
-        if (!$user) {
-            $this->responderJson('erro', 'Usuário não encontrado.');
+        try {
+            $this->authService->redefinirSenha($email, $codigo, $senha);
+            $this->json(200, [
+                'status' => 'sucesso', 
+                'mensagem' => 'Senha redefinida com sucesso! Redirecionando...', 
+                'redirect_url' => URL_BASE . '/login'
+            ]);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
-
-        $pdo = \app\database\ConnectionFactory::getConnection();
-        $stmt = $pdo->prepare("SELECT * FROM CODIGO_VERIFICACAO WHERE usuario_id = ? AND codigo = ? AND usado = FALSE AND expira_em >= NOW() ORDER BY codigo_id DESC LIMIT 1");
-        $stmt->execute([$user->usuario_id, $codigo]);
-        $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$registro) {
-            $this->responderJson('erro', 'O link de recuperação é inválido ou já expirou.');
-        }
-
-        $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
-        $pdo->prepare("UPDATE USUARIO SET senha = ? WHERE usuario_id = ?")->execute([$hashSenha, $user->usuario_id]);
-        $pdo->prepare("UPDATE CODIGO_VERIFICACAO SET usado = TRUE WHERE codigo_id = ?")->execute([$registro['codigo_id']]);
-
-        $this->responderJson('sucesso', 'Senha redefinida com sucesso! Redirecionando...', URL_BASE . '/login');
     }
 }

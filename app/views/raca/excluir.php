@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Excluir Raça</title>
-</head>
-
-<body>
+<?php 
+require_once __DIR__ . '/../templates/header.php';
+?>
     <h1>Excluir Raça</h1>
     <p>Tem certeza que deseja excluir a raça <strong><?= htmlspecialchars($raca->getNome()); ?></strong>?</p>
-    <form action="/racas/deletar?id=<?= $raca->getId(); ?>" method="POST">
+    <form action="<?= URL_BASE ?>/admin/raca/deletar?id=<?= $raca->getId(); ?>" method="POST">
         <button type="submit">Sim, Confirmar Exclusão</button>
     </form>
-    <br><a href="/racas">Cancelar</a>
-</body>
-
-</html>
+    <br><a href="<?= URL_BASE ?>/admin/raca/">Cancelar</a>
+<?php 
+require_once __DIR__ . '/../templates/footer.php';
+?>

@@ -2,12 +2,13 @@
 
 namespace app\repositories;
 
+use app\core\BaseRepository;
 use app\models\Usuario;
 use PDO;
 
-class UsuarioRepository
+class UsuarioRepository extends BaseRepository
 {
-    public function atualizarOnboarding(Usuario $usuario, PDO $pdo): bool
+    public function atualizarOnboarding(Usuario $usuario): bool
     {
         $sql = "UPDATE USUARIO 
                 SET nome = :nome, 
@@ -15,150 +16,206 @@ class UsuarioRepository
                     tipo_perfil = :tipo_perfil 
                 WHERE usuario_id = :usuario_id";
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':nome', $usuario->getNome());
-        $stmt->bindValue(':regiao_id', $usuario->getRegiaoId());
-        $stmt->bindValue(':tipo_perfil', $usuario->getTipoAtual());
-        $stmt->bindValue(':usuario_id', $usuario->getUsuarioId());
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $usuario->getNome(), PDO::PARAM_STR);
+        $stmt->bindValue(':regiao_id', $usuario->getRegiaoId(), $usuario->getRegiaoId() ? PDO::PARAM_INT : PDO::PARAM_NULL);
+        $stmt->bindValue(':tipo_perfil', $usuario->getTipoAtual(), PDO::PARAM_STR);
+        $stmt->bindValue(':usuario_id', $usuario->getUsuarioId(), PDO::PARAM_INT);
 
         return $stmt->execute();
     }
 
-      public function salvarNovoUsuario(Usuario $usuario, PDO $pdo): int
+    public function salvarNovoUsuario(Usuario $usuario): int
     {
         $sql = "INSERT INTO USUARIO (email, senha) VALUES (:email, :senha)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':email', $usuario->getEmail());
-        $stmt->bindValue(':senha', $usuario->getSenha());
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
+        $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->execute();
-        
-        return (int)$pdo->lastInsertId();
+
+        return (int) $this->db->lastInsertId();
     }
 
-    public function buscarPorEmail(string $email, PDO $pdo): ?Usuario
+    public function buscarPorEmail(string $email): ?Usuario
     {
-        $sql = "SELECT * FROM USUARIO WHERE email = :email AND deletado_em IS NULL";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':email', $email);
+        $sql = "SELECT * FROM USUARIO WHERE email = :email AND deletado_em IS NULL LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
 
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$dados) {
-            return null;
-        }
-
-        $usuario = new Usuario();
-        $usuario->setUsuarioId($dados['usuario_id']);
-        $usuario->setEmail($dados['email']);
-        $usuario->setSenha($dados['senha']);
-        $usuario->setTipoAtual($dados['tipo_perfil']);
-        $usuario->setStatusConta($dados['status_conta']);
-        
-        return $usuario;
+        return $dados === false ? null : $this->mapUsuario($dados);
     }
 
-
-    // Busca todos os usuários ativos, bloqueados ou pendentes (ignora os deletados)
-    public function buscarTodos(\PDO $pdo): array
+    public function buscarTodos(): array
     {
         $sql = "SELECT * FROM USUARIO WHERE deletado_em IS NULL ORDER BY criado_em DESC";
-        $stmt = $pdo->query($sql);
-        
-        $usuarios = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $usuario = new \app\models\Usuario();
-            $usuario->setUsuarioId($row['usuario_id']);
-            $usuario->setNome($row['nome']);
-            $usuario->setEmail($row['email']);
-            $usuario->setStatusConta($row['status_conta']);
-            $usuario->setTipoAtual($row['tipo_perfil']);
-            $usuarios[] = $usuario;
-        }
-        return $usuarios;
+        $stmt = $this->db->query($sql);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn(array $row) => $this->mapUsuario($row), $rows);
     }
 
-    // Soft Delete: Marca o usuário como inativo e registra a data da exclusão
-    public function inativar(int $usuarioId, \PDO $pdo): void
+    public function inativar(int $usuarioId): void
     {
         $sql = "UPDATE USUARIO SET status_conta = 'inativo', deletado_em = CURRENT_TIMESTAMP WHERE usuario_id = :id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id' => $usuarioId]);
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
-    // Atualização Geral pelo Admin
-    public function atualizar(\app\models\Usuario $usuario, \PDO $pdo): void
+    public function atualizar(Usuario $usuario): void
     {
-        $sql = "UPDATE USUARIO SET nome = :nome, email = :email, status_conta = :status, tipo_perfil = :tipo WHERE usuario_id = :id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            'nome'   => $usuario->getNome(),
-            'email'  => $usuario->getEmail(),
-            'status' => $usuario->getStatusConta(),
-            'tipo'   => $usuario->getTipoAtual(),
-            'id'     => $usuario->getUsuarioId()
-        ]);
+        $sql = "UPDATE USUARIO 
+                SET nome = :nome, 
+                    email = :email, 
+                    status_conta = :status, 
+                    tipo_perfil = :tipo 
+                WHERE usuario_id = :id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $usuario->getNome(), PDO::PARAM_STR);
+        $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
+        $stmt->bindValue(':status', $usuario->getStatusConta(), PDO::PARAM_STR);
+        $stmt->bindValue(':tipo', $usuario->getTipoAtual(), PDO::PARAM_STR);
+        $stmt->bindValue(':id', $usuario->getUsuarioId(), PDO::PARAM_INT);
+        $stmt->execute();
     }
-    /**
-     * Busca os dados de um usuário específico pelo ID.
-     */
-    public function buscarPorId(int $usuarioId, PDO $pdo): ?array
+
+    public function buscarPorId(int $usuarioId): ?array
     {
-        $sql = "SELECT * FROM USUARIO WHERE usuario_id = :id AND deletado_em IS NULL";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':id', $usuarioId, \PDO::PARAM_INT);
+        $sql = "SELECT * FROM USUARIO WHERE usuario_id = :id AND deletado_em IS NULL LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
 
-        $dados = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return $dados ?: null;
     }
 
-    /**
-     * Atualiza as informações do perfil do usuário.
-     */
-    public function atualizarPerfil(array $dados, PDO $pdo): bool
+    public function atualizarPerfil(array $dados): bool
     {
         $sql = "UPDATE USUARIO 
                 SET nome = :nome, 
                     telefone = :telefone, 
                     dt_nasc = :dt_nasc, 
-                    regiao_id = :regiao_id, 
-                    num_morada = :num_morada, 
-                    obs_casa = :obs_casa 
+                    regiao_id = :regiao_id 
                 WHERE usuario_id = :usuario_id";
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':nome', $dados['nome']);
-        $stmt->bindValue(':telefone', $dados['telefone']);
-        $stmt->bindValue(':dt_nasc', $dados['dt_nasc']);
-        $stmt->bindValue(':regiao_id', $dados['regiao_id']);
-        $stmt->bindValue(':num_morada', $dados['num_morada']);
-        $stmt->bindValue(':obs_casa', $dados['obs_casa']);
-        $stmt->bindValue(':usuario_id', $dados['usuario_id'], \PDO::PARAM_INT);
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $dados['nome'], PDO::PARAM_STR);
+        $stmt->bindValue(':telefone', $dados['telefone'], PDO::PARAM_STR);
+        $stmt->bindValue(':dt_nasc', $dados['dt_nasc'], empty($dados['dt_nasc']) ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':regiao_id', $dados['regiao_id'], !empty($dados['regiao_id']) ? PDO::PARAM_INT : PDO::PARAM_NULL);
+        $stmt->bindValue(':usuario_id', $dados['usuario_id'], PDO::PARAM_INT);
 
         return $stmt->execute();
     }
 
-    public function atualizarDadosGerais(int $usuarioId, string $nome, string $telefone, string $email, ?string $senhaHash, ?int $regiaoId, string $numMorada, ?string $obsCasa, PDO $pdo): bool
+    public function atualizarDadosGerais(int $usuarioId, string $nome, string $telefone, string $email, ?string $senhaHash, ?int $regiaoId): bool
     {
         if ($senhaHash) {
-            $sql = "UPDATE USUARIO SET nome = :nome, telefone = :telefone, email = :email, senha = :senha, regiao_id = :regiao_id, num_morada = :num_morada, obs_casa = :obs_casa WHERE usuario_id = :id";
-            $stmt = $pdo->prepare($sql);
-            $stmt->bindValue(':senha', $senhaHash);
+            $sql = "UPDATE USUARIO 
+                    SET nome = :nome, 
+                        telefone = :telefone, 
+                        email = :email, 
+                        senha = :senha, 
+                        regiao_id = :regiao_id 
+                    WHERE usuario_id = :id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':senha', $senhaHash, PDO::PARAM_STR);
         } else {
-            $sql = "UPDATE USUARIO SET nome = :nome, telefone = :telefone, email = :email, regiao_id = :regiao_id, num_morada = :num_morada, obs_casa = :obs_casa WHERE usuario_id = :id";
-            $stmt = $pdo->prepare($sql);
+            $sql = "UPDATE USUARIO 
+                    SET nome = :nome, 
+                        telefone = :telefone, 
+                        email = :email, 
+                        regiao_id = :regiao_id 
+                    WHERE usuario_id = :id";
+            $stmt = $this->db->prepare($sql);
         }
 
-        $stmt->bindValue(':nome', $nome);
-        $stmt->bindValue(':telefone', $telefone);
-        $stmt->bindValue(':email', $email);
+        $stmt->bindValue(':nome', $nome, PDO::PARAM_STR);
+        $stmt->bindValue(':telefone', $telefone, PDO::PARAM_STR);
+        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
         $stmt->bindValue(':regiao_id', $regiaoId, $regiaoId ? PDO::PARAM_INT : PDO::PARAM_NULL);
-        $stmt->bindValue(':num_morada', $numMorada);
-        $stmt->bindValue(':obs_casa', $obsCasa);
         $stmt->bindValue(':id', $usuarioId, PDO::PARAM_INT);
 
         return $stmt->execute();
+    }
+
+    private function mapUsuario(array $row): Usuario
+    {
+        $usuario = new Usuario();
+        $usuario->setUsuarioId((int) $row['usuario_id']);
+        $usuario->setRegiaoId(isset($row['regiao_id']) ? (int) $row['regiao_id'] : null);
+        $usuario->setNome($row['nome'] ?? null);
+        $usuario->setEmail($row['email'] ?? null);
+        $usuario->setSenha($row['senha'] ?? null);
+        $usuario->setTelefone($row['telefone'] ?? null);
+        $usuario->setTipoPerfil($row['tipo_perfil'] ?? null);
+        $usuario->setStatusConta($row['status_conta'] ?? null);
+        $usuario->setDtNasc($row['dt_nasc'] ?? null);
+        $usuario->setCriadoEm($row['criado_em'] ?? null);
+
+        return $usuario;
+    }
+    public function salvarCodigoVerificacao(int $usuarioId, string $codigo, string $expiraEm): void
+    {
+        $sql = "INSERT INTO CODIGO_VERIFICACAO (usuario_id, codigo, expira_em) VALUES (:usuario_id, :codigo, :expira_em)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindValue(':codigo', $codigo, PDO::PARAM_STR);
+        $stmt->bindValue(':expira_em', $expiraEm, PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    /**
+     * Busca um código de verificação válido
+     */
+    public function buscarCodigoValido(int $usuarioId, string $codigo): ?array
+    {
+        $sql = "SELECT * FROM CODIGO_VERIFICACAO 
+                WHERE usuario_id = :usuario_id 
+                  AND codigo = :codigo 
+                  AND usado = FALSE 
+                  AND expira_em >= NOW() 
+                ORDER BY codigo_id DESC LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindValue(':codigo', $codigo, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $dados ?: null;
+    }
+
+    /**
+     * Marca um código como utilizado
+     */
+    public function marcarCodigoComoUsado(int $codigoId): void
+    {
+        $sql = "UPDATE CODIGO_VERIFICACAO SET usado = TRUE WHERE codigo_id = :codigo_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':codigo_id', $codigoId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    /**
+     * Atualiza a senha do usuário
+     */
+    public function atualizarSenha(int $usuarioId, string $novaSenhaHash): void
+    {
+        $sql = "UPDATE USUARIO SET senha = :senha WHERE usuario_id = :usuario_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':senha', $novaSenhaHash, PDO::PARAM_STR);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
     }
 }
