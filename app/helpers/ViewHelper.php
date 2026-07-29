@@ -15,8 +15,7 @@ function renderIconeMenu(
 ): string {
     $caminhoFisico  = __DIR__ . '/../../public/assets/icons/navbar/' . $nomeArquivo;
     
-    // CORREÇÃO: Adicionamos a BASE_URL aqui para garantir que o navegador encontre o PNG!
-    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+    $baseUrl = defined('URL_BASE') ? URL_BASE : '';
     $caminhoPublico = $baseUrl . '/assets/icons/navbar/' . $nomeArquivo;
     
     $extensao = strtolower(pathinfo($nomeArquivo, PATHINFO_EXTENSION));
@@ -43,15 +42,15 @@ function renderIconeMenu(
     }
 
    // EXCEÇÃO PARA O SEU PNG: 
-    // Inverte a cor no modo escuro e dá um zoom (scale-150) para compensar a margem transparente
-    $classesFinais = $classesCor;
-    if ($extensao === 'png') {
-        $classesFinais .= '  transform'; 
-    }
+   // Inverte a cor no modo escuro e dá um zoom (scale-150) para compensar a margem transparente
+   $classesFinais = $classesCor;
+   if ($extensao === 'png') {
+       $classesFinais .= '  transform'; 
+   }
 
-    return sprintf(
-        '<img src="%s" alt="" aria-hidden="true" class="%s">',
-        e($caminhoPublico),
-        e($classesFinais)
-    );
+   return sprintf(
+       '<img src="%s" alt="" aria-hidden="true" class="%s">',
+       e($caminhoPublico),
+       e($classesFinais)
+   );
 }
