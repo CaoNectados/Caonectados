@@ -7,9 +7,8 @@ use app\models\Animal;
 use app\repositories\AnimalRepository;
 use app\services\AnimalService;
 use app\database\ConnectionFactory;
-use InvalidArgumentException;
 use PDO;
-use RuntimeException;
+use Exception;
 
 class AnimalController extends Controller
 {
@@ -18,6 +17,10 @@ class AnimalController extends Controller
 
     public function __construct()
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $this->db = ConnectionFactory::getConnection();
         $repository = new AnimalRepository($this->db);
         $this->service = new AnimalService($repository);
@@ -28,25 +31,22 @@ class AnimalController extends Controller
         try {
             $repository = new AnimalRepository($this->db);
             $animais = $repository->listarAnimal();
+                // Se for requisição por View HTML: armazenar tudo em session
+                if ($this->isHtmlRequest()) {
+                    $_SESSION['animais'] = $animais;
+                    $this->view('animal/index');
+                    return;
+                }
 
-            // Se for requisição por View HTML
-            if ($this->isHtmlRequest()) {
-                $this->view('animal/index', ['animais' => $animais]);
-                return;
-            }
-
-            // Se for requisição por API JSON
-            $this->sendJson(200, [
-                'success' => true,
-                'data' => array_map(function (Animal $animal): array {
-                    return $this->animalToArray($animal);
-                }, $animais)
-            ]);
-        } catch (RuntimeException $e) {
-            $this->sendJson(500, [
-                'success' => false,
-                'message' => $e->getMessage()
-            ]);
+                // Se for requisição por API JSON: padrão { status, data }
+                $this->json(200, [
+                    'status' => 'sucesso',
+                    'data' => array_map(function (Animal $animal): array {
+                        return $this->animalToArray($animal);
+                    }, $animais)
+                ]);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -59,10 +59,10 @@ class AnimalController extends Controller
             return;
         }
 
-        $this->sendJson(200, [
-            'success' => true,
-            'message' => 'Endpoint de criação pronto.'
-        ]);
+            $this->json(200, [
+                'status' => 'sucesso',
+                'mensagem' => 'Endpoint de criação pronto.'
+            ]);
     }
 
     public function store(): void
@@ -79,15 +79,12 @@ class AnimalController extends Controller
                 $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
                 return;
             }
-
-            $this->sendJson(201, [
-                'success' => true,
-                'message' => 'Animal cadastrado com sucesso.'
-            ]);
-        } catch (InvalidArgumentException $e) {
-            $this->sendJson(422, ['success' => false, 'message' => $e->getMessage()]);
-        } catch (RuntimeException $e) {
-            $this->sendJson(500, ['success' => false, 'message' => $e->getMessage()]);
+                $this->json(201, [
+                    'status' => 'sucesso',
+                    'mensagem' => 'Animal cadastrado com sucesso.'
+                ]);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -103,21 +100,23 @@ class AnimalController extends Controller
                     $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
                     return;
                 }
-                $this->sendJson(404, ['success' => false, 'message' => 'Animal não encontrado.']);
+
+                $this->json(404, ['status' => 'erro', 'mensagem' => 'Animal não encontrado.']);
                 return;
             }
 
             if ($this->isHtmlRequest()) {
-                $this->view('animal/detalhes', ['animal' => $animal]);
+                $_SESSION['animal'] = $animal;
+                $this->view('animal/detalhes');
                 return;
             }
 
-            $this->sendJson(200, [
-                'success' => true,
+            $this->json(200, [
+                'status' => 'sucesso',
                 'data' => $this->animalToArray($animal)
             ]);
-        } catch (InvalidArgumentException $e) {
-            $this->sendJson(400, ['success' => false, 'message' => $e->getMessage()]);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -134,11 +133,12 @@ class AnimalController extends Controller
         }
 
         if ($this->isHtmlRequest()) {
-            $this->view('animal/editar', ['animal' => $animal]);
+            $_SESSION['animal'] = $animal;
+            $this->view('animal/editar');
             return;
         }
 
-        $this->sendJson(200, ['success' => true, 'message' => 'Endpoint de edição pronto.']);
+        $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de edição pronto.']);
     }
 
     public function update(): void
@@ -158,11 +158,9 @@ class AnimalController extends Controller
                 return;
             }
 
-            $this->sendJson(200, ['success' => true, 'message' => 'Animal atualizado com sucesso.']);
-        } catch (InvalidArgumentException $e) {
-            $this->sendJson(422, ['success' => false, 'message' => $e->getMessage()]);
-        } catch (RuntimeException $e) {
-            $this->sendJson(500, ['success' => false, 'message' => $e->getMessage()]);
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal atualizado com sucesso.']);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -176,7 +174,7 @@ class AnimalController extends Controller
 
             $status = $data['status'] ?? null;
             if (!is_string($status) || trim($status) === '') {
-                throw new InvalidArgumentException('O status é obrigatório.');
+                throw new Exception('O status é obrigatório.');
             }
 
             $animal = new Animal();
@@ -184,9 +182,9 @@ class AnimalController extends Controller
             $animal->setStatus($status);
             $this->service->atualizarStatus($animal);
 
-            $this->sendJson(200, ['success' => true, 'message' => 'Status atualizado com sucesso.']);
-        } catch (InvalidArgumentException $e) {
-            $this->sendJson(422, ['success' => false, 'message' => $e->getMessage()]);
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Status atualizado com sucesso.']);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -201,9 +199,9 @@ class AnimalController extends Controller
             $animal->setAnimalId($id);
             $this->service->reativarAnimal($animal);
 
-            $this->sendJson(200, ['success' => true, 'message' => 'Animal reativado com sucesso.']);
-        } catch (InvalidArgumentException $e) {
-            $this->sendJson(422, ['success' => false, 'message' => $e->getMessage()]);
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal reativado com sucesso.']);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -223,9 +221,9 @@ class AnimalController extends Controller
                 return;
             }
 
-            $this->sendJson(200, ['success' => true, 'message' => 'Animal excluído com sucesso.']);
-        } catch (InvalidArgumentException $e) {
-            $this->sendJson(422, ['success' => false, 'message' => $e->getMessage()]);
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal excluído com sucesso.']);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -238,7 +236,7 @@ class AnimalController extends Controller
     private function buildAnimalFromArray(?array $data): Animal
     {
         if (!is_array($data)) {
-            throw new InvalidArgumentException('Os dados enviados são inválidos.');
+            throw new Exception('Os dados enviados são inválidos.');
         }
 
         $animal = new Animal();
@@ -295,7 +293,7 @@ class AnimalController extends Controller
         }
 
         if (!is_array($data)) {
-            throw new InvalidArgumentException('Corpo da requisição inválido.');
+            throw new Exception('Corpo da requisição inválido.');
         }
 
         return $data;
@@ -316,17 +314,12 @@ class AnimalController extends Controller
         }
 
         if (!is_numeric($id) || (int) $id <= 0) {
-            throw new InvalidArgumentException('ID inválido.');
+            throw new Exception('ID inválido.');
         }
 
         return (int) $id;
     }
 
-    private function sendJson(int $statusCode, array $payload): void
-    {
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
-        echo json_encode($payload, JSON_UNESCAPED_UNICODE);
-        exit;
-    }
+    
+
 }
