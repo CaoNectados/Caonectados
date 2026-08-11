@@ -34,8 +34,9 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
     <div class="mt-6 text-sm">
         <p id="texto-reenvio" class="text-text-muted">
             Não recebeu o código? 
-            <a href="<?= URL_BASE ?>/reenviar-codigo" id="link-reenviar" class="text-primary font-bold hover:underline hidden">Reenviar código</a>
-            <span id="contador-tempo">Reenviar em <span id="tempo">60</span>s</span>
+<button type="button" id="link-reenviar" onclick="solicitarReenvioCodigo()" class="text-primary font-bold hover:underline hidden border-0 bg-transparent cursor-pointer">
+    Reenviar código
+</button>            <span id="contador-tempo">Reenviar em <span id="tempo">60</span>s</span>
         </p>
     </div>
 
@@ -94,6 +95,50 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
         mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
     }
 });
+
+async function solicitarReenvioCodigo() {
+    const linkReenviar = document.getElementById('link-reenviar');
+    linkReenviar.classList.add('hidden'); // Oculta o botão temporariamente
+
+    try {
+        const response = await fetch('<?= URL_BASE ?>/reenviar-codigo', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+
+        if (result.status === 'sucesso') {
+            mostrarModalFeedback('sucesso', result.mensagem);
+            
+            // Reinicia o contador de 60 segundos
+            tempoRestante = 60;
+            document.getElementById('tempo').textContent = tempoRestante;
+            document.getElementById('contador-tempo').classList.remove('hidden');
+            
+            // Reinicia o intervalo do timer
+            const novoTimer = setInterval(() => {
+                tempoRestante--;
+                document.getElementById('tempo').textContent = tempoRestante;
+                if (tempoRestante <= 0) {
+                    clearInterval(novoTimer);
+                    document.getElementById('contador-tempo').classList.add('hidden');
+                    linkReenviar.classList.remove('hidden');
+                }
+            }, 1000);
+
+        } else {
+            mostrarModalFeedback('erro', result.mensagem);
+            linkReenviar.classList.remove('hidden');
+        }
+    } catch (error) {
+        mostrarModalFeedback('erro', 'Ocorreu um erro ao tentar reenviar o código.');
+        linkReenviar.classList.remove('hidden');
+    }
+}
 </script>
 <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
 

@@ -46,21 +46,40 @@ class Controller
             session_start();
         }
 
-        // Verifica se está logado
         if (empty($_SESSION['usuario_id'])) {
             $this->redirecionarComMensagem('aviso', 'Você precisa estar logado para acessar esta página.', '/login');
         }
 
-        // Se informou perfis específicos, verifica se o usuário tem permissão (checa todas as variações de chave)
-        if (!empty($perfisPermitidos)) {
-            $tipoUsuario =  $_SESSION['tipo_perfil']  ?? 'usuario';
+        $tipoUsuario = $_SESSION['tipo_perfil'] ?? 'usuario';
 
+        if (!empty($perfisPermitidos)) {
             if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
-                $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/home');
+                $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/feed');
+            }
+        }
+
+        // NOVA TRAVA: Se for ONG/Protetor e não estiver validado, prende na tela de aguardando aprovação
+        if (in_array($tipoUsuario, ['ong', 'protetor'])) {
+            $validado = $_SESSION['validado'] ?? false;
+            
+            $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+            
+            // Permite acessar apenas a página de aguardando aprovação e logout
+            $rotasLivres = ['/aguardando-aprovacao', '/onboarding/aguardando-aprovacao', '/logout'];
+            $isLivre = false;
+
+            foreach ($rotasLivres as $rota) {
+                if (substr($uriAtual, -strlen($rota)) === $rota) {
+                    $isLivre = true;
+                    break;
+                }
+            }
+
+            if (!$validado && !$isLivre) {
+                $this->redirect('/aguardando-aprovacao');
             }
         }
     }
-
     /**
      * Redireciona para uma rota salvando o tipo de feedback e a mensagem na sessão.
      */

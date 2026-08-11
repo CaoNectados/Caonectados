@@ -17,7 +17,7 @@ class AuthService
 
     public function autenticar(string $email, string $senha): Usuario
     {
-        $usuario = $this->usuarioRepo->buscarPorEmail($email); // Removido o $pdo daqui
+        $usuario = $this->usuarioRepo->buscarPorEmail($email);
 
         if (!$usuario || !password_verify($senha, $usuario->getSenha())) {
             throw new Exception("E-mail ou senha inválidos.");
@@ -25,7 +25,7 @@ class AuthService
 
         $statusConta = strtolower((string)$usuario->getStatusConta());
 
-        if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado', 'bloqueada'])) {
+        if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado', 'bloqueada'], true)) {
             throw new Exception("Sua conta está inativa ou bloqueada. Entre em contato com o suporte.");
         }
 
@@ -41,15 +41,12 @@ class AuthService
         $usuario = new Usuario();
         $usuario->setEmail($email);
         $usuario->setSenha(password_hash($senha, PASSWORD_BCRYPT));
-        $usuario->setTipoPerfil($tipoPerfil);
+        $usuario->setTipoAtual($tipoPerfil);
+        $usuario->setPerfisAtivos($tipoPerfil);
 
-        // Retorna o ID inserido
         return $this->usuarioRepo->salvarNovoUsuario($usuario);
     }
 
-    /**
-     * Processo de Recuperação de Senha (Esqueci a senha)
-     */
     public function solicitarRecuperacaoSenha(string $email): void
     {
         $usuario = $this->usuarioRepo->buscarPorEmail($email);
@@ -60,13 +57,14 @@ class AuthService
 
             $this->usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
 
-            MailService::enviarEmailRecuperacao($email, $usuario->getNome() ?? 'Usuário', $codigo);
+            // CORREÇÃO: Captura o resultado do envio de e-mail e lança exceção se falhar
+            $enviado = MailService::enviarCodigoVerificacao($usuario->getEmail(), $usuario->getNome(), $codigo, 'redefinir_senha');
+            if (!$enviado) {
+                throw new Exception("Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.");
+            }
         }
     }
 
-    /**
-     * Valida código e redefine senha
-     */
     public function redefinirSenha(string $email, string $codigo, string $novaSenha): void
     {
         $usuario = $this->usuarioRepo->buscarPorEmail($email);
@@ -86,9 +84,6 @@ class AuthService
         $this->usuarioRepo->marcarCodigoComoUsado($registro['codigo_id']);
     }
 
-    /**
-     * Implementa Rate Limit (Limite de Requisições) para reenvio de código
-     */
     public function validarRateLimitReenvioCodigo(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -96,14 +91,12 @@ class AuthService
         }
 
         $agora = time();
-        $limiteSegundos = 60; // Aguardar 1 minuto entre envios
+        $limiteSegundos = 60;
         $limiteTentativas = 3;
 
-        // Inicializa controles na sessão
         $_SESSION['reenvio_count'] = $_SESSION['reenvio_count'] ?? 0;
         $_SESSION['last_reenvio'] = $_SESSION['last_reenvio'] ?? 0;
 
-        // Se o cara pediu 3 vezes seguidas e ainda está na janela de cooldown
         if ($_SESSION['reenvio_count'] >= $limiteTentativas && ($agora - $_SESSION['last_reenvio']) < 300) {
             throw new Exception("Muitas tentativas. Aguarde 5 minutos antes de solicitar um novo código.");
         }
@@ -112,31 +105,51 @@ class AuthService
             throw new Exception("Aguarde um momento antes de solicitar um novo código.");
         }
 
-        // Se passou do tempo de cooldown de 5 min (300s), reseta o contador
         if (($agora - $_SESSION['last_reenvio']) >= 300) {
             $_SESSION['reenvio_count'] = 0;
         }
 
-        // Registra a nova tentativa
         $_SESSION['last_reenvio'] = $agora;
         $_SESSION['reenvio_count']++;
     }
 
     public function iniciarSessao(Usuario $usuario): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+       if (in_array($usuario->getTipoAtual(), ['ong', 'protetor'])) {
+            $protetorRepo = new \app\repositories\ProtetorRepository();
+            $protetor = $protetorRepo->buscarPorUsuarioId($usuario->getUsuarioId());
+            
+            if ($protetor) {
+                // Suporta array associativo ou objeto
+                $isValid = is_array($protetor) 
+                    ? ($protetor['validado'] ?? false) 
+                    : (method_exists($protetor, 'getValidado') ? $protetor->getValidado() : false);
+
+                $_SESSION['validado'] = (bool)$isValid;
+            } else {
+                $_SESSION['validado'] = false;
+            }
+        } else {
+            $_SESSION['validado'] = true;
         }
-        
-        session_regenerate_id(true); // OBRIGATÓRIO PARA PREVENÇÃO DE SESSION FIXATION
-        
-        $tipoPerfil = strtolower((string)($usuario->getTipoAtual() ?? 'usuario'));
+
+        session_regenerate_id(true);
+
+        $tipoAtual = strtolower((string)($usuario->getTipoAtual() ?? 'usuario'));
+        $perfisAtivosStr = strtolower((string)($usuario->getPerfisAtivos() ?? 'usuario'));
         $statusConta = strtolower((string)($usuario->getStatusConta() ?? 'pendente'));
+        $nomeUsuario = $usuario->getNome() ?? explode('@', $usuario->getEmail())[0];
 
         $_SESSION['usuario_id']    = $usuario->getUsuarioId();
         $_SESSION['usuario_email'] = $usuario->getEmail();
-        $_SESSION['usuario_nome']  = $usuario->getNome();
-        $_SESSION['tipo_perfil']   = $tipoPerfil;
+        $_SESSION['usuario_nome']  = $nomeUsuario;
+
+        // Mantemos 'tipo_perfil' por compatibilidade com suas views antigas (header/menu)
+        $_SESSION['tipo_perfil']   = $tipoAtual;
+
+        // Nova variável contendo um ARRAY com todos os papéis que o usuário já assumiu (Ex: ['usuario', 'tutor', 'protetor'])
+        $_SESSION['perfis_ativos'] = array_map('trim', explode(',', $perfisAtivosStr));
+
         $_SESSION['status_conta']  = $statusConta;
     }
 }

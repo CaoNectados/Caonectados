@@ -18,16 +18,16 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
     <!-- BARRA DE PROGRESSO COM 6 ETAPAS -->
     <div class="flex justify-center gap-2 mb-6">
-        <div id="progresso-1" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-2" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-3" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-4" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-5" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-6" class="h-2 w-10 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-1" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-2" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-3" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-4" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-5" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-6" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
     </div>
 
     <!-- BOTÃO VOLTAR -->
-    <button type="button" id="btn-voltar-global" onclick="voltar()" class="mb-4 text-2xl font-bold cursor-pointer transition hover:opacity-75" title="Voltar">
+    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-2xl font-bold cursor-pointer transition hover:opacity-75" title="Voltar">
         &#129144;
     </button>
 
@@ -38,7 +38,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             <p class="text-sm text-gray-600">Para garantir a segurança dos nossos pets e adotantes, <?= $texto_etapa1 ?></p>
         </div>
 
-        <div class="space-y-4 mb-6">
+        <div class="space-y-4 mb-6 text-left">
             <div>
                 <label for="nome_fantasia" class="block font-medium mb-1"><?= $label_nome ?></label>
                 <input type="text" name="nome_fantasia" id="nome_fantasia" placeholder="<?= $placeholder_nome ?>" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
@@ -49,9 +49,15 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 <input type="text" name="cnpj_cpf" id="cnpj_cpf" placeholder="<?= $placeholder_doc ?>" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
                 <p id="erro-documento" class="text-xs text-red-500 mt-1 hidden">O documento informado é inválido.</p>
             </div>
+
             <div>
                 <label for="dt_nasc" class="block font-medium mb-1">Data de Nascimento *</label>
                 <input type="date" name="dt_nasc" id="dt_nasc" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            </div>
+
+            <div>
+                <label for="telefone" class="block font-medium mb-1">Telefone / WhatsApp *</label>
+                <input type="tel" name="telefone" id="telefone" required placeholder="(00) 00000-0000" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
         </div>
 
@@ -68,20 +74,34 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             <p class="text-sm text-gray-600">Onde fica a sua sede/atuação? Informe a localização para que adotantes da região encontrem seus animais.</p>
         </div>
 
-        <div class="mb-6 relative">
+        <div class="mb-4 relative text-left">
             <label for="input-busca-bairro" class="block font-medium mb-1">Pesquise seu Bairro / Região *</label>
-            <input type="text" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            <input type="text" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
                     <?php foreach ($regioes as $regiao): ?>
-                        <option data-id="<?= $regiao['regiao_id'] ?>" value="<?= e($regiao['nome_regiao']) ?>"></option>
+                        <?php
+                        $regId = is_array($regiao) ? $regiao['regiao_id'] : $regiao->getRegiaoId();
+                        $regNome = is_array($regiao) ? $regiao['nome_regiao'] : $regiao->getNomeRegiao();
+                        ?>
+                        <option data-id="<?= $regId ?>" value="<?= e($regNome) ?>"></option>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </datalist>
 
             <input type="hidden" name="regiao_id" id="regiao_id_hidden">
             <p id="erro-bairro-invalido" class="text-xs text-red-500 mt-1 hidden">Selecione um bairro válido da lista fornecida.</p>
+        </div>
+
+        <div class="mb-4 text-left">
+            <label for="obs_casa" class="block font-medium mb-1">Logradouro e Complemento *</label>
+            <input type="text" name="obs_casa" id="obs_casa" required placeholder="Ex: Avenida Brasil, Apto 42..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+        </div>
+
+        <div class="mb-6 text-left">
+            <label for="num_morada" class="block font-medium mb-1">Número do Local *</label>
+            <input type="text" name="num_morada" id="num_morada" required placeholder="Ex: 123, S/N" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -97,7 +117,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             <p class="text-sm text-gray-600">Agora, vamos configurar como você aparecerá para a comunidade.</p>
         </div>
 
-        <div class="space-y-4 mb-6">
+        <div class="space-y-4 mb-6 text-left">
             <div>
                 <label for="descricao" class="block font-medium mb-1">Descrição / Causa *</label>
                 <textarea name="descricao" id="descricao" rows="3" placeholder="Mínimo de 15 caracteres apresentando a causa..." class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-300"></textarea>
@@ -125,24 +145,41 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         </div>
     </div>
 
-    <!-- ETAPA 4: Foto de Perfil -->
+    <!-- ETAPA 4: Fotos de Perfil e Capa -->
     <div class="etapa-form hidden" id="etapa-4">
         <div class="text-center mb-6">
-            <div class="flex justify-center mb-4">
-                <div class="w-32 h-32 rounded-full border-4 border-gray-300 bg-gray-100 flex items-center justify-center overflow-hidden relative shadow-sm">
-                    <span id="foto-placeholder" class="text-gray-400 text-4xl font-bold">&#128247;</span>
-                    <img id="preview-foto" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
+            <h2 class="text-xl font-bold mb-2">Personalize sua página</h2>
+            <p class="text-sm text-gray-600 mb-6">Adicione imagens para que a comunidade reconheça o seu trabalho.</p>
+
+            <!-- Foto de Perfil -->
+            <div class="mb-6">
+                <label class="block font-medium mb-2 text-left">Foto de Perfil (Opcional)</label>
+                <div class="flex justify-center mb-2">
+                    <div class="w-32 h-32 rounded-full border-4 border-gray-300 bg-gray-100 flex items-center justify-center overflow-hidden relative shadow-sm">
+                        <span id="foto-placeholder" class="text-gray-400 text-4xl font-bold">&#128247;</span>
+                        <img id="preview-foto" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
+                    </div>
                 </div>
+                <label for="foto_perfil" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
+                    Anexar Perfil
+                </label>
+                <input type="file" name="foto_perfil" id="foto_perfil" accept="image/*" onchange="exibirPreviewFoto(this, 'preview-foto', 'foto-placeholder')" class="hidden">
             </div>
 
-            <h2 class="text-xl font-bold mb-2">Adicione uma foto de perfil</h2>
-            <p class="text-sm text-gray-600 mb-4">Escolha uma foto de perfil bem bonita para que a comunidade reconheça o seu amor pelos animais.</p>
+            <hr class="my-4 border-gray-200">
 
-            <div class="mb-4">
-                <label for="foto_perfil" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
-                    Anexar foto
+            <!-- Foto de Capa / Fundo -->
+            <div class="mb-2">
+                <label class="block font-medium mb-1 text-left">Foto de Capa/Fundo (Opcional)</label>
+                <p class="text-xs text-gray-500 mb-2 text-left">Essa imagem ficará no topo da sua página de perfil.</p>
+                <div class="w-full h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative mb-2">
+                    <span id="fundo-placeholder" class="text-gray-400 text-sm">Preview da Capa</span>
+                    <img id="preview-fundo" src="" alt="Capa" class="w-full h-full object-cover hidden">
+                </div>
+                <label for="foto_fundo" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
+                    Anexar Capa
                 </label>
-                <input type="file" name="foto_perfil" id="foto_perfil" accept="image/*" onchange="exibirPreviewFoto(this)" class="hidden">
+                <input type="file" name="foto_fundo" id="foto_fundo" accept="image/*" onchange="exibirPreviewFoto(this, 'preview-fundo', 'fundo-placeholder')" class="hidden">
             </div>
         </div>
 
@@ -168,7 +205,8 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 <label for="comprovante_documento" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
                     Anexar documento
                 </label>
-                <input type="file" name="comprovante_documento" id="comprovante_documento" onchange="exibirNomeArquivo(this)" class="hidden">
+                <!-- Adicionado o atributo accept -->
+                <input type="file" name="comprovante_documento" id="comprovante_documento" accept=".pdf, .jpg, .jpeg, .png" onchange="exibirNomeArquivo(this, 'nome-arquivo-selecionado')" class="hidden">
             </div>
             <p id="nome-arquivo-selecionado" class="text-xs text-green-700 font-bold mt-2"></p>
         </div>
@@ -210,170 +248,168 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 </form>
 
 <script>
-    let etapaAtual = 1;
-    const totalEtapas = 6; 
-    const urlSelecionarPerfil = "<?= URL_BASE ?>/onboarding";
-
-    function atualizarVisualEtapas() {
-        for (let i = 1; i <= totalEtapas; i++) {
-            const elEtapa = document.getElementById(`etapa-${i}`);
-            const elProgresso = document.getElementById(`progresso-${i}`);
-
-            if (i === etapaAtual) {
-                elEtapa.classList.remove('hidden');
-            } else {
-                elEtapa.classList.add('hidden');
-            }
-
-            if (i <= etapaAtual) {
-                elProgresso.classList.remove('bg-gray-300');
-                elProgresso.classList.add('bg-green-500');
-            } else {
-                elProgresso.classList.remove('bg-green-500');
-                elProgresso.classList.add('bg-gray-300');
-            }
-        }
-    }
-
-    function sincronizarRegiaoId() {
-        const inputTexto = document.getElementById('input-busca-bairro');
-        const inputHidden = document.getElementById('regiao_id_hidden');
-        const msgErro = document.getElementById('erro-bairro-invalido');
-        const datalistOptions = document.querySelectorAll('#lista-regioes option');
-
-        let encontradoId = '';
-
-        datalistOptions.forEach(option => {
-            if (option.value.trim().toLowerCase() === inputTexto.value.trim().toLowerCase()) {
-                encontradoId = option.getAttribute('data-id');
-            }
-        });
-
-        inputHidden.value = encontradoId;
-
-        if (inputTexto.value.trim() !== '' && !encontradoId) {
-            msgErro.classList.remove('hidden');
-        } else {
-            msgErro.classList.add('hidden');
-        }
-    }
-
     function proximaEtapa() {
-        if (etapaAtual === 1) {
-            const nomeInput = document.getElementById('nome_fantasia');
-            if (nomeInput.value.trim().length < 3) {
-                mostrarModalFeedback('erro', "Informe um nome válido com pelo menos 3 caracteres.");
-                nomeInput.focus();
-                return;
+        OnboardingManager.avancarEtapa(function(etapaAtual) {
+            if (etapaAtual === 1) {
+                const nomeInput = document.getElementById('nome_fantasia');
+                if (!CaonectadosValidator.validarNome(nomeInput.value)) {
+                    mostrarModalFeedback('erro', "Informe um nome válido com pelo menos 2 caracteres.");
+                    nomeInput.focus();
+                    return false;
+                }
+                const inputDoc = document.getElementById('cnpj_cpf');
+                const msgErroDoc = document.getElementById('erro-documento');
+                const inputTipoDoc = document.querySelector('input[name="tipo_documento"]');
+                const tipoDoc = inputTipoDoc ? inputTipoDoc.value.toLowerCase().trim() : 'cpf';
+
+                const docLimpo = inputDoc.value.replace(/[^\d]+/g, '');
+                let docValido = false;
+                let msgErroEspecifica = "";
+
+                if (tipoDoc === 'cnpj') {
+                    docValido = (docLimpo.length === 14 && CaonectadosValidator.isCnpjValido(docLimpo));
+                    msgErroEspecifica = "Informe um CNPJ válido com 14 dígitos.";
+                } else {
+                    docValido = (docLimpo.length === 11 && CaonectadosValidator.isCpfValido(docLimpo));
+                    msgErroEspecifica = "Informe um CPF válido com 11 dígitos.";
+                }
+
+                if (!docValido) {
+                    if (msgErroDoc) {
+                        msgErroDoc.innerText = msgErroEspecifica;
+                        msgErroDoc.classList.remove('hidden');
+                    }
+                    inputDoc.classList.add('border-red-500', 'ring-red-300');
+                    mostrarModalFeedback('erro', msgErroEspecifica);
+                    inputDoc.focus();
+                    return false;
+                } else if (msgErroDoc) {
+                    msgErroDoc.classList.add('hidden');
+                    inputDoc.classList.remove('border-red-500', 'ring-red-300');
+                }
+                const dataNasc = document.getElementById('dt_nasc');
+                if (!dataNasc.value) {
+                    mostrarModalFeedback('erro', "Informe sua data de nascimento.");
+                    dataNasc.focus();
+                    return false;
+                } else if (!CaonectadosValidator.validarMaioridade(dataNasc.value)) {
+                    mostrarModalFeedback('erro', "É necessário ter pelo menos 18 anos para se cadastrar.");
+                    dataNasc.focus();
+                    return false;
+                }
+
+                const telefoneInput = document.getElementById('telefone');
+                if (!telefoneInput.value || !CaonectadosValidator.validarTelefone(telefoneInput.value)) {
+                    mostrarModalFeedback('erro', "O telefone informado é inválido ou está vazio. Certifique-se de incluir o DDD.");
+                    telefoneInput.focus();
+                    return false;
+                }
+
+
             }
 
-            const dataNasc = document.getElementById('dt_nasc');
-            if (!dataNasc.value) {
-                mostrarModalFeedback('erro', "Informe sua data de nascimento.");
-                dataNasc.focus();
-                return;
+            if (etapaAtual === 2) {
+                const inputHidden = document.getElementById('regiao_id_hidden');
+                const msgErro = document.getElementById('erro-bairro-invalido');
+                const obsCasa = document.getElementById('obs_casa');
+                const numMorada = document.getElementById('num_morada');
+
+                OnboardingManager.sincronizarRegiaoId();
+
+                if (!inputHidden.value) {
+                    if (msgErro) msgErro.classList.remove('hidden');
+                    mostrarModalFeedback('aviso', "Por favor, selecione um bairro válido da lista.");
+                    document.getElementById('input-busca-bairro').focus();
+                    return false;
+                }
+
+                if (!obsCasa || obsCasa.value.trim() === '') {
+                    mostrarModalFeedback('aviso', "Por favor, informe o seu logradouro.");
+                    obsCasa.focus();
+                    return false;
+                }
+
+                if (!numMorada || numMorada.value.trim() === '') {
+                    mostrarModalFeedback('aviso', "Por favor, informe o número do local.");
+                    numMorada.focus();
+                    return false;
+                }
             }
 
-            const inputDoc = document.getElementById('cnpj_cpf');
-            const msgErroDoc = document.getElementById('erro-documento');
-            const tipoDoc = document.querySelector('input[name="tipo_documento"]').value;
-            
-            const docLimpo = inputDoc.value.replace(/[^\d]+/g, '');
-            let docValido = false;
-            let msgErroEspecifica = "";
+            if (etapaAtual === 3) {
+                const descricao = document.getElementById('descricao');
+                if (descricao.value.trim().length < 15) {
+                    mostrarModalFeedback('aviso', "Por favor, forneça uma breve descrição da sua causa (mínimo de 15 caracteres).");
+                    descricao.focus();
+                    return false;
+                }
 
-            if (tipoDoc === 'cnpj') {
-                docValido = (docLimpo.length === 14 && CaonectadosValidator.isCnpjValido(docLimpo));
-                msgErroEspecifica = "Informe um CNPJ válido com 14 dígitos.";
-            } else {
-                docValido = (docLimpo.length === 11 && CaonectadosValidator.isCpfValido(docLimpo));
-                msgErroEspecifica = "Informe um CPF válido com 11 dígitos.";
+                const insta = document.getElementById('instagram').value.trim();
+                if (insta !== '' && !CaonectadosValidator.validarLinkSocial(insta, 'instagram')) {
+                    mostrarModalFeedback('erro', "Informe um link válido do Instagram (Ex: instagram.com/sua_ong).");
+                    document.getElementById('instagram').focus();
+                    return false;
+                }
+
+                const face = document.getElementById('facebook').value.trim();
+                if (face !== '' && !CaonectadosValidator.validarLinkSocial(face, 'facebook')) {
+                    mostrarModalFeedback('erro', "Informe um link válido do Facebook (Ex: facebook.com/sua_ong).");
+                    document.getElementById('facebook').focus();
+                    return false;
+                }
+
+                const pix = document.getElementById('chave_pix').value.trim();
+                if (pix !== '' && !CaonectadosValidator.validarChavePix(pix)) {
+                    mostrarModalFeedback('erro', "Informe uma Chave PIX válida.");
+                    document.getElementById('chave_pix').focus();
+                    return false;
+                }
             }
 
-            if (inputDoc.value.trim() === '' || !docValido) {
-                msgErroDoc.innerText = msgErroEspecifica;
-                msgErroDoc.classList.remove('hidden');
-                inputDoc.classList.add('border-red-500', 'ring-red-300');
-                mostrarModalFeedback('erro', msgErroEspecifica);
-                inputDoc.focus();
-                return;
-            } else {
-                msgErroDoc.classList.add('hidden');
-                inputDoc.classList.remove('border-red-500', 'ring-red-300');
-            }
-        }
+            if (etapaAtual === 4) {
+                const fotoInput = document.getElementById('foto_perfil');
+                if (fotoInput.files.length > 0 && !CaonectadosValidator.validarTamanhoArquivo(fotoInput, 2)) {
+                    mostrarModalFeedback('erro', "A foto de perfil é muito pesada. Escolha uma imagem de até 2MB.");
+                    return false;
+                }
 
-        if (etapaAtual === 2) {
-            const inputHidden = document.getElementById('regiao_id_hidden');
-            const msgErro = document.getElementById('erro-bairro-invalido');
-
-            sincronizarRegiaoId();
-
-            if (!inputHidden.value) {
-                msgErro.classList.remove('hidden');
-                mostrarModalFeedback('aviso', "Por favor, selecione um bairro válido da lista.");
-                document.getElementById('input-busca-bairro').focus();
-                return;
-            }
-        }
-
-        if (etapaAtual === 3) {
-            const descricao = document.getElementById('descricao');
-            if (descricao.value.trim().length < 15) {
-                mostrarModalFeedback('aviso', "Por favor, forneça uma breve descrição da sua causa (mínimo de 15 caracteres).");
-                descricao.focus();
-                return;
+                const fundoInput = document.getElementById('foto_fundo');
+                if (fundoInput.files.length > 0 && !CaonectadosValidator.validarTamanhoArquivo(fundoInput, 3)) {
+                    mostrarModalFeedback('erro', "A foto de capa é muito pesada. Escolha uma imagem de até 3MB.");
+                    return false;
+                }
             }
 
-            const insta = document.getElementById('instagram').value.trim();
-            if (insta !== '' && !CaonectadosValidator.validarLinkSocial(insta, 'instagram')) {
-                mostrarModalFeedback('erro', "Informe um link válido do Instagram (Ex: instagram.com/sua_ong).");
-                document.getElementById('instagram').focus();
-                return;
+            if (etapaAtual === 5) {
+                const docInput = document.getElementById('comprovante_documento');
+
+                if (docInput.files.length === 0) {
+                    mostrarModalFeedback('aviso', "Você precisa anexar o comprovante de atividade para prosseguir.");
+                    return false;
+                }
+
+                const arquivo = docInput.files[0];
+                const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+
+                // Nova validação de tipo de arquivo
+                if (!tiposPermitidos.includes(arquivo.type)) {
+                    mostrarModalFeedback('erro', "Formato de arquivo inválido. Anexe apenas arquivos em PDF, JPG ou PNG.");
+                    // Reseta o input para o usuário tentar de novo
+                    docInput.value = '';
+                    document.getElementById('nome-arquivo-selecionado').innerText = '';
+                    return false;
+                }
+
+                if (!CaonectadosValidator.validarTamanhoArquivo(docInput, 5)) {
+                    mostrarModalFeedback('erro', "O comprovante de atividade é muito pesado. Escolha um arquivo de até 5MB.");
+                    return false;
+                }
             }
 
-            const face = document.getElementById('facebook').value.trim();
-            if (face !== '' && !CaonectadosValidator.validarLinkSocial(face, 'facebook')) {
-                mostrarModalFeedback('erro', "Informe um link válido do Facebook (Ex: facebook.com/sua_ong).");
-                document.getElementById('facebook').focus();
-                return;
-            }
-
-            const pix = document.getElementById('chave_pix').value.trim();
-            if (pix !== '' && pix.length < 5) {
-                mostrarModalFeedback('erro', "Informe uma Chave PIX válida.");
-                document.getElementById('chave_pix').focus();
-                return;
-            }
-        }
-
-        if (etapaAtual === 4) {
-            const fotoInput = document.getElementById('foto_perfil');
-            if (fotoInput.files.length > 0 && !CaonectadosValidator.validarTamanhoArquivo(fotoInput, 2)) {
-                mostrarModalFeedback('erro', "A foto de perfil é muito pesada. Escolha uma imagem de até 2MB.");
-                return;
-            }
-        }
-
-        if (etapaAtual === 5) {
-            const docInput = document.getElementById('comprovante_documento');
-            if (docInput.files.length === 0) {
-                mostrarModalFeedback('aviso', "Você precisa anexar o comprovante de atividade para prosseguir.");
-                return;
-            }
-            if (!CaonectadosValidator.validarTamanhoArquivo(docInput, 5)) {
-                mostrarModalFeedback('erro', "O comprovante de atividade é muito pesado. Escolha um arquivo de até 5MB.");
-                return;
-            }
-        }
-
-        if (etapaAtual < totalEtapas) {
-            etapaAtual++;
-            atualizarVisualEtapas();
-        }
+            return true;
+        });
     }
 
-    // Função de validação isolada para ser chamada no AJAX
     function validarEnvioFinal() {
         const aceiteTermos = document.querySelector('input[name="aceite_termos"]');
         if (!aceiteTermos || !aceiteTermos.checked) {
@@ -384,79 +420,16 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         return true;
     }
 
-    function voltar() {
-        if (etapaAtual > 1) {
-            etapaAtual--;
-            atualizarVisualEtapas();
-        } else {
-            window.location.href = urlSelecionarPerfil;
-        }
-    }
-
-    function exibirPreviewFoto(input) {
-        const imgPreview = document.getElementById('preview-foto');
-        const placeholder = document.getElementById('foto-placeholder');
-
-        if (input.files && input.files[0]) {
-            const leitor = new FileReader();
-
-            leitor.onload = function(e) {
-                imgPreview.src = e.target.result;
-                imgPreview.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            };
-
-            leitor.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function exibirNomeArquivo(input) {
-        const pNome = document.getElementById('nome-arquivo-selecionado');
-        if (input.files && input.files[0]) {
-            pNome.innerText = "Arquivo anexado: " + input.files[0].name;
-        } else {
-            pNome.innerText = "";
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', atualizarVisualEtapas);
-
-    // ==========================================
-    // INTERCEPTAÇÃO DO ENVIO (AJAX)
-    // ==========================================
-    document.querySelector('form').addEventListener('submit', async function(event) {
-        event.preventDefault(); 
-
-        if (!validarEnvioFinal()) return; 
-
-        const form = event.target;
-        const formData = new FormData(form);
-        const btnSubmit = form.querySelector('button[type="submit"]');
-        const btnTextoOriginal = btnSubmit.innerHTML;
-
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = 'Enviando...';
-
-        try {
-            const response = await fetch(form.action, { method: 'POST', body: formData });
-            const result = await response.json();
-
-            if (result.status === 'erro') {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = btnTextoOriginal;
-                mostrarModalFeedback('erro', result.mensagem); 
-            } else if (result.status === 'sucesso') {
-                if (typeof limparAutoSave === 'function') limparAutoSave();
-                
-                window.location.href = result.redirect_url;
-            }
-        } catch (error) {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = btnTextoOriginal;
-            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
-        }
+    document.addEventListener('DOMContentLoaded', function() {
+        OnboardingManager.init({
+            totalEtapas: 6,
+            urlSelecionarPerfil: "<?= URL_BASE ?>/onboarding",
+            validarEnvioFinal: validarEnvioFinal
+        });
     });
 </script>
+
+<script src="<?= e(URL_BASE) ?>/assets/js/onboarding.js"></script>
 
 <?php
 require_once __DIR__ . '/../templates/footer.php';

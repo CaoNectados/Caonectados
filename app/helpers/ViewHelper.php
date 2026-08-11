@@ -15,8 +15,8 @@ function renderIconeMenu(
 ): string {
     $caminhoFisico  = __DIR__ . '/../../public/assets/icons/navbar/' . $nomeArquivo;
     
-    // CORREÇÃO: Adicionamos a BASE_URL aqui para garantir que o navegador encontre o PNG!
-    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+    // CORREÇÃO: Adicionamos a URL_BASE aqui para garantir que o navegador encontre o PNG!
+    $baseUrl = defined('URL_BASE') ? URL_BASE : '';
     $caminhoPublico = $baseUrl . '/assets/icons/navbar/' . $nomeArquivo;
     
     $extensao = strtolower(pathinfo($nomeArquivo, PATHINFO_EXTENSION));

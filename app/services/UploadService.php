@@ -7,11 +7,18 @@ use Exception;
 class UploadService
 {
     private string $diretorioDestino;
+    private string $subpastaRelativa;
 
+    /**
+     * @param string $subpasta Subpasta dentro de public/assets/ (ex: 'uploads/foto_perfil', 'uploads/foto_pagina')
+     */
     public function __construct(string $subpasta = 'uploads')
     {
-        // Define o caminho absoluto para a pasta public/assets/uploads/
-        $this->diretorioDestino = __DIR__ . '/../../public/assets/' . $subpasta . '/';
+        // Normaliza a subpasta removendo barras excedentes
+        $this->subpastaRelativa = trim($subpasta, '/');
+
+        // Define o caminho absoluto para public/assets/{subpasta}/
+        $this->diretorioDestino = __DIR__ . '/../../public/assets/' . $this->subpastaRelativa . '/';
 
         if (!is_dir($this->diretorioDestino)) {
             mkdir($this->diretorioDestino, 0755, true);
@@ -29,21 +36,21 @@ class UploadService
 
         // Validação de extensões permitidas
         $extensao = strtolower(pathinfo($arquivo['name'], PATHINFO_EXTENSION));
-        $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
+        $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
         if (!in_array($extensao, $extensoesPermitidas, true)) {
-            throw new Exception("Formato de imagem inválido. Use JPG, PNG ou WEBP.");
+            throw new Exception("Formato de arquivo inválido. Use JPG, PNG, WEBP ou PDF.");
         }
 
-        // Gera nome único criptografado via MD5 (padrão das imagens do repositório do professor)[cite: 1]
-        $nomeUnico = md5(uniqid(rand(), true)) . '.' . $extensao;
+        // Gera nome único criptografado via MD5
+        $nomeUnico = md5(uniqid((string)rand(), true)) . '.' . $extensao;
         $caminhoAbsoluto = $this->diretorioDestino . $nomeUnico;
 
         if (move_uploaded_file($arquivo['tmp_name'], $caminhoAbsoluto)) {
-            // Retorna o caminho relativo para salvar na coluna 'foto_perfil' do BDD
-            return 'assets/uploads/' . $nomeUnico;
+            // Retorna o caminho relativo exato para o banco (ex: 'assets/uploads/foto_perfil/nome.jpg')
+            return 'assets/' . $this->subpastaRelativa . '/' . $nomeUnico;
         }
 
-        throw new Exception("Falha ao mover a imagem para o servidor.");
+        throw new Exception("Falha ao mover o arquivo para o servidor.");
     }
 }

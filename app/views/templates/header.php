@@ -14,11 +14,9 @@ $menuItens = [];
 $isPendente = (($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') && $statusConta === 'pendente');
 
 if ($isPendente) {
-    // Se está pendente, a pessoa SÓ PODE acessar a tela de aguardando aprovação e a rota de logout.
     $rotaAguardando = '/aguardando-aprovacao';
     $rotaLogout = '/logout';
 
-    // Se a URL atual não for nenhuma das duas permitidas, chuta o usuário pra tela de espera
     if (strpos($uriAtual, $rotaAguardando) === false && strpos($uriAtual, $rotaLogout) === false) {
         header("Location: " . URL_BASE . $rotaAguardando);
         exit;
@@ -27,10 +25,9 @@ if ($isPendente) {
 // ==================================================================
 
 
-// Só adiciona a "Home" padrão se o usuário NÃO estiver pendente
-if (!$isPendente) {
-    $menuItens[] = ['url' => URL_BASE . '/', 'label' => 'Home', 'icone' => 'home.svg'];
-}
+
+$menuItens[] = ['url' => URL_BASE . '/', 'label' => 'Home', 'icone' => 'home.svg'];
+
 
 if ($tipoPerfil === null) {
     $menuItens[] = ['url' => URL_BASE . '/cadastro', 'label' => 'Cadastre-se', 'icone' => 'cadastro.svg'];
@@ -39,8 +36,6 @@ if ($tipoPerfil === null) {
 // ---------------- PERFIL: ADMINISTRADOR ----------------
 if ($tipoPerfil === 'administrador') {
      $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
-    $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Perfil',    'icone' => 'perfil.svg',    'apenas_desktop' => true];
-
     $menuItens[] = ['url' => URL_BASE . '/admin/dashboard', 'label' => 'Dashboard', 'icone' => 'dashboard.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/solicitacoes', 'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários', 'icone' => 'usuarios.svg'];
@@ -48,6 +43,8 @@ if ($tipoPerfil === 'administrador') {
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/denuncias', 'label' => 'Denúncias', 'icone' => 'denuncia.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/auditoria-logs', 'label' => 'Auditoria e Logs', 'icone' => 'auditoria.svg'];
+        $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Perfil',    'icone' => 'perfil.svg',    'apenas_desktop' => true];
+
 
     // ---------------- PERFIL: PROTETOR OU ONG ----------------
 } elseif ($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') {
@@ -64,9 +61,7 @@ if ($tipoPerfil === 'administrador') {
         $menuItens[] = ['url' => URL_BASE . '/pagina-protetor',      'label' => 'Página',                 'icone' => 'pagina.svg'];
     } else {
         // SE ESTIVER PENDENTE: 
-        // O menu dele fica praticamente VAZIO (Feed, Home, Chat somem).
-        // Ele só verá esse botão de aviso para saber o que está havendo.
-        $menuItens[] = ['url' => URL_BASE . '/aguardando-aprovacao', 'label' => 'Aguardando Aprovação',   'icone' => 'auditoria.svg'];
+        $menuItens[] = ['url' => URL_BASE . '/onboarding/aguardando-aprovacao', 'label' => 'Aguardando Aprovação',   'icone' => 'auditoria.svg'];
     }
 
     // ---------------- PERFIL: ADOTANTE ----------------
@@ -112,6 +107,7 @@ $itemAuth   = $estaLogado
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
     <?php include __DIR__ . '/tailwind_config.php'; ?>
+    <link rel="icon" type="image/png" href="<?= e(URL_BASE) ?>/assets/img/logo.png">
 </head>
 
 <body class="flex h-[100dvh] overflow-hidden flex-col bg-background dark:bg-corFundo-escuro transition-colors">

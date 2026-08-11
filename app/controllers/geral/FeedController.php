@@ -12,28 +12,22 @@ class FeedController extends Controller
 
     public function __construct()
     {
-        // Garante que o usuário está autenticado
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (!isset($_SESSION['usuario_id'])) {
-            $this->redirect('/login');
-            exit;
-        }
-
+        // Exige que o usuário esteja logado para acessar o Feed
+        $this->autenticacaoRequired();
         $this->feedRepo = new FeedRepository();
     }
 
-    public function feed()
-    {      
+    public function feed(): void
+    {
         try {
+            $animais = $this->feedRepo->buscarAnimaisFeed();
 
             $this->view('feed/feed', [
-                'titulo'  => 'Feed de Adoção'
+                'titulo'  => 'Feed de Adoção',
+                'animais' => $animais
             ]);
         } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', 'Erro ao carregar o feed.', '/home', $e->getMessage());
+            $this->redirecionarComMensagem('erro', 'Erro ao carregar o feed de publicação.', '/home', $e->getMessage());
         }
     }
 }

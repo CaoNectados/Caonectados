@@ -16,13 +16,7 @@ class RegiaoController extends Controller
 
     public function __construct()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
-            $this->redirect('/login');
-        }
+        $this->autenticacaoRequired(['administrador']);
 
         $pdo = ConnectionFactory::getConnection();
         $this->regiaoRepo = new RegiaoRepository($pdo);
@@ -38,7 +32,7 @@ class RegiaoController extends Controller
                 'titulo' => 'Gerenciar Bairros'
             ]);
         } catch (Exception $e) {
-            echo "Erro ao listar regiões: " . $e->getMessage();
+            $this->redirecionarComMensagem('erro', 'Erro ao listar regiões.', '/admin/dashboard', $e->getMessage());
         }
     }
 
@@ -58,11 +52,10 @@ class RegiaoController extends Controller
             $regiao->setNomeRegiao($nome);
 
             $this->service->cadastrarRegiao($regiao);
+            $this->redirecionarComMensagem('sucesso', 'Bairro cadastrado com sucesso!', '/admin/regiao');
         } catch (Exception $e) {
-            // Tratamento de erro
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/admin/regiao/cadastrar');
         }
-
-        $this->redirect('/admin/regiao');
     }
 
     public function edit(): void
@@ -72,7 +65,7 @@ class RegiaoController extends Controller
             $regiao = $this->regiaoRepo->buscarPorId($id);
 
             if ($regiao === null) {
-                $this->redirect('/admin/regiao');
+                $this->redirecionarComMensagem('aviso', 'Bairro não encontrado.', '/admin/regiao');
             }
 
             $this->view('regiao/editar', [
@@ -80,7 +73,7 @@ class RegiaoController extends Controller
                 'titulo' => 'Editar Bairro'
             ]);
         } catch (Exception $e) {
-            $this->redirect('/admin/regiao');
+            $this->redirecionarComMensagem('erro', 'Erro ao abrir edição.', '/admin/regiao', $e->getMessage());
         }
     }
 
@@ -95,11 +88,10 @@ class RegiaoController extends Controller
             $regiao->setNomeRegiao($nome);
 
             $this->service->editarRegiao($regiao);
+            $this->redirecionarComMensagem('sucesso', 'Bairro atualizado com sucesso!', '/admin/regiao');
         } catch (Exception $e) {
-            // Tratamento de erro
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/admin/regiao/editar?id=' . ($_GET['id'] ?? 0));
         }
-
-        $this->redirect('/admin/regiao');
     }
 
     public function deleteView(): void
@@ -109,7 +101,7 @@ class RegiaoController extends Controller
             $regiao = $this->regiaoRepo->buscarPorId($id);
 
             if ($regiao === null) {
-                $this->redirect('/admin/regiao');
+                $this->redirecionarComMensagem('aviso', 'Bairro não encontrado.', '/admin/regiao');
             }
 
             $this->view('regiao/excluir', [
@@ -117,35 +109,39 @@ class RegiaoController extends Controller
                 'titulo' => 'Excluir Bairro'
             ]);
         } catch (Exception $e) {
-            $this->redirect('/admin/regiao');
+            $this->redirecionarComMensagem('erro', 'Erro ao acessar exclusão.', '/admin/regiao', $e->getMessage());
         }
     }
 
     public function destroy(): void
     {
         try {
-            $id = (int) ($_GET['id'] ?? 0);
+            $id = (int) ($_POST['id'] ?? $_GET['id'] ?? 0);
             if ($id > 0) {
                 $this->service->excluirRegiao($id);
+                $this->redirecionarComMensagem('sucesso', 'Bairro excluído com sucesso!', '/admin/regiao');
             }
         } catch (Exception $e) {
-            // Tratamento de erro
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/admin/regiao');
         }
-
-        $this->redirect('/admin/regiao');
     }
 
-    public function buscarJson()
+    public function buscarJson(): void
     {
         try {
             $regioes = $this->regiaoRepo->buscarTodas();
-            
-            header('Content-Type: application/json');
-            echo json_encode(['sucesso' => true, 'dados' => $regioes]);
+            $this->json(200, ['sucesso' => true, 'dados' => $regioes]);
         } catch (Exception $e) {
-            header('Content-Type: application/json', true, 500);
-            echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao buscar regiões.']);
+            $this->json(500, ['sucesso' => false, 'mensagem' => 'Erro ao buscar regiões.']);
         }
-        exit;
+    }
+
+    public function listarTodas(): array
+    {
+        try {
+            return $this->regiaoRepo->buscarTodas();
+        } catch (Exception $e) {
+            return [];
+        }
     }
 }

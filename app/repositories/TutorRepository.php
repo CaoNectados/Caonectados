@@ -28,27 +28,29 @@ class TutorRepository extends BaseRepository
 
     public function buscarPorUsuarioId(int $usuarioId): ?array
     {
-        $sql = "SELECT * FROM TUTOR WHERE usuario_id = :usuario_id AND deletado_em IS NULL";
+        $sql = "SELECT * FROM TUTOR WHERE usuario_id = :usuario_id AND deletado_em IS NULL LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
-        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
         return $dados ?: null;
     }
 
-    public function atualizarTutor(int $usuarioId, string $tipoMorada, ?string $fotoPerfil): bool
+    public function atualizarDadosTutor(int $usuarioId, string $tipoMorada, ?string $tamanhoInterno, string $detalhesJson, ?string $fotoPerfil): bool
     {
-        if ($fotoPerfil !== null) {
-            $sql = "UPDATE TUTOR SET tipo_morada = :tipo_morada, foto_perfil = :foto_perfil WHERE usuario_id = :usuario_id";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindValue(':foto_perfil', $fotoPerfil, PDO::PARAM_STR);
-        } else {
-            $sql = "UPDATE TUTOR SET tipo_morada = :tipo_morada WHERE usuario_id = :usuario_id";
-            $stmt = $this->db->prepare($sql);
-        }
+        $sql = "UPDATE TUTOR 
+                SET tipo_morada = :tipo_morada, 
+                    tamanho_interno_morada = :tamanho, 
+                    detalhes = :detalhes, 
+                    foto_perfil = COALESCE(:foto_perfil, foto_perfil)
+                WHERE usuario_id = :usuario_id";
 
+        $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':tipo_morada', $tipoMorada, PDO::PARAM_STR);
+        $stmt->bindValue(':tamanho', $tamanhoInterno, $tamanhoInterno ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(':detalhes', $detalhesJson, PDO::PARAM_STR);
+        $stmt->bindValue(':foto_perfil', $fotoPerfil, $fotoPerfil ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
 
         return $stmt->execute();
