@@ -11,51 +11,48 @@ class ProtetorRepository extends BaseRepository
     public function salvar(Protetor $protetor): int
     {
         $sql = "INSERT INTO PROTETOR (usuario_id, validado, codigo_documento, tipo_documento, nome_fantasia, comprovante_documento) 
-                VALUES (:usuario_id, :validado, :codigo_documento, :tipo_documento, :nome_fantasia, :comprovante_documento)";
+            VALUES (:usuario_id, 0, :codigo_documento, :tipo_documento, :nome_fantasia, :comprovante_documento)";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':usuario_id', $protetor->getUsuarioId(), PDO::PARAM_INT);
-        $stmt->bindValue(':validado', $protetor->getValidado() ? 1 : 0, PDO::PARAM_INT);
-        $stmt->bindValue(':codigo_documento', $protetor->getCodigoDocumento(), PDO::PARAM_STR);
-        $stmt->bindValue(':tipo_documento', $protetor->getTipoDocumento(), PDO::PARAM_STR);
-        $stmt->bindValue(':nome_fantasia', $protetor->getNomeFantasia(), PDO::PARAM_STR);
-        $stmt->bindValue(':comprovante_documento', $protetor->getComprovanteDocumento(), PDO::PARAM_STR);
+        $stmt->bindValue(':usuario_id', $protetor->getUsuarioId(), \PDO::PARAM_INT);
+        $stmt->bindValue(':codigo_documento', $protetor->getCodigoDocumento(), \PDO::PARAM_STR);
+        $stmt->bindValue(':tipo_documento', $protetor->getTipoDocumento(), \PDO::PARAM_STR);
+        $stmt->bindValue(':nome_fantasia', $protetor->getNomeFantasia(), \PDO::PARAM_STR);
+        $stmt->bindValue(':comprovante_documento', $protetor->getComprovanteDocumento(), $protetor->getComprovanteDocumento() ? \PDO::PARAM_STR : \PDO::PARAM_NULL);
 
         $stmt->execute();
-
         return (int) $this->db->lastInsertId();
     }
 
     public function buscarPorUsuarioId(int $usuarioId): ?array
     {
-        $sql = "SELECT p.*, pg.foto_perfil FROM PROTETOR p 
-                LEFT JOIN PAGINA pg ON p.protetor_id = pg.protetor_id 
-                WHERE p.usuario_id = :usuario_id AND p.deletado_em IS NULL";
-
+        $sql = "SELECT * FROM PROTETOR WHERE usuario_id = :usuario_id AND deletado_em IS NULL LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
         $stmt->execute();
-        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
         return $dados ?: null;
     }
 
-    public function atualizarProtetor(int $usuarioId, string $codigoDocumento, bool $alterouDocumento): bool
+    public function atualizarDadosProtetor(int $protetorId, string $nomeFantasia, string $codigoDocumento, ?string $comprovante, bool $revalidar): bool
     {
-        if ($alterouDocumento) {
-            $sql = "UPDATE PROTETOR p 
-                    INNER JOIN USUARIO u ON p.usuario_id = u.usuario_id 
-                    SET p.codigo_documento = :codigo_documento, 
-                        p.validado = 0, 
-                        u.status_conta = 'pendente' 
-                    WHERE p.usuario_id = :usuario_id";
-        } else {
-            $sql = "UPDATE PROTETOR SET codigo_documento = :codigo_documento WHERE usuario_id = :usuario_id";
+        $sql = "UPDATE PROTETOR 
+                SET nome_fantasia = :nome_fantasia, 
+                    codigo_documento = :codigo_documento, 
+                    comprovante_documento = COALESCE(:comprovante, comprovante_documento)";
+
+        if ($revalidar) {
+            $sql .= ", validado = 0, data_validacao = NULL";
         }
 
+        $sql .= " WHERE protetor_id = :protetor_id";
+
         $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome_fantasia', $nomeFantasia, PDO::PARAM_STR);
         $stmt->bindValue(':codigo_documento', $codigoDocumento, PDO::PARAM_STR);
-        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->bindValue(':comprovante', $comprovante, $comprovante ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
 
         return $stmt->execute();
     }

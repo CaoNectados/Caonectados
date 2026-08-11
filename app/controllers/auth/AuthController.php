@@ -5,6 +5,7 @@ namespace app\controllers\auth;
 use app\core\Controller;
 use app\services\AuthService;
 use app\services\MailService;
+use app\repositories\UsuarioRepository;
 use Exception;
 
 class AuthController extends Controller
@@ -37,28 +38,52 @@ class AuthController extends Controller
         }
 
         try {
-            // Toda a regra de login, status da conta e bloqueios estão agora no Service
             $usuario = $this->authService->autenticar($email, $senha);
-            
-            // Cria a sessão com segurança (regenerate_id)
+
+            // SE FOR ADMIN: Inicia processo 2FA (reaproveita a tela de verificação)
+            if ($usuario->getTipoAtual() === 'administrador') {
+                $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+                $usuarioRepo = new UsuarioRepository();
+                $usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
+
+                // Define as sessões para a validação do 2FA
+                $_SESSION['admin_2fa'] = [
+                    'usuario_id' => $usuario->getUsuarioId(),
+                    'email'      => $usuario->getEmail()
+                ];
+                // Variável usada na view verificar_email.php
+                $_SESSION['email_pendente_verificacao'] = $usuario->getEmail();
+
+                // Envio com o contexto de 2FA do Admin
+                MailService::enviarCodigoVerificacao($usuario->getEmail(), $usuario->getNome() ?? 'Admin', $codigo, 'login_admin');
+
+                $this->json(200, [
+                    'status'       => 'sucesso', 
+                    'mensagem'     => 'Código de segurança enviado para seu e-mail administrativo.', 
+                    'redirect_url' => URL_BASE . '/verificar-email'
+                ]);
+            }
+
+            // SE NÃO FOR ADMIN: Inicia a sessão normalmente
             $this->authService->iniciarSessao($usuario);
 
-            $tipoPerfil = $_SESSION['tipo_perfil'];
-            $statusConta = $_SESSION['status_conta'];
+            $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+            $statusConta = $_SESSION['status_conta'] ?? 'pendente';
 
-            // Define a URL de redirecionamento
             $urlRedirect = '/home';
             if ($tipoPerfil === 'usuario') {
                 $urlRedirect = '/onboarding';
             } elseif ($statusConta === 'pendente') {
                 $urlRedirect = '/aguardando-aprovacao';
-            } elseif ($tipoPerfil === 'administrador') {
-                $urlRedirect = '/admin/dashboard';
+            } else {
+                $urlRedirect = '/feed';
             }
 
             $this->json(200, [
-                'status' => 'sucesso', 
-                'mensagem' => 'Login efetuado com sucesso!', 
+                'status'       => 'sucesso', 
+                'mensagem'     => 'Login efetuado com sucesso!', 
                 'redirect_url' => URL_BASE . $urlRedirect
             ]);
 
@@ -97,12 +122,11 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.']);
         }
 
-        // Em vez de inserir direto, mantemos no estado pendente de sessão
         $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         
         $_SESSION['pendente_cadastro'] = [
             'email'       => $email,
-            'senha'       => $senha, // Guardamos a senha crua na sessão temporária, será linkada pelo Service no final
+            'senha'       => $senha,
             'tipo_perfil' => 'usuario',
             'codigo'      => $codigo,
             'expira_em'   => date('Y-m-d H:i:s', strtotime('+15 minutes'))
@@ -110,10 +134,12 @@ class AuthController extends Controller
         $_SESSION['email_pendente_verificacao'] = $email;
 
         try {
-            MailService::enviarCodigoVerificacao($email, $email, $codigo);
+            // CORRIGIDO: O disparo do e-mail do cadastro foi re-inserido dentro do try
+            MailService::enviarCodigoVerificacao($email, 'Usuário', $codigo, 'cadastro');
+
             $this->json(200, [
-                'status' => 'sucesso', 
-                'mensagem' => 'Verifique seu e-mail para continuar.', 
+                'status'       => 'sucesso', 
+                'mensagem'     => 'Verifique seu e-mail para continuar.', 
                 'redirect_url' => URL_BASE . '/verificar-email'
             ]);
         } catch (Exception $e) {
@@ -121,76 +147,131 @@ class AuthController extends Controller
         }
     }
 
-    public function processarVerificacao()
+   public function processarVerificacao()
     {
         $input = json_decode(file_get_contents('php://input'), true);
         $codigoInformado = trim($_POST['codigo'] ?? $input['codigo'] ?? '');
-        $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
 
-        if (!$dadosPendentes || empty($codigoInformado)) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'Sessão expirada ou código vazio. Faça o cadastro novamente.']);
-        }
-
-        // Verifica expiração e precisão
-        if ($dadosPendentes['codigo'] !== $codigoInformado || strtotime($dadosPendentes['expira_em']) < time()) {
-            // Anti-brute force
-            $_SESSION['falhas_codigo'] = ($_SESSION['falhas_codigo'] ?? 0) + 1;
-            if ($_SESSION['falhas_codigo'] >= 5) {
-                unset($_SESSION['pendente_cadastro']);
-                $this->json(429, ['status' => 'erro', 'mensagem' => 'Muitas tentativas falhas. O seu cadastro foi cancelado por segurança.']);
-            }
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'Código inválido ou expirado.']);
+        if (empty($codigoInformado)) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Código de verificação vazio.']);
         }
 
         try {
-            // O Service cuida da inserção, hash da senha e banco!
-            $usuarioId = $this->authService->registrar(
-                $dadosPendentes['email'], 
-                $dadosPendentes['senha'], 
-                $dadosPendentes['tipo_perfil']
-            );
+            // ==========================================
+            // CONTEXTO: 2FA DE ADMINISTRADOR (Faltava este bloco!)
+            // ==========================================
+            if (isset($_SESSION['admin_2fa'])) {
+                $dadosPendente = $_SESSION['admin_2fa'];
+                $usuarioRepo = new UsuarioRepository();
+                
+                // Valida se o código bate com o do banco, não expirou e não foi usado
+                $registro = $usuarioRepo->buscarCodigoValido($dadosPendente['usuario_id'], $codigoInformado);
 
-            unset($_SESSION['pendente_cadastro'], $_SESSION['email_pendente_verificacao'], $_SESSION['falhas_codigo']);
+                if (!$registro) {
+                    $this->json(400, ['status' => 'erro', 'mensagem' => 'Código inválido ou expirado.']);
+                    return;
+                }
 
-            // Criamos a sessão oficial
-            $_SESSION['usuario_id']    = $usuarioId;
-            $_SESSION['usuario_email'] = $dadosPendentes['email'];
-            $_SESSION['tipo_perfil']   = $dadosPendentes['tipo_perfil'];
+                // Invalida o código e conclui o login
+                $usuarioRepo->marcarCodigoComoUsado((int)$registro['codigo_id']);
+                
+                $usuarioObj = $usuarioRepo->buscarPorEmail($dadosPendente['email']);
+                if ($usuarioObj) {
+                    $this->authService->iniciarSessao($usuarioObj);
+                }
 
-            $this->json(200, [
-                'status' => 'sucesso', 
-                'mensagem' => 'E-mail confirmado com sucesso!', 
-                'redirect_url' => URL_BASE . '/onboarding'
-            ]);
+                // Limpa o rastro da verificação
+                unset($_SESSION['admin_2fa'], $_SESSION['email_pendente_verificacao']);
+
+                $this->json(200, [
+                    'status'       => 'sucesso', 
+                    'mensagem'     => 'Acesso administrativo confirmado!', 
+                    'redirect_url' => URL_BASE . '/admin/dashboard'
+                ]);
+                return; // Impede que continue executando
+            }
+
+            // ==========================================
+            // CONTEXTO: CADASTRO DE NOVO USUÁRIO
+            // ==========================================
+            if (isset($_SESSION['pendente_cadastro'])) {
+                $dadosPendentes = $_SESSION['pendente_cadastro'];
+
+                if ($dadosPendentes['codigo'] !== $codigoInformado || strtotime($dadosPendentes['expira_em']) < time()) {
+                    $_SESSION['falhas_codigo'] = ($_SESSION['falhas_codigo'] ?? 0) + 1;
+                    if ($_SESSION['falhas_codigo'] >= 5) {
+                        unset($_SESSION['pendente_cadastro']);
+                        $this->json(429, ['status' => 'erro', 'mensagem' => 'Muitas tentativas falhas. O seu cadastro foi cancelado por segurança.']);
+                    }
+                    $this->json(400, ['status' => 'erro', 'mensagem' => 'Código inválido ou expirado.']);
+                    return;
+                }
+
+                $this->authService->registrar(
+                    $dadosPendentes['email'], 
+                    $dadosPendentes['senha'], 
+                    $dadosPendentes['tipo_perfil']
+                );
+
+                unset($_SESSION['pendente_cadastro'], $_SESSION['email_pendente_verificacao'], $_SESSION['falhas_codigo']);
+
+                $usuarioRepo = new UsuarioRepository();
+                $usuarioObj = $usuarioRepo->buscarPorEmail($dadosPendentes['email']);
+                
+                if ($usuarioObj) {
+                    $this->authService->iniciarSessao($usuarioObj);
+                }
+
+                $this->json(200, [
+                    'status'       => 'sucesso', 
+                    'mensagem'     => 'E-mail confirmado com sucesso!', 
+                    'redirect_url' => URL_BASE . '/onboarding'
+                ]);
+                return;
+            }
+
+            // Se não encontrou nenhuma das duas sessões, acusa expiração.
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Sessão expirada. Faça login ou cadastro novamente.']);
 
         } catch (Exception $e) {
             $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
-
-    /**
-     * O Método novo para Reenviar Código com Rate Limit!
-     */
     public function reenviarCodigo()
     {
-        $dadosPendentes = $_SESSION['pendente_cadastro'] ?? null;
-
-        if (!$dadosPendentes) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'Nenhum cadastro pendente encontrado.']);
-        }
-
         try {
-            // Proteção contra múltiplos cliques
             $this->authService->validarRateLimitReenvioCodigo();
 
-            // Gera novo código
-            $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $_SESSION['pendente_cadastro']['codigo'] = $novoCodigo;
-            $_SESSION['pendente_cadastro']['expira_em'] = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+            // REENVIO PARA ADMIN 2FA
+            if (isset($_SESSION['admin_2fa'])) {
+                $email = $_SESSION['admin_2fa']['email'];
+                $usuarioId = $_SESSION['admin_2fa']['usuario_id'];
+                
+                $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+                
+                $usuarioRepo = new UsuarioRepository();
+                $usuarioRepo->salvarCodigoVerificacao($usuarioId, $novoCodigo, $expiraEm);
 
-            MailService::enviarCodigoVerificacao($dadosPendentes['email'], $dadosPendentes['email'], $novoCodigo);
+                MailService::enviarCodigoVerificacao($email, 'Administrador', $novoCodigo, 'login_admin');
 
-            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
+                $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
+            } 
+            // REENVIO PARA CADASTRO NORMAL
+            elseif (isset($_SESSION['pendente_cadastro'])) {
+                $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $_SESSION['pendente_cadastro']['codigo'] = $novoCodigo;
+                $_SESSION['pendente_cadastro']['expira_em'] = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+                $email = $_SESSION['pendente_cadastro']['email'];
+                MailService::enviarCodigoVerificacao($email, 'Usuário', $novoCodigo, 'cadastro');
+
+                $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
+            } 
+            else {
+                $this->json(400, ['status' => 'erro', 'mensagem' => 'Nenhum processo pendente encontrado para reenvio.']);
+            }
+
         } catch (Exception $e) {
             $this->json(429, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
@@ -203,12 +284,12 @@ class AuthController extends Controller
         }
         session_unset();
         session_destroy();
-        $this->redirect("/login");
+        $this->redirecionarComMensagem('sucesso', 'Sessão encerrada com sucesso.', '/login');
     }
 
     public function telaVerificacao()
     {
-        $this->view('auth/verificar_email', ['titulo' => 'Verificação de E-mail']);
+        $this->view('auth/verificar_email', ['titulo' => 'Verificação de Segurança']);
     }
 
     public function esqueciSenha()
@@ -226,10 +307,9 @@ class AuthController extends Controller
 
         try {
             $this->authService->solicitarRecuperacaoSenha($email);
-            // Mensagem genérica para não permitir varredura de e-mails existentes (Blindagem)
             $this->json(200, [
-                'status' => 'sucesso', 
-                'mensagem' => 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.', 
+                'status'       => 'sucesso', 
+                'mensagem'     => 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.', 
                 'redirect_url' => URL_BASE . '/login'
             ]);
         } catch (Exception $e) {
@@ -243,7 +323,7 @@ class AuthController extends Controller
         $codigo = $_GET['codigo'] ?? '';
 
         if (empty($email) || empty($codigo)) {
-            $this->redirecionarComMensagem('erro', 'Link de recuperación inválido.', '/login');
+            $this->redirecionarComMensagem('erro', 'Link de recuperação inválido.', '/login');
         }
 
         $this->view('auth/redefinir_senha', [
@@ -275,8 +355,8 @@ class AuthController extends Controller
         try {
             $this->authService->redefinirSenha($email, $codigo, $senha);
             $this->json(200, [
-                'status' => 'sucesso', 
-                'mensagem' => 'Senha redefinida com sucesso! Redirecionando...', 
+                'status'       => 'sucesso', 
+                'mensagem'     => 'Senha redefinida com sucesso! Redirecionando...', 
                 'redirect_url' => URL_BASE . '/login'
             ]);
         } catch (Exception $e) {

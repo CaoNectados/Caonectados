@@ -23,15 +23,29 @@ CREATE TABLE IF NOT EXISTS ESPECIE (
 CREATE TABLE IF NOT EXISTS USUARIO (
     usuario_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     regiao_id INT UNSIGNED NULL,
-    telefone VARCHAR(20) NOT NULL,
+    logradouro TEXT NULL,
+    numero VARCHAR(20) NULL,
+    telefone VARCHAR(20) NULL DEFAULT NULL,
     senha VARCHAR(255) NOT NULL,
-    tipo_perfil ENUM(
+    
+    -- TIPO ATUAL: O perfil ativo na sessão no momento (ENUM = escolhe 1 por vez)
+    tipo_atual ENUM(
         'usuario',
         'tutor',
         'protetor',
         'ong',
         'administrador'
     ) NOT NULL DEFAULT 'usuario',
+
+    -- PERFIS ATIVOS: Permite ter MULTIPLOS perfis vinculados ao mesmo usuario (SET)
+    perfis_ativos SET(
+        'usuario',
+        'tutor',
+        'protetor',
+        'ong',
+        'administrador'
+    ) NOT NULL DEFAULT 'usuario',
+
     status_conta ENUM(
         'pendente',
         'ativo',
@@ -40,9 +54,9 @@ CREATE TABLE IF NOT EXISTS USUARIO (
         'inativo'
     ) NOT NULL DEFAULT 'pendente',
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    email VARCHAR(150) NOT NULL,
-    nome VARCHAR(150) NOT NULL,
-    dt_nasc DATE NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    nome VARCHAR(150) NULL DEFAULT NULL,
+    dt_nasc DATE NULL DEFAULT NULL,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_usuario_regiao FOREIGN KEY (regiao_id) REFERENCES REGIAO (regiao_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
@@ -53,10 +67,9 @@ CREATE TABLE IF NOT EXISTS TUTOR (
     tipo_morada ENUM(
         'casa',
         'apartamento',
-        'sitio'
+        'sitio',
+        'outro'
     ) NOT NULL,
-    num_morada VARCHAR(20) NOT NULL,
-    obs_casa TEXT NULL,
     foto_perfil VARCHAR(255) NULL,
     descricao TEXT NULL,
     tamanho_interno_morada ENUM('pequeno', 'medio', 'grande') NULL,
@@ -285,14 +298,14 @@ CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
-    codigo_id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NOT NULL,
+    codigo_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT UNSIGNED NOT NULL,
     codigo VARCHAR(6) NOT NULL,
     expira_em DATETIME NOT NULL,
     usado BOOLEAN DEFAULT FALSE,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON DELETE CASCADE
-);
+    CONSTRAINT fk_codigo_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- ===========================================
 -- USUÁRIO ADMINISTRADOR
@@ -301,7 +314,8 @@ INSERT INTO
     USUARIO (
         telefone,
         senha,
-        tipo_perfil,
+        tipo_atual,
+        perfis_ativos,
         status_conta,
         email,
         nome
@@ -309,6 +323,7 @@ INSERT INTO
 VALUES (
     '45900000000',
     '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
+    'administrador',
     'administrador',
     'ativo',
     'caonectados2026@gmail.com',
@@ -360,7 +375,6 @@ INSERT INTO
 VALUES ('Cão'),
     ('Gato');
 
--- Para associar as raças dinamicamente após o insert das espécies:
 INSERT INTO
     RACA (nome, especie_id)
 VALUES ('Sem Raça Definida (SRD)', 1),

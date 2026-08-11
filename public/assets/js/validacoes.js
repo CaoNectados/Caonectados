@@ -131,5 +131,34 @@ const CaonectadosValidator = {
         if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c)) return true;
 
         return false;
+    },
+
+    // 8. Valida Maioridade (18 anos ou mais)
+    validarMaioridade: function(dataNascimento) {
+        if (!dataNascimento) return false;
+        
+        const hoje = new Date();
+        const nascimento = new Date(dataNascimento);
+        let idade = hoje.getFullYear() - nascimento.getFullYear();
+        const mes = hoje.getMonth() - nascimento.getMonth();
+        
+        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+            idade--;
+        }
+        
+        return idade >= 18;
+    },
+
+    // 9. Valida o Nome (Mínimo de 2 caracteres)
+    validarNome: function(nome) {
+        return nome && nome.trim().length >= 2;
+    },
+
+    // 10. Valida Telefone (se preenchido, deve conter 10 ou 11 números)
+    validarTelefone: function(telefone) {
+        if (!telefone || telefone.trim() === '') return true; // Opcional
+        
+        const numeros = telefone.replace(/[^\d]+/g, '');
+        return numeros.length === 10 || numeros.length === 11;
     }
 };

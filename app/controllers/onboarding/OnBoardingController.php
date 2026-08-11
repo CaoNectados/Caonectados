@@ -6,7 +6,6 @@ use app\core\Controller;
 use app\services\OnboardingService;
 use app\repositories\RegiaoRepository;
 use app\repositories\EspecieRepository;
-use app\database\ConnectionFactory;
 use app\services\ValidationService;
 use Exception;
 
@@ -25,60 +24,35 @@ class OnboardingController extends Controller
         $this->autenticacaoRequired();
         $this->verificarSeJaPossuiPerfil();
     }
-
-    /**
-     * Função auxiliar para retornar respostas em JSON para o AJAX
-     */
-    private function responderJson(string $status, string $mensagem, ?string $redirectUrl = null)
+    public function index()
     {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'status'       => $status,
-            'mensagem'     => $mensagem,
-            'redirect_url' => $redirectUrl
+        $this->view('onboarding/selecionar_perfil', [
+            'titulo'    => 'Selecionar Perfil',
+            'descricao' => 'Escolha o tipo de perfil que deseja criar.'
         ]);
-        exit;
     }
-
     private function verificarSeJaPossuiPerfil()
     {
-        $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
+        $usuarioId = $_SESSION['usuario_id'] ?? null;
         if ($usuarioId) {
-            $pdo = ConnectionFactory::getConnection();
-
-            $stmtTutor = $pdo->prepare("SELECT COUNT(*) FROM TUTOR WHERE usuario_id = ?");
-            $stmtTutor->execute([$usuarioId]);
-            $temTutor = $stmtTutor->fetchColumn() > 0;
-
-            $stmtProtetor = $pdo->prepare("SELECT COUNT(*) FROM PROTETOR WHERE usuario_id = ?");
-            $stmtProtetor->execute([$usuarioId]);
-            $temProtetor = $stmtProtetor->fetchColumn() > 0;
-
-            if ($temTutor || $temProtetor) {
+            // O serviço de checagem deve delegar a busca ao repositório
+            if ($this->onboardingService->usuarioJaPossuiPerfil($usuarioId)) {
                 if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
                     $this->redirect('/feed');
                     exit;
                 }
             }
-        }else {
+        } else {
             $this->redirect('/login');
             exit;
         }
     }
 
-    public function index()
-    {
-        $this->view('onboarding/selecionar_perfil', [
-            'titulo'    => 'Selecionar Perfil',
-            'descricao' => 'Escolha o tipo de perfil que deseja criar.',
-        ]);
-    }
-
     public function tutor()
     {
-        $pdo = ConnectionFactory::getConnection();
-        $regioes = $this->regiaoRepo->buscarTodas($pdo);
-        $especies = $this->especieRepo->buscarTodas($pdo);
+        // Repositories buscam a conexão via BaseRepository automaticamente
+        $regioes = $this->regiaoRepo->buscarTodas();
+        $especies = $this->especieRepo->buscarTodas();
 
         $this->view('onboarding/tutor_onboarding', [
             'titulo'   => 'Cadastro de Tutor',
@@ -89,8 +63,7 @@ class OnboardingController extends Controller
 
     public function ong()
     {
-        $pdo = ConnectionFactory::getConnection();
-        $regioes = $this->regiaoRepo->buscarTodas($pdo);
+        $regioes = $this->regiaoRepo->buscarTodas();
 
         $this->view('onboarding/protetor_onboarding', [
             'titulo'      => 'Cadastro de ONG',
@@ -101,8 +74,7 @@ class OnboardingController extends Controller
 
     public function protetor()
     {
-        $pdo = ConnectionFactory::getConnection();
-        $regioes = $this->regiaoRepo->buscarTodas($pdo);
+        $regioes = $this->regiaoRepo->buscarTodas();
 
         $this->view('onboarding/protetor_onboarding', [
             'titulo'      => 'Cadastro de Protetor',
@@ -155,11 +127,16 @@ class OnboardingController extends Controller
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 $this->onboardingService->processarOng($dadosLimpos, $_FILES, $usuarioId);
 
-                // Em caso de sucesso, retorna JSON
-                $this->responderJson('sucesso', 'Cadastro enviado para análise com sucesso!', URL_BASE . '/aguardando-aprovacao');
+                $this->json(200, [
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Cadastro enviado para análise com sucesso!',
+                    'redirect_url' => URL_BASE . '/aguardando-aprovacao'
+                ]);
             } catch (Exception $e) {
-                // Em caso de erro, retorna JSON
-                $this->responderJson('erro', $e->getMessage());
+                $this->json(200, [
+                    'status'   => 'erro',
+                    'mensagem' => $e->getMessage()
+                ]);
             }
         }
     }
@@ -182,20 +159,28 @@ class OnboardingController extends Controller
                 $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
                 $_SESSION['boas_vindas_tipo'] = 'adotante';
 
-                // Em caso de sucesso, retorna JSON
-                $this->responderJson('sucesso', 'Seu perfil foi criado com sucesso!', URL_BASE . '/feed');
+                $this->json(200, [
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Seu perfil foi criado com sucesso!',
+                    'redirect_url' => URL_BASE . '/feed'
+                ]);
             } catch (Exception $e) {
-                // Em caso de erro, retorna JSON
-                $this->responderJson('erro', $e->getMessage());
+                $this->json(200, [
+                    'status'   => 'erro',
+                    'mensagem' => $e->getMessage()
+                ]);
             }
         }
     }
 
-    public function aguardandoAprovacao()
+  public function aguardandoAprovacao()
     {
-        $statusConta = $_SESSION['status_conta'] ?? 'pendente';
-        if ($statusConta === 'ativo' || $statusConta === 'aprovado') {
-            $this->redirect('/');
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+        $validado = $_SESSION['validado'] ?? false;
+
+        // Se o usuário atual for um tutor, ou se a ONG dele JÁ FOI validada, não tem porque ele estar nesta tela.
+        if ($tipoPerfil === 'tutor' || $validado === true || $validado === 1) {
+            $this->redirect('/feed');
         }
 
         $this->view('onboarding/aguardando_aprovacao', [

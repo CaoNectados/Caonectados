@@ -6,9 +6,13 @@ use app\database\ConnectionFactory;
 use app\models\Usuario;
 use app\models\Tutor;
 use app\models\Protetor;
+use app\models\Pagina;
+use app\models\Rede;
 use app\repositories\UsuarioRepository;
 use app\repositories\TutorRepository;
 use app\repositories\ProtetorRepository;
+use app\repositories\PaginaRepository;
+use app\repositories\RedeRepository;
 use Exception;
 
 class OnboardingService
@@ -16,51 +20,88 @@ class OnboardingService
     private UsuarioRepository $usuarioRepo;
     private TutorRepository $tutorRepo;
     private ProtetorRepository $protetorRepo;
-    private UploadService $uploadService;
+    private PaginaRepository $paginaRepo;
+    private RedeRepository $redeRepo;
 
     public function __construct()
     {
         $this->usuarioRepo = new UsuarioRepository();
         $this->tutorRepo = new TutorRepository();
         $this->protetorRepo = new ProtetorRepository();
-        $this->uploadService = new UploadService('uploads');
+        $this->paginaRepo = new PaginaRepository();
+        $this->redeRepo = new RedeRepository();
+    }
+
+    /**
+     * Verifica se o usuário já possui perfil cadastrado no sistema
+     */
+    public function usuarioJaPossuiPerfil(int $usuarioId): bool
+    {
+        $tutor = $this->tutorRepo->buscarPorUsuarioId($usuarioId);
+        $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+
+        if ($tutor !== null) {
+            $_SESSION['tipo_perfil'] = 'tutor';
+            return true;
+        }
+
+        if ($protetor !== null) {
+            $_SESSION['tipo_perfil'] = 'protetor';
+            return true;
+        }
+
+        return false;
     }
 
     public function processarTutor(array $dados, array $arquivos, int $usuarioId): void
     {
-        $pdo = ConnectionFactory::getConnection();
+        // 1. Validações Básicas
+        ValidationService::validarNome($dados['nome_usuario'] ?? '');
+        ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
+        $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
+        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'num_morada']);
+
+        if ((int)$dados['regiao_id'] <= 0) {
+            throw new Exception("Selecione um bairro/região válido.");
+        }
+
+        $conexao = ConnectionFactory::getConnection();
 
         try {
-            $pdo->beginTransaction();
+            $conexao->beginTransaction();
 
-            // 1. Atualiza o status_conta para 'ativo' na tabela USUARIO
-            $sqlUsuario = "UPDATE USUARIO 
-                           SET nome = :nome, regiao_id = :regiao_id, tipo_perfil = 'adotante', status_conta = 'ativo' 
-                           WHERE usuario_id = :usuario_id";
-            $stmt = $pdo->prepare($sqlUsuario);
-            $stmt->execute([
-                'nome'       => $dados['nome_usuario'],
-                'regiao_id'  => (int)$dados['regiao_id'],
-                'usuario_id' => $usuarioId
-            ]);
+            $statusAtual = $_SESSION['status_conta'] ?? 'ativo';
 
-            // 2. Upload da Foto de Perfil
+            // 2. Atualiza a tabela USUARIO
+            $usuario = new Usuario();
+            $usuario->setUsuarioId($usuarioId);
+            $usuario->setNome(trim($dados['nome_usuario']));
+            $usuario->setRegiaoId((int)$dados['regiao_id']);
+            $usuario->setLogradouro(trim($dados['obs_casa']));
+            $usuario->setNumero(trim($dados['num_morada']));
+            $usuario->setTelefone($telefoneLimpo);
+            $usuario->setDtNasc($dados['dt_nasc']);
+            $usuario->setTipoAtual('tutor');
+            $usuario->setStatusConta($statusAtual);
+
+            // Salva na tabela USUARIO e adiciona 'tutor' ao SET perfis_ativos
+            $this->usuarioRepo->atualizarOnboarding($usuario, 'tutor');
+
+            // 3. Upload da Foto de Perfil
             $caminhoFoto = null;
             if (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                $caminhoFoto = $this->uploadService->salvar($arquivos['foto_perfil']);
+                $uploadFotoPerfil = new UploadService('uploads/foto_perfil');
+                $caminhoFoto = $uploadFotoPerfil->salvar($arquivos['foto_perfil']);
             }
 
-            // 3. Monta o objeto Tutor
+            // 4. Monta e salva o TUTOR
             $tutor = new Tutor();
             $tutor->setUsuarioId($usuarioId);
-
-            $tipoMorada = ($dados['tipo_moradia'] === 'chacara') ? 'sitio' : ($dados['tipo_moradia'] ?? 'casa');
-            $tutor->setTipoMorada($tipoMorada);
+            $tutor->setTipoMorada(($dados['tipo_moradia'] === 'chacara') ? 'sitio' : ($dados['tipo_moradia'] ?? 'casa'));
             $tutor->setFotoPerfil($caminhoFoto);
             $tutor->setDescricao(!empty($dados['descricao']) ? $dados['descricao'] : null);
-            $tutor->setTamanhoInternoMoradia(isset($dados['espaco_interior']) ? strtolower($dados['espaco_interior']) : null);
+            $tutor->setTamanhoInternoMoradia(!empty($dados['espaco_interior']) ? strtolower($dados['espaco_interior']) : null);
 
-            // 4. JSON 'detalhes'
             $detalhes = [
                 'espaco_externo'     => $dados['espaco_externo'] ?? null,
                 'possui_criancas'    => $dados['possui_criancas'] ?? null,
@@ -73,102 +114,164 @@ class OnboardingService
             ];
 
             $tutor->setDetalhes(json_encode($detalhes));
+            $tutorId = $this->tutorRepo->salvar($tutor);
 
-            // 5. Salva no banco e recupera o ID do Tutor criado
-            $tutorId = $this->tutorRepo->salvar($tutor, $pdo);
+            $conexao->commit();
 
-            $pdo->commit();
-
-            // 6. Atualiza a SESSÃO para refletir o status 'ativo' no header
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
+            // 5. Atualiza a Sessão
+            if (session_status() === PHP_SESSION_NONE) { session_start(); }
+            
+            $_SESSION['tipo_perfil']  = 'tutor';
+            $_SESSION['status_conta'] = $statusAtual; 
+            $_SESSION['tutor_id']     = $tutorId;
+            $_SESSION['usuario_nome'] = trim($dados['nome_usuario']);
+            
+            if (!in_array('tutor', $_SESSION['perfis_ativos'] ?? [])) {
+                $_SESSION['perfis_ativos'][] = 'tutor';
             }
 
-            $_SESSION['tipo_perfil']   = 'adotante';
-            $_SESSION['status_conta'] = 'ativo'; // Garante que o menu libere todas as opções do Adotante
-            $_SESSION['tutor_id']     = $tutorId;
-            $_SESSION['usuario_nome'] = $dados['nome_usuario'];
-
-            if ($caminhoFoto) {
-                $_SESSION['foto_perfil'] = $caminhoFoto;
+            if ($caminhoFoto) { 
+                $_SESSION['foto_perfil'] = $caminhoFoto; 
             }
 
         } catch (Exception $e) {
-            $pdo->rollBack();
+            $conexao->rollBack();
             throw $e;
         }
     }
 
-    public function processarOng(array $dados, array $arquivos, int $usuarioId): void
+   public function processarOng(array $dados, array $arquivos, int $usuarioId): void
     {
-        $pdo = ConnectionFactory::getConnection();
+        // 1. Validações Básicas
+        ValidationService::validarNome($dados['nome_fantasia'] ?? '');
+        ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
+        $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
+
+        if (empty($telefoneLimpo)) { 
+            throw new Exception("O telefone é obrigatório."); 
+        }
+        
+        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'num_morada']);
+
+        if ((int)$dados['regiao_id'] <= 0) { 
+            throw new Exception("Selecione um bairro/região válido."); 
+        }
+
+        // 2. Validação de Arquivo (Comprovante) Obrigatório e Extensão
+        if (!isset($arquivos['comprovante_documento']) || $arquivos['comprovante_documento']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception("O envio do comprovante de atividade é obrigatório para ONGs e Protetores.");
+        }
+
+        $extensaoDoc = strtolower(pathinfo($arquivos['comprovante_documento']['name'], PATHINFO_EXTENSION));
+        $extensoesPermitidas = ['pdf', 'jpg', 'jpeg', 'png'];
+
+        if (!in_array($extensaoDoc, $extensoesPermitidas, true)) {
+            throw new Exception("Formato inválido para o comprovante. Envie apenas arquivos em PDF, JPG ou PNG.");
+        }
+
+        $conexao = ConnectionFactory::getConnection();
 
         try {
-            $pdo->beginTransaction();
+            $conexao->beginTransaction();
 
             $documentoLimpo = preg_replace('/[^0-9]/', '', $dados['cnpj_cpf']);
             $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
             $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
 
+            // Se o usuário já tiver uma conta ativa (ex: já for tutor), não podemos prender ele.
+            // A trava será feita unicamente pelo 'validado' na tabela Protetor.
+            $statusAtual = $_SESSION['status_conta'] ?? 'ativo';
+
+            // 3. Atualiza a tabela USUARIO
             $usuario = new Usuario();
             $usuario->setUsuarioId($usuarioId);
-            $usuario->setNome($dados['nome_fantasia']);
+            $usuario->setNome(trim($dados['nome_fantasia']));
             $usuario->setRegiaoId((int)$dados['regiao_id']);
+            $usuario->setLogradouro(trim($dados['obs_casa']));
+            $usuario->setNumero(trim($dados['num_morada']));
+            $usuario->setTelefone($telefoneLimpo);
+            $usuario->setDtNasc($dados['dt_nasc']);
             $usuario->setTipoAtual($tipoPerfil);
+            $usuario->setStatusConta($statusAtual);
 
-            $this->usuarioRepo->atualizarOnboarding($usuario, $pdo);
+            // Salva na tabela USUARIO e adiciona o tipo ao SET perfis_ativos
+            $this->usuarioRepo->atualizarOnboarding($usuario, $tipoPerfil);
 
+            // 4. Upload do Comprovante
+            $uploadComprovante = new UploadService('uploads/comprovantes');
+            $caminhoDocumento = $uploadComprovante->salvar($arquivos['comprovante_documento']);
+
+            // 5. Monta o objeto Protetor e Salva (validado fica 0 por padrão no banco)
             $protetor = new Protetor();
             $protetor->setUsuarioId($usuarioId);
             $protetor->setCodigoDocumento($documentoLimpo);
             $protetor->setTipoDocumento($tipoDoc);
-
-            $caminhoDocumento = null;
-            if (isset($arquivos['comprovante_documento']) && $arquivos['comprovante_documento']['error'] === UPLOAD_ERR_OK) {
-                $caminhoDocumento = $this->uploadService->salvar($arquivos['comprovante_documento']);
-            }
-
-            $protetor->setNomeFantasia($dados['nome_fantasia']);
-            $protetor->setValidado(false);
+            $protetor->setNomeFantasia(trim($dados['nome_fantasia']));
             $protetor->setComprovanteDocumento($caminhoDocumento);
 
-            $protetorId = $this->protetorRepo->salvar($protetor, $pdo);
+            $protetorId = $this->protetorRepo->salvar($protetor);
 
+            // 6. Upload das Fotos da Página
             $caminhoFotoPerfil = null;
             if (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                $caminhoFotoPerfil = $this->uploadService->salvar($arquivos['foto_perfil']);
+                $uploadPerfil = new UploadService('uploads/foto_pagina');
+                $caminhoFotoPerfil = $uploadPerfil->salvar($arquivos['foto_perfil']);
             }
 
-            $descricao = $dados['descricao'] ?? null;
-            $chavePix = $dados['chave_pix'] ?? null;
-            $this->protetorRepo->salvarPagina($protetorId, $descricao, $caminhoFotoPerfil, $chavePix, $pdo);
+            $caminhoFotoFundo = null;
+            if (isset($arquivos['foto_fundo']) && $arquivos['foto_fundo']['error'] === UPLOAD_ERR_OK) {
+                $uploadFundo = new UploadService('uploads/foto_pagina');
+                $caminhoFotoFundo = $uploadFundo->salvar($arquivos['foto_fundo']);
+            }
 
+            // 7. Criação da PAGINA
+            $pagina = new Pagina();
+            $pagina->setProtetorId($protetorId);
+            $pagina->setDescricao($dados['descricao'] ?? null);
+            $pagina->setFotoPerfil($caminhoFotoPerfil);
+            $pagina->setFotoFundo($caminhoFotoFundo);
+            $pagina->setChavePix($dados['chave_pix'] ?? null);
+            
+            $this->paginaRepo->salvar($pagina);
+
+            // 8. Criação das REDES SOCIAIS
             if (!empty($dados['instagram'])) {
-                $this->protetorRepo->salvarRedeSocial($protetorId, $dados['instagram'], 'instagram', $pdo);
+                $redeInsta = new Rede();
+                $redeInsta->setProtetorId($protetorId);
+                $redeInsta->setLinkRede(trim($dados['instagram']));
+                $redeInsta->setTipoRede('instagram');
+                $this->redeRepo->salvar($redeInsta);
             }
 
             if (!empty($dados['facebook'])) {
-                $this->protetorRepo->salvarRedeSocial($protetorId, $dados['facebook'], 'facebook', $pdo);
+                $redeFace = new Rede();
+                $redeFace->setProtetorId($protetorId);
+                $redeFace->setLinkRede(trim($dados['facebook']));
+                $redeFace->setTipoRede('facebook');
+                $this->redeRepo->salvar($redeFace);
             }
 
-            $pdo->commit();
+            $conexao->commit();
 
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-
-            $_SESSION['tipo_perfil']   = $tipoPerfil;
-            $_SESSION['status_conta'] = 'pendente';
+            // 9. Atualiza a Sessão
+            if (session_status() === PHP_SESSION_NONE) { session_start(); }
+            
+            $_SESSION['tipo_perfil']  = $tipoPerfil;
+            $_SESSION['status_conta'] = $statusAtual;
             $_SESSION['protetor_id']  = $protetorId;
-            $_SESSION['usuario_nome'] = $dados['nome_fantasia'];
-            $_SESSION['validado']     = false;
+            $_SESSION['usuario_nome'] = trim($dados['nome_fantasia']);
+            $_SESSION['validado']     = false; // Trava o acesso até o admin aprovar
 
-            if ($caminhoFotoPerfil) {
-                $_SESSION['foto_perfil'] = $caminhoFotoPerfil;
+            if (!in_array($tipoPerfil, $_SESSION['perfis_ativos'] ?? [])) {
+                $_SESSION['perfis_ativos'][] = $tipoPerfil;
+            }
+
+            if ($caminhoFotoPerfil) { 
+                $_SESSION['foto_perfil'] = $caminhoFotoPerfil; 
             }
 
         } catch (Exception $e) {
-            $pdo->rollBack();
+            $conexao->rollBack();
             throw $e;
         }
     }

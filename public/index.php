@@ -36,18 +36,16 @@ $router->get('/home', 'geral/HomeController@index');
 // ==========================================
 // ROTAS ONBOARDING
 // ==========================================
-$router->get('/onboarding', 'onboarding/OnboardingController@index');
-$router->get('/onboarding/tutor', 'onboarding/OnboardingController@tutor');
-$router->get('/onboarding/ong', 'onboarding/OnboardingController@ong');
-$router->get('/onboarding/protetor', 'onboarding/OnboardingController@protetor');
+$router->get('/onboarding', 'onboarding/OnBoardingController@index');
+$router->get('/onboarding/tutor', 'onboarding/OnBoardingController@tutor');
+$router->get('/onboarding/ong', 'onboarding/OnBoardingController@ong');
+$router->get('/onboarding/protetor', 'onboarding/OnBoardingController@protetor');
 
 // Rotas de submissão do formulário dados
-$router->post('/onboarding/salvar-tutor', 'onboarding/OnboardingController@salvarTutor');
-$router->post('/onboarding/salvar-protetor', 'onboarding/OnboardingController@salvarProtetor');
-$router->post('/onboarding/aguardando-aprovacao', 'onboarding/OnboardingController@aguardandoAprovacao');
-
-
-// ==========================================
+$router->post('/onboarding/salvar-tutor', 'onboarding/OnBoardingController@salvarTutor');
+$router->post('/onboarding/salvar-protetor', 'onboarding/OnBoardingController@salvarProtetor');
+$router->get('/onboarding/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');
+$router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');// ==========================================
 // ROTAS PROTETOR, ONG, TUTOR E ADMIN
 // ==========================================
 $router->get('/feed', 'geral/FeedController@feed');
@@ -60,6 +58,15 @@ $router->post('/perfil/atualizar', 'geral/PerfilController@atualizar');
 $router->get('/perfil/editar-foto', 'geral/PerfilController@editarFoto');
 $router->post('/perfil/atualizar-foto', 'geral/PerfilController@atualizarFoto');
 
+// ROTAS DE REDEFINIÇÃO DE SENHA DO PERFIL (LOGADO)
+$router->get('/perfil/redefinir-senha', 'geral/PerfilController@telaRedefinirSenha');
+$router->post('/perfil/redefinir-senha/enviar-codigo', 'geral/PerfilController@enviarCodigoSenha');
+$router->post('/perfil/redefinir-senha/confirmar', 'geral/PerfilController@confirmarNovaSenha');
+
+// ROTAS DE TROCA DE E-MAIL (LOGADO)
+$router->get('/perfil/trocar-email', 'geral/PerfilController@telaTrocarEmail');
+$router->post('/perfil/trocar-email/enviar-codigo', 'geral/PerfilController@enviarCodigoTrocaEmail');
+$router->post('/perfil/trocar-email/confirmar', 'geral/PerfilController@confirmarTrocaEmail');
 
 // ==========================================
 // ROTAS DE AUTENTICAÇÃO
@@ -143,6 +150,13 @@ $router->post('/admin/raca/importar', 'admin/RacaController@importar');
 
 $router->get('/admin/raca/json', 'admin/RacaController@buscarJson');
 
+// ==========================================
+// GERENCIAMENTO DE USUÁRIOS (ADMIN)
+// ==========================================
+$router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
+$router->get('/admin/usuarios/detalhes', 'admin/UsuarioController@detalhes');
+$router->post('/admin/usuarios/alterar-status', 'admin/UsuarioController@alterarStatusUsuario');
+$router->post('/admin/usuarios/alterar-status-perfil', 'admin/UsuarioController@alterarStatusPerfil');
 // ==========================================
 // ROTAS CRUD ANIMAL
 // ==========================================
