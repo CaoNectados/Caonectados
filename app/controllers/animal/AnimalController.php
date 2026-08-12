@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace app\controllers\animal;
 
@@ -28,23 +28,28 @@ class AnimalController extends Controller
 
     public function index(): void
     {
+        //$this->autenticacaoRequired(['protetor']);
         try {
-            $repository = new AnimalRepository($this->db);
-            $animais = $repository->listarAnimal();
-                // Se for requisição por View HTML: armazenar tudo em session
-                if ($this->isHtmlRequest()) {
-                    $_SESSION['animais'] = $animais;
-                    $this->view('animal/index');
-                    return;
-                }
+            // Captura o status escolhido no select do HTML (se não houver, o padrão é 'todos')
+            $filtro = $_GET['status'] ?? 'todos';
 
-                // Se for requisição por API JSON: padrão { status, data }
-                $this->json(200, [
-                    'status' => 'sucesso',
-                    'data' => array_map(function (Animal $animal): array {
-                        return $this->animalToArray($animal);
-                    }, $animais)
-                ]);
+            $repository = new AnimalRepository($this->db);
+            $animais = $repository->listarAnimal($filtro);
+
+            // Se for requisição por View HTML: armazenar tudo em session
+            if ($this->isHtmlRequest()) {
+                $_SESSION['animais'] = $animais;
+                $this->view('animal/index');
+                return;
+            }
+
+            // Se for requisição por API JSON: padrão { status, data }
+            $this->json(200, [
+                'status' => 'sucesso',
+                'data' => array_map(function (Animal $animal): array {
+                    return $this->animalToArray($animal);
+                }, $animais)
+            ]);
         } catch (Exception $e) {
             $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
@@ -52,44 +57,90 @@ class AnimalController extends Controller
 
     public function create(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        //$this->autenticacaoRequired(['protetor']);
         if ($this->isHtmlRequest()) {
+            $especieRepo = new \app\repositories\EspecieRepository($this->db);
+            $_SESSION['especies'] = $especieRepo->listarTodas('ativos');
+
+            $_SESSION['erros'] = $_SESSION['erros'] ?? [];
+            $_SESSION['old'] = $_SESSION['old'] ?? [];
+
             $this->view('animal/cadastrar');
+
+            unset($_SESSION['erros'], $_SESSION['old']);
             return;
         }
 
-            $this->json(200, [
-                'status' => 'sucesso',
-                'mensagem' => 'Endpoint de criação pronto.'
-            ]);
+        $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de criação pronto.']);
+    }
+
+    public function edit(): void
+    {
+        //$this->autenticacaoRequired(['protetor']);
+        $id = $this->getIdFromRequest();
+        $repository = new AnimalRepository($this->db);
+        $animal = $repository->buscarPorId($id);
+
+        if (!$animal) {
+            $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
+            return;
+        }
+
+        if ($this->isHtmlRequest()) {
+            $racaRepo = new \app\repositories\RacaRepository($this->db);
+            $_SESSION['animal'] = $animal;
+            $_SESSION['racas'] = $racaRepo->listarTodas('ativos');
+
+            $_SESSION['erros'] = $_SESSION['erros'] ?? [];
+            $_SESSION['old'] = $_SESSION['old'] ?? [];
+
+            $this->view('animal/editar');
+
+            unset($_SESSION['erros'], $_SESSION['old']);
+            return;
+        }
+
+        $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de edição pronto.']);
     }
 
     public function store(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        //$this->autenticacaoRequired(['protetor']);
         try {
             $data = $this->getJsonBody();
-
             $animal = $this->buildAnimalFromArray($data);
+
             $this->service->cadastrarAnimal($animal);
 
             if ($this->isHtmlRequest()) {
                 $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
                 return;
             }
-                $this->json(201, [
-                    'status' => 'sucesso',
-                    'mensagem' => 'Animal cadastrado com sucesso.'
-                ]);
+
+            $this->json(201, [
+                'status' => 'sucesso',
+                'mensagem' => 'Animal cadastrado com sucesso.'
+            ]);
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            if ($this->isHtmlRequest()) {
+                $errosValidacao = $this->service->getErros();
+                $_SESSION['erros'] = !empty($errosValidacao) ? $errosValidacao : ['geral' => $e->getMessage()];
+                $_SESSION['old'] = $_POST;
+                header('Location: ' . URL_BASE . '/animal/cadastrar');
+                exit;
+            }
+
+            $this->json(422, [
+                'status' => 'erro',
+                'mensagem' => $e->getMessage(),
+                'erros' => $this->service->getErros()
+            ]);
         }
     }
 
     public function show(): void
     {
+        //$this->autenticacaoRequired(['protetor']);
         try {
             $id = $this->getIdFromRequest();
             $repository = new AnimalRepository($this->db);
@@ -120,31 +171,9 @@ class AnimalController extends Controller
         }
     }
 
-    public function edit(): void
-    {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-        
-        $id = $this->getIdFromRequest();
-        $repository = new AnimalRepository($this->db);
-        $animal = $repository->buscarPorId($id);
-
-        if (!$animal) {
-            $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
-        }
-
-        if ($this->isHtmlRequest()) {
-            $_SESSION['animal'] = $animal;
-            $this->view('animal/editar');
-            return;
-        }
-
-        $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de edição pronto.']);
-    }
-
     public function update(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        //$this->autenticacaoRequired(['protetor']);
         try {
             $id = $this->getIdFromRequest();
             $data = $this->getJsonBody();
@@ -160,14 +189,25 @@ class AnimalController extends Controller
 
             $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal atualizado com sucesso.']);
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            if ($this->isHtmlRequest()) {
+                $errosValidacao = $this->service->getErros();
+                $_SESSION['erros'] = !empty($errosValidacao) ? $errosValidacao : ['geral' => $e->getMessage()];
+                $_SESSION['old'] = $_POST;
+                header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? URL_BASE . '/animal'));
+                exit;
+            }
+
+            $this->json(422, [
+                'status' => 'erro',
+                'mensagem' => $e->getMessage(),
+                'erros' => $this->service->getErros()
+            ]);
         }
     }
 
     public function status(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        //$this->autenticacaoRequired(['protetor']);
         try {
             $id = $this->getIdFromRequest();
             $data = $this->getJsonBody();
@@ -190,14 +230,18 @@ class AnimalController extends Controller
 
     public function reativar(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        //$this->autenticacaoRequired(['protetor']);
         try {
             $id = $this->getIdFromRequest();
 
             $animal = new Animal();
             $animal->setAnimalId($id);
             $this->service->reativarAnimal($animal);
+
+            if ($this->isHtmlRequest()) {
+                $this->redirecionarComMensagem('sucesso', 'Animal reativado com sucesso!', '/animal');
+                return;
+            }
 
             $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal reativado com sucesso.']);
         } catch (Exception $e) {
@@ -207,8 +251,7 @@ class AnimalController extends Controller
 
     public function destroy(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        //$this->autenticacaoRequired(['protetor']);
         try {
             $id = $this->getIdFromRequest();
 
@@ -263,7 +306,7 @@ class AnimalController extends Controller
             'protetor_id'     => $animal->getProtetorId(),
             'raca_id'         => $animal->getRacaId(),
             'nome'            => $animal->getNome(),
-            'dt_nasc'          => $animal->getDtNasc(),
+            'dt_nasc'         => $animal->getDtNasc(),
             'sexo'            => $animal->getSexo(),
             'porte'           => $animal->getPorte(),
             'status'          => $animal->getStatus(),
@@ -320,6 +363,27 @@ class AnimalController extends Controller
         return (int) $id;
     }
 
-    
+    public function deleteView(): void
+    {
+        try {
+            $id = $this->getIdFromRequest();
+            $repository = new AnimalRepository($this->db);
+            $animal = $repository->buscarPorId($id);
 
+            if (!$animal) {
+                $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
+                return;
+            }
+
+            if ($this->isHtmlRequest()) {
+                $_SESSION['animal'] = $animal;
+                $this->view('animal/excluir');
+                return;
+            }
+
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de confirmação de exclusão pronto.']);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        }
+    }
 }
