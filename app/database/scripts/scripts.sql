@@ -1,6 +1,4 @@
-CREATE DATABASE IF NOT EXISTS caonectados
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS caonectados CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE caonectados;
 
@@ -27,20 +25,20 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     numero VARCHAR(20) NULL,
     telefone VARCHAR(20) NULL DEFAULT NULL,
     senha VARCHAR(255) NOT NULL,
-    
-    -- TIPO ATUAL: O perfil ativo na sessão no momento (ENUM = escolhe 1 por vez)
-    tipo_atual ENUM(
-        'usuario',
-        'tutor',
-        'protetor',
-        'ong',
-        'administrador'
-    ) NOT NULL DEFAULT 'usuario',
 
-    -- PERFIS ATIVOS: Permite ter MULTIPLOS perfis vinculados ao mesmo usuario (SET)
-    perfis_ativos SET(
+-- TIPO ATUAL: O perfil ativo na sessão no momento (ENUM = escolhe 1 por vez)
+tipo_atual ENUM(
+    'usuario',
+    'adotante',
+    'protetor',
+    'ong',
+    'administrador'
+) NOT NULL DEFAULT 'usuario',
+
+-- PERFIS ATIVOS: Permite ter MULTIPLOS perfis vinculados ao mesmo usuario (SET)
+perfis_ativos SET(
         'usuario',
-        'tutor',
+        'adotante',
         'protetor',
         'ong',
         'administrador'
@@ -61,10 +59,10 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     CONSTRAINT fk_usuario_regiao FOREIGN KEY (regiao_id) REFERENCES REGIAO (regiao_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS TUTOR (
-    tutor_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS ADOTANTE (
+    adotante_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
-    tipo_morada ENUM(
+    tipo_moradia ENUM(
         'casa',
         'apartamento',
         'sitio',
@@ -72,11 +70,11 @@ CREATE TABLE IF NOT EXISTS TUTOR (
     ) NOT NULL,
     foto_perfil VARCHAR(255) NULL,
     descricao TEXT NULL,
-    tamanho_interno_morada ENUM('pequeno', 'medio', 'grande') NULL,
+    tamanho_interno_moradia ENUM('pequeno', 'medio', 'grande') NULL,
     detalhes TEXT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_tutor_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
+    CONSTRAINT fk_adotante_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS PROTETOR (
@@ -173,7 +171,7 @@ CREATE TABLE IF NOT EXISTS REDE (
 
 CREATE TABLE IF NOT EXISTS SOLICITACAO_ADOCAO (
     solicitacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tutor_id INT UNSIGNED NOT NULL,
+    adotante_id INT UNSIGNED NOT NULL,
     animal_id INT UNSIGNED NOT NULL,
     status_solicitacao ENUM(
         'pendente',
@@ -185,8 +183,31 @@ CREATE TABLE IF NOT EXISTS SOLICITACAO_ADOCAO (
     data_solicitacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     justificativa_recusa TEXT NULL,
     data_finalizacao TIMESTAMP NULL DEFAULT NULL,
-    CONSTRAINT fk_solicitacao_tutor FOREIGN KEY (tutor_id) REFERENCES TUTOR (tutor_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_solicitacao_adotante FOREIGN KEY (adotante_id) REFERENCES ADOTANTE (adotante_id) ON UPDATE CASCADE,
     CONSTRAINT fk_solicitacao_animal FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS HISTORICO_SOLICITACAO (
+    historico_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    solicitacao_id INT UNSIGNED NOT NULL,
+    usuario_responsavel_id INT UNSIGNED NOT NULL,
+    status_antigo ENUM(
+        'pendente',
+        'em_analise',
+        'aprovada',
+        'reprovada',
+        'cancelada'
+    ) NULL,
+    status_novo ENUM(
+        'pendente',
+        'em_analise',
+        'aprovada',
+        'reprovada',
+        'cancelada'
+    ) NOT NULL,
+    data_alteracao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_hist_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id) ON UPDATE CASCADE,
+    CONSTRAINT fk_hist_usuario_resp FOREIGN KEY (usuario_responsavel_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CHAT (
@@ -234,6 +255,12 @@ CREATE TABLE IF NOT EXISTS DENUNCIA (
     denuncia_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     denunciante_id INT UNSIGNED NOT NULL,
     denunciado_id INT UNSIGNED NOT NULL,
+    perfil_denunciado ENUM(
+        'usuario',
+        'adotante',
+        'protetor',
+        'ong'
+    ) NOT NULL,
     solicitacao_id INT UNSIGNED NULL,
     chat_id INT UNSIGNED NULL,
     motivo ENUM(
@@ -267,6 +294,12 @@ CREATE TABLE IF NOT EXISTS ADVERTENCIA (
     advertencia_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     denuncia_id INT UNSIGNED NOT NULL,
+    perfil_afetado ENUM(
+        'usuario',
+        'adotante',
+        'protetor',
+        'ong'
+    ) NOT NULL,
     data_fim DATE NULL,
     status ENUM(
         'ativa',
@@ -297,6 +330,15 @@ CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
     CONSTRAINT fk_animal_traco_traco FOREIGN KEY (traco_id) REFERENCES TRACO (traco_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS HISTORICO_STATUS_ANIMAL (
+    historico_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    animal_id INT UNSIGNED NOT NULL,
+    status_antigo ENUM('disponivel', 'em_analise', 'adotado', 'desativado') NULL,
+    status_novo ENUM('disponivel', 'em_analise', 'adotado', 'desativado') NOT NULL,
+    data_alteracao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_historico_animal FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     codigo_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
@@ -307,6 +349,16 @@ CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     CONSTRAINT fk_codigo_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS LOG_SISTEMA (
+    log_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT UNSIGNED NOT NULL,
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    acao VARCHAR(255) NOT NULL,
+    classe_afetada VARCHAR(100) NOT NULL,
+    registro_id INT UNSIGNED NOT NULL,
+    ip_usuario VARCHAR(45) NOT NULL,
+    CONSTRAINT fk_log_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 -- ===========================================
 -- USUÁRIO ADMINISTRADOR
 -- ===========================================
@@ -321,14 +373,14 @@ INSERT INTO
         nome
     )
 VALUES (
-    '45900000000',
-    '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
-    'administrador',
-    'administrador',
-    'ativo',
-    'caonectados2026@gmail.com',
-    'Admin CãoNectados'
-);
+        '45900000000',
+        '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
+        'administrador',
+        'administrador',
+        'ativo',
+        'caonectados2026@gmail.com',
+        'Admin CãoNectados'
+    );
 
 INSERT INTO
     REGIAO (nome_regiao)
@@ -370,10 +422,7 @@ VALUES ('Alvorada'),
     ('Remanso'),
     ('Parque Nacional');
 
-INSERT INTO
-    ESPECIE (nome)
-VALUES ('Cão'),
-    ('Gato');
+INSERT INTO ESPECIE (nome) VALUES ('Cão'), ('Gato');
 
 INSERT INTO
     RACA (nome, especie_id)
