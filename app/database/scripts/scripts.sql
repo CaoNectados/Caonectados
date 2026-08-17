@@ -161,9 +161,6 @@ CREATE TABLE IF NOT EXISTS REDE (
         'instagram',
         'facebook',
         'whatsapp',
-        'site',
-        'tiktok',
-        'youtube',
         'outro'
     ) NOT NULL,
     CONSTRAINT fk_rede_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id) ON UPDATE CASCADE

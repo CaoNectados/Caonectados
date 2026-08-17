@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
 
-$tipoPerfil = $_SESSION['tipo_perfil'] ?? 'tutor';
+$tipoPerfil = $_SESSION['tipo_perfil'] ?? 'adotante';
 $nomeUsuario = $_SESSION['usuario_nome'] ?? 'NomeUsuário';
 
 // Configurações padrão
@@ -36,7 +36,7 @@ if ($tipoPerfil === 'administrador') {
         ['label' => 'Sair',            'icone' => 'sair.svg',          'url' => '/logout'],
         ['label' => 'Denunciar',       'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
     ];
-} else { // ADOTANTE (Tutor)
+} else { // ADOTANTE (Adotante)
     $botoes = [
         ['label' => 'Editar Perfil',   'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil', 'icone' => 'alternar.svg',      'url' => '/perfil/alternar'],
@@ -236,3 +236,4 @@ $paginasBotoes = array_chunk($botoes, 6);
 </script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
+

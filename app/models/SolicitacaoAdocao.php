@@ -5,7 +5,7 @@ namespace app\models;
 class SolicitacoesAdocao
 {
     private ?int $solicitacaoId = null;
-    private int $tutorId;
+    private int $adotanteId;
     private int $animalId;
     private string $statusSolicitacao;
     private ?string $dataSolicitacao = null;
@@ -27,14 +27,14 @@ class SolicitacoesAdocao
         return $this;
     }
 
-    public function getTutorId(): int
+    public function getAdotanteId(): int
     {
-        return $this->tutorId;
+        return $this->adotanteId;
     }
 
-    public function setTutorId(int $tutorId): self
+    public function setAdotanteId(int $adotanteId): self
     {
-        $this->tutorId = $tutorId;
+        $this->adotanteId = $adotanteId;
         return $this;
     }
 

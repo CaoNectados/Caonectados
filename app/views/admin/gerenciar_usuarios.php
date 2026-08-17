@@ -33,7 +33,7 @@
             <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">Perfil</label>
             <select name="perfil" class="w-full text-xs p-2.5 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600">
                 <option value="">Todos</option>
-                <option value="tutor" <?= (($filtros['perfil'] ?? '') === 'tutor') ? 'selected' : '' ?>>Tutor</option>
+                <option value="adotante" <?= (($filtros['perfil'] ?? '') === 'adotante') ? 'selected' : '' ?>>Adotante</option>
                 <option value="protetor" <?= (($filtros['perfil'] ?? '') === 'protetor') ? 'selected' : '' ?>>Protetor</option>
                 <option value="ong" <?= (($filtros['perfil'] ?? '') === 'ong') ? 'selected' : '' ?>>ONG</option>
                 <option value="administrador" <?= (($filtros['perfil'] ?? '') === 'administrador') ? 'selected' : '' ?>>Administrador</option>
@@ -90,9 +90,9 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex flex-wrap gap-1.5">
-                                        <?php if ((int)$u['tem_tutor'] > 0): ?>
-                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold <?= in_array('tutor', $perfisArr) ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-500 line-through' ?>">
-                                                Tutor
+                                        <?php if ((int)$u['tem_adotante'] > 0): ?>
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold <?= in_array('adotante', $perfisArr) ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-500 line-through' ?>">
+                                                Adotante
                                             </span>
                                         <?php endif; ?>
                                         <?php if (!empty($u['tipo_protetor'])): ?>
@@ -309,3 +309,4 @@ document.getElementById('btn-executar-acao').addEventListener('click', () => {
 </script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
+

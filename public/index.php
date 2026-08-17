@@ -37,16 +37,16 @@ $router->get('/home', 'geral/HomeController@index');
 // ROTAS ONBOARDING
 // ==========================================
 $router->get('/onboarding', 'onboarding/OnBoardingController@index');
-$router->get('/onboarding/tutor', 'onboarding/OnBoardingController@tutor');
+$router->get('/onboarding/adotante', 'onboarding/OnBoardingController@adotante');
 $router->get('/onboarding/ong', 'onboarding/OnBoardingController@ong');
 $router->get('/onboarding/protetor', 'onboarding/OnBoardingController@protetor');
 
 // Rotas de submissão do formulário dados
-$router->post('/onboarding/salvar-tutor', 'onboarding/OnBoardingController@salvarTutor');
+$router->post('/onboarding/salvar-adotante', 'onboarding/OnBoardingController@salvarAdotante');
 $router->post('/onboarding/salvar-protetor', 'onboarding/OnBoardingController@salvarProtetor');
 $router->get('/onboarding/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');
 $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');// ==========================================
-// ROTAS PROTETOR, ONG, TUTOR E ADMIN
+// ROTAS PROTETOR, ONG, ADOTANTE E ADMIN
 // ==========================================
 $router->get('/feed', 'geral/FeedController@feed');
 
@@ -169,4 +169,6 @@ $router->post('/animal/reativar', 'animal/AnimalController@reativar');
 $router->post('/animal/excluir', 'animal/AnimalController@destroy');
 
 $router->run();
+
+
 

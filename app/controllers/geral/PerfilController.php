@@ -5,7 +5,7 @@ namespace app\controllers\geral;
 use app\core\Controller;
 use app\repositories\UsuarioRepository;
 use app\repositories\RegiaoRepository;
-use app\repositories\TutorRepository;
+use app\repositories\AdotanteRepository;
 use app\repositories\ProtetorRepository;
 use app\repositories\PaginaRepository;
 use app\repositories\RedeRepository;
@@ -34,10 +34,10 @@ class PerfilController extends Controller
         $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
         $fotoPerfil = null;
 
-        if ($tipoPerfil === 'tutor' || $tipoPerfil === 'usuario') {
-            $tutorRepo = new TutorRepository();
-            $tutor = $tutorRepo->buscarPorUsuarioId($usuarioId);
-            $fotoPerfil = $tutor['foto_perfil'] ?? null;
+        if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
+            $adotanteRepo = new AdotanteRepository();
+            $adotante = $adotanteRepo->buscarPorUsuarioId($usuarioId);
+            $fotoPerfil = $adotante['foto_perfil'] ?? null;
         } elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
             $protetorRepo = new ProtetorRepository();
             $paginaRepo = new PaginaRepository();
@@ -75,9 +75,9 @@ class PerfilController extends Controller
         $dadosEspecificos = [];
         $redes = [];
 
-        if ($tipoPerfil === 'tutor') {
-            $tutorRepo = new TutorRepository();
-            $dadosEspecificos = $tutorRepo->buscarPorUsuarioId($usuarioId) ?? [];
+        if ($tipoPerfil === 'adotante') {
+            $adotanteRepo = new AdotanteRepository();
+            $dadosEspecificos = $adotanteRepo->buscarPorUsuarioId($usuarioId) ?? [];
             
             // Busca as espécies para exibir nos checkboxes de preferência
             // Certifique-se de ter importado: use app\repositories\EspecieRepository; no topo do controller
@@ -339,3 +339,4 @@ class PerfilController extends Controller
         }
     }
 }
+

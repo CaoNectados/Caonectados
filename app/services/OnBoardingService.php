@@ -4,12 +4,12 @@ namespace app\services;
 
 use app\database\ConnectionFactory;
 use app\models\Usuario;
-use app\models\Tutor;
+use app\models\Adotante;
 use app\models\Protetor;
 use app\models\Pagina;
 use app\models\Rede;
 use app\repositories\UsuarioRepository;
-use app\repositories\TutorRepository;
+use app\repositories\AdotanteRepository;
 use app\repositories\ProtetorRepository;
 use app\repositories\PaginaRepository;
 use app\repositories\RedeRepository;
@@ -18,7 +18,7 @@ use Exception;
 class OnboardingService
 {
     private UsuarioRepository $usuarioRepo;
-    private TutorRepository $tutorRepo;
+    private AdotanteRepository $adotanteRepo;
     private ProtetorRepository $protetorRepo;
     private PaginaRepository $paginaRepo;
     private RedeRepository $redeRepo;
@@ -26,7 +26,7 @@ class OnboardingService
     public function __construct()
     {
         $this->usuarioRepo = new UsuarioRepository();
-        $this->tutorRepo = new TutorRepository();
+        $this->adotanteRepo = new AdotanteRepository();
         $this->protetorRepo = new ProtetorRepository();
         $this->paginaRepo = new PaginaRepository();
         $this->redeRepo = new RedeRepository();
@@ -37,11 +37,11 @@ class OnboardingService
      */
     public function usuarioJaPossuiPerfil(int $usuarioId): bool
     {
-        $tutor = $this->tutorRepo->buscarPorUsuarioId($usuarioId);
+        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
         $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
 
-        if ($tutor !== null) {
-            $_SESSION['tipo_perfil'] = 'tutor';
+        if ($adotante !== null) {
+            $_SESSION['tipo_perfil'] = 'adotante';
             return true;
         }
 
@@ -53,7 +53,7 @@ class OnboardingService
         return false;
     }
 
-    public function processarTutor(array $dados, array $arquivos, int $usuarioId): void
+    public function processarAdotante(array $dados, array $arquivos, int $usuarioId): void
     {
         // 1. Validações Básicas
         ValidationService::validarNome($dados['nome_usuario'] ?? '');
@@ -81,11 +81,11 @@ class OnboardingService
             $usuario->setNumero(trim($dados['num_morada']));
             $usuario->setTelefone($telefoneLimpo);
             $usuario->setDtNasc($dados['dt_nasc']);
-            $usuario->setTipoAtual('tutor');
+            $usuario->setTipoAtual('adotante');
             $usuario->setStatusConta($statusAtual);
 
-            // Salva na tabela USUARIO e adiciona 'tutor' ao SET perfis_ativos
-            $this->usuarioRepo->atualizarOnboarding($usuario, 'tutor');
+            // Salva na tabela USUARIO e adiciona 'adotante' ao SET perfis_ativos
+            $this->usuarioRepo->atualizarOnboarding($usuario, 'adotante');
 
             // 3. Upload da Foto de Perfil
             $caminhoFoto = null;
@@ -94,13 +94,13 @@ class OnboardingService
                 $caminhoFoto = $uploadFotoPerfil->salvar($arquivos['foto_perfil']);
             }
 
-            // 4. Monta e salva o TUTOR
-            $tutor = new Tutor();
-            $tutor->setUsuarioId($usuarioId);
-            $tutor->setTipoMorada(($dados['tipo_moradia'] === 'chacara') ? 'sitio' : ($dados['tipo_moradia'] ?? 'casa'));
-            $tutor->setFotoPerfil($caminhoFoto);
-            $tutor->setDescricao(!empty($dados['descricao']) ? $dados['descricao'] : null);
-            $tutor->setTamanhoInternoMoradia(!empty($dados['espaco_interior']) ? strtolower($dados['espaco_interior']) : null);
+            // 4. Monta e salva o ADOTANTE
+            $adotante = new Adotante();
+            $adotante->setUsuarioId($usuarioId);
+            $adotante->setTipoMorada(($dados['tipo_moradia'] === 'chacara') ? 'sitio' : ($dados['tipo_moradia'] ?? 'casa'));
+            $adotante->setFotoPerfil($caminhoFoto);
+            $adotante->setDescricao(!empty($dados['descricao']) ? $dados['descricao'] : null);
+            $adotante->setTamanhoInternoMoradia(!empty($dados['espaco_interior']) ? strtolower($dados['espaco_interior']) : null);
 
             $detalhes = [
                 'espaco_externo'     => $dados['espaco_externo'] ?? null,
@@ -113,21 +113,21 @@ class OnboardingService
                 ]
             ];
 
-            $tutor->setDetalhes(json_encode($detalhes));
-            $tutorId = $this->tutorRepo->salvar($tutor);
+            $adotante->setDetalhes(json_encode($detalhes));
+            $adotanteId = $this->adotanteRepo->salvar($adotante);
 
             $conexao->commit();
 
             // 5. Atualiza a Sessão
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
-            $_SESSION['tipo_perfil']  = 'tutor';
+            $_SESSION['tipo_perfil']  = 'adotante';
             $_SESSION['status_conta'] = $statusAtual; 
-            $_SESSION['tutor_id']     = $tutorId;
+            $_SESSION['adotante_id']     = $adotanteId;
             $_SESSION['usuario_nome'] = trim($dados['nome_usuario']);
             
-            if (!in_array('tutor', $_SESSION['perfis_ativos'] ?? [])) {
-                $_SESSION['perfis_ativos'][] = 'tutor';
+            if (!in_array('adotante', $_SESSION['perfis_ativos'] ?? [])) {
+                $_SESSION['perfis_ativos'][] = 'adotante';
             }
 
             if ($caminhoFoto) { 
@@ -178,7 +178,7 @@ class OnboardingService
             $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
             $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
 
-            // Se o usuário já tiver uma conta ativa (ex: já for tutor), não podemos prender ele.
+            // Se o usuário já tiver uma conta ativa (ex: já for adotante), não podemos prender ele.
             // A trava será feita unicamente pelo 'validado' na tabela Protetor.
             $statusAtual = $_SESSION['status_conta'] ?? 'ativo';
 
@@ -276,3 +276,4 @@ class OnboardingService
         }
     }
 }
+

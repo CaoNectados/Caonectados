@@ -48,14 +48,14 @@ class OnboardingController extends Controller
         }
     }
 
-    public function tutor()
+    public function adotante()
     {
         // Repositories buscam a conexão via BaseRepository automaticamente
         $regioes = $this->regiaoRepo->buscarTodas();
         $especies = $this->especieRepo->buscarTodas();
 
-        $this->view('onboarding/tutor_onboarding', [
-            'titulo'   => 'Cadastro de Tutor',
+        $this->view('onboarding/adotante_onboarding', [
+            'titulo'   => 'Cadastro de Adotante',
             'regioes'  => $regioes,
             'especies' => $especies
         ]);
@@ -141,7 +141,7 @@ class OnboardingController extends Controller
         }
     }
 
-    public function salvarTutor()
+    public function salvarAdotante()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -154,7 +154,7 @@ class OnboardingController extends Controller
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 ValidationService::validarCamposObrigatorios($dadosLimpos, ['regiao_id', 'nome_usuario']);
 
-                $this->onboardingService->processarTutor($dadosLimpos, $_FILES, $usuarioId);
+                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, $usuarioId);
 
                 $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
                 $_SESSION['boas_vindas_tipo'] = 'adotante';
@@ -178,8 +178,8 @@ class OnboardingController extends Controller
         $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
         $validado = $_SESSION['validado'] ?? false;
 
-        // Se o usuário atual for um tutor, ou se a ONG dele JÁ FOI validada, não tem porque ele estar nesta tela.
-        if ($tipoPerfil === 'tutor' || $validado === true || $validado === 1) {
+        // Se o usuário atual for um adotante, ou se a ONG dele JÁ FOI validada, não tem porque ele estar nesta tela.
+        if ($tipoPerfil === 'adotante' || $validado === true || $validado === 1) {
             $this->redirect('/feed');
         }
 
@@ -188,3 +188,5 @@ class OnboardingController extends Controller
         ]);
     }
 }
+
+

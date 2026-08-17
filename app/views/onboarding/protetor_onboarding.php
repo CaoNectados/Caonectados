@@ -228,7 +228,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             <p><strong>1. Maioridade Civil:</strong> Declaro ser maior de 18 (dezoito) anos e ter plena capacidade civil para utilizar o sistema.</p>
             <p><strong>2. Proteção de Dados (LGPD):</strong> Autorizo a coleta e o armazenamento dos meus dados pessoais necessários para a criação do perfil e intermediação de adoções.</p>
             <p><strong>3. Responsabilidade da Plataforma:</strong> Compreendo que o CãoNectados atua exclusivamente como um <strong>intermediador digital</strong> (vitrine) para facilitar o encontro entre animais e adotantes.</p>
-            <p><strong>4. Isenção Legal:</strong> A plataforma <strong>não possui</strong> qualquer responsabilidade legal, logística, veterinária ou financeira sobre o processo de adoção, sendo esta responsabilidade inteiramente do tutor e do protetor/ONG envolvidos.</p>
+            <p><strong>4. Isenção Legal:</strong> A plataforma <strong>não possui</strong> qualquer responsabilidade legal, logística, veterinária ou financeira sobre o processo de adoção, sendo esta responsabilidade inteiramente do adotante e do protetor/ONG envolvidos.</p>
         </div>
 
         <div class="mb-6 text-left">
@@ -434,3 +434,4 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 <?php
 require_once __DIR__ . '/../templates/footer.php';
 ?>
+

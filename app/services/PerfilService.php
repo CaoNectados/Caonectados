@@ -4,7 +4,7 @@ namespace app\services;
 
 use app\database\ConnectionFactory;
 use app\repositories\UsuarioRepository;
-use app\repositories\TutorRepository;
+use app\repositories\AdotanteRepository;
 use app\repositories\ProtetorRepository;
 use app\repositories\PaginaRepository;
 use app\repositories\RedeRepository;
@@ -15,7 +15,7 @@ use Exception;
 class PerfilService
 {
     private UsuarioRepository $usuarioRepo;
-    private TutorRepository $tutorRepo;
+    private AdotanteRepository $adotanteRepo;
     private ProtetorRepository $protetorRepo;
     private PaginaRepository $paginaRepo;
     private RedeRepository $redeRepo;
@@ -23,7 +23,7 @@ class PerfilService
     public function __construct()
     {
         $this->usuarioRepo = new UsuarioRepository();
-        $this->tutorRepo = new TutorRepository();
+        $this->adotanteRepo = new AdotanteRepository();
         $this->protetorRepo = new ProtetorRepository();
         $this->paginaRepo = new PaginaRepository();
         $this->redeRepo = new RedeRepository();
@@ -49,19 +49,19 @@ class PerfilService
             // 2. Processa Imagem de Perfil Recortada (via UploadService adaptado para Base64)
             $caminhoFoto = null;
             if (!empty($dados['foto_cortada'])) {
-                $subpastaFoto = ($tipoPerfilSessao === 'tutor' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
+                $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
                 $uploadService = new UploadService($subpastaFoto);
                 $caminhoFoto = $this->salvarBase64ViaUploadService($dados['foto_cortada'], $uploadService);
             }
 
             $revalidarDocumento = false;
 
-            // 3. Atualização para perfil TUTOR / USUÁRIO
-            if ($tipoPerfilSessao === 'tutor' || $tipoPerfilSessao === 'usuario') {
-                $tutorAtual = $this->tutorRepo->buscarPorUsuarioId($usuarioId);
+            // 3. Atualização para perfil ADOTANTE / USUÁRIO
+            if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
+                $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
 
-                if ($caminhoFoto && !empty($tutorAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($tutorAtual['foto_perfil']);
+                if ($caminhoFoto && !empty($adotanteAtual['foto_perfil'])) {
+                    $this->removerArquivoAntigo($adotanteAtual['foto_perfil']);
                 }
 
                 $detalhesJson = json_encode([
@@ -73,12 +73,12 @@ class PerfilService
                     'preferencias_sexo'    => $dados['preferencias_sexo'] ?? []
                 ]);
 
-                $this->tutorRepo->atualizarDadosTutor(
+                $this->adotanteRepo->atualizarDadosAdotante(
                     $usuarioId,
                     $dados['tipo_morada'] ?? 'casa',
                     $dados['tamanho_interno_morada'] ?? 'medio',
                     $detalhesJson,
-                    $caminhoFoto ?? ($tutorAtual['foto_perfil'] ?? null)
+                    $caminhoFoto ?? ($adotanteAtual['foto_perfil'] ?? null)
                 );
             }
             // 4. Atualização para PROTETOR / ONG
@@ -172,17 +172,17 @@ class PerfilService
 
     public function atualizarApenasFoto(string $base64Data, int $usuarioId, string $tipoPerfilSessao): void
     {
-        $subpastaFoto = ($tipoPerfilSessao === 'tutor' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
+        $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
         $uploadService = new UploadService($subpastaFoto);
         $caminhoFoto = $this->salvarBase64ViaUploadService($base64Data, $uploadService);
 
-        if ($tipoPerfilSessao === 'tutor' || $tipoPerfilSessao === 'usuario') {
-            $tutorAtual = $this->tutorRepo->buscarPorUsuarioId($usuarioId);
-            if ($tutorAtual) {
-                if (!empty($tutorAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($tutorAtual['foto_perfil']);
+        if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
+            $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+            if ($adotanteAtual) {
+                if (!empty($adotanteAtual['foto_perfil'])) {
+                    $this->removerArquivoAntigo($adotanteAtual['foto_perfil']);
                 }
-                $this->tutorRepo->atualizarDadosTutor($usuarioId, $tutorAtual['tipo_morada'], $tutorAtual['tamanho_interno_morada'], $tutorAtual['detalhes'], $caminhoFoto);
+                $this->adotanteRepo->atualizarDadosAdotante($usuarioId, $adotanteAtual['tipo_morada'], $adotanteAtual['tamanho_interno_morada'], $adotanteAtual['detalhes'], $caminhoFoto);
             }
         } elseif (in_array($tipoPerfilSessao, ['ong', 'protetor'], true)) {
             $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
@@ -267,3 +267,4 @@ class PerfilService
         }
     }
 }
+

@@ -176,7 +176,7 @@
             <?php endif; ?>
 
             <!-- ACORDEÃO 3: PREFERÊNCIAS / DOAÇÕES -->
-            <?php if ($tipoPerfil === 'tutor' || $tipoPerfil === 'usuario'): ?>
+            <?php if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario'): ?>
                 <?php 
                     $detalhes = json_decode($especifico['detalhes'] ?? '{}', true);
                     $prefEspecie = $detalhes['preferencias_especie'] ?? [];
@@ -634,3 +634,4 @@
 </style>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
+

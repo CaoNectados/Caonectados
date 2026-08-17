@@ -220,7 +220,7 @@ class UsuarioRepository extends BaseRepository
     {
         $offset = ($pagina - 1) * $porPagina;
         $sql = "SELECT u.usuario_id, u.nome, u.email, u.telefone, u.status_conta, u.tipo_atual, u.perfis_ativos, u.criado_em,
-                       (SELECT COUNT(*) FROM tutor t WHERE t.usuario_id = u.usuario_id) as tem_tutor,
+                       (SELECT COUNT(*) FROM adotante t WHERE t.usuario_id = u.usuario_id) as tem_adotante,
                        (SELECT p.tipo_documento FROM protetor p WHERE p.usuario_id = u.usuario_id LIMIT 1) as tipo_protetor
                 FROM usuario u
                 WHERE 1=1";
@@ -321,3 +321,4 @@ class UsuarioRepository extends BaseRepository
         ]);
     }
 }
+

@@ -2,9 +2,9 @@
 
 namespace app\models;
 
-class Tutor
+class Adotante
 {
-    private ?int $tutor_id = null;
+    private ?int $adotante_id = null;
     private ?int $usuario_id = null;
     private ?string $tipo_morada = null;
     private ?string $foto_perfil = null;
@@ -14,8 +14,8 @@ class Tutor
     private ?string $criado_em = null;
     private ?string $deletado_em = null;
 
-    public function getTutorId(): ?int { return $this->tutor_id; }
-    public function setTutorId(?int $tutor_id): void { $this->tutor_id = $tutor_id; }
+    public function getAdotanteId(): ?int { return $this->adotante_id; }
+    public function setAdotanteId(?int $adotante_id): void { $this->adotante_id = $adotante_id; }
 
     public function getUsuarioId(): ?int { return $this->usuario_id; }
     public function setUsuarioId(?int $usuario_id): void { $this->usuario_id = $usuario_id; }

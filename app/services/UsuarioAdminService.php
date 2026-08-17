@@ -4,20 +4,20 @@ namespace app\services;
 
 use app\database\ConnectionFactory;
 use app\repositories\UsuarioRepository;
-use app\repositories\TutorRepository;
+use app\repositories\AdotanteRepository;
 use app\repositories\ProtetorRepository;
 use Exception;
 
 class UsuarioAdminService
 {
     private UsuarioRepository $usuarioRepo;
-    private TutorRepository $tutorRepo;
+    private AdotanteRepository $adotanteRepo;
     private ProtetorRepository $protetorRepo;
 
     public function __construct()
     {
         $this->usuarioRepo = new UsuarioRepository();
-        $this->tutorRepo = new TutorRepository();
+        $this->adotanteRepo = new AdotanteRepository();
         $this->protetorRepo = new ProtetorRepository();
     }
 
@@ -50,13 +50,13 @@ class UsuarioAdminService
         $perfisAtivos = array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? '')));
         $perfis = [];
 
-        // 1. Perfil Tutor
-        $tutor = $this->tutorRepo->buscarPorUsuarioId($usuarioId);
-        if ($tutor) {
+        // 1. Perfil Adotante
+        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+        if ($adotante) {
             $perfis[] = [
-                'tipo'   => 'tutor',
-                'nome'   => 'Tutor',
-                'ativo'  => in_array('tutor', $perfisAtivos, true),
+                'tipo'   => 'adotante',
+                'nome'   => 'Adotante',
+                'ativo'  => in_array('adotante', $perfisAtivos, true),
                 'info'   => 'Cadastrado para adoção'
             ];
         }
@@ -170,3 +170,4 @@ class UsuarioAdminService
         }
     }
 }
+

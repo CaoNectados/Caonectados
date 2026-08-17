@@ -1,14 +1,16 @@
 <?php
 
-namespace app\controllers\tutor;
+namespace app\controllers\adotante;
 
 use app\core\Controller;
 
-class TutoresController extends Controller
+class AdotanteController extends Controller
 {
   public function __construct()
     {
         // aqui só permita acesso se for ong, vamos usar esse método para proteger as rotas que são restritas
-        $this->autenticacaoRequired(['tutor']);
+        $this->autenticacaoRequired(['adotante']);
     }
 }
+
+

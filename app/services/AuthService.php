@@ -1,5 +1,4 @@
 <?php
-
 namespace app\services;
 
 use app\models\Usuario;
@@ -147,9 +146,11 @@ class AuthService
         // Mantemos 'tipo_perfil' por compatibilidade com suas views antigas (header/menu)
         $_SESSION['tipo_perfil']   = $tipoAtual;
 
-        // Nova variável contendo um ARRAY com todos os papéis que o usuário já assumiu (Ex: ['usuario', 'tutor', 'protetor'])
+        // Nova variável contendo um ARRAY com todos os papéis que o usuário já assumiu (Ex: ['usuario', 'adotante', 'protetor'])
         $_SESSION['perfis_ativos'] = array_map('trim', explode(',', $perfisAtivosStr));
 
         $_SESSION['status_conta']  = $statusConta;
     }
 }
+
+

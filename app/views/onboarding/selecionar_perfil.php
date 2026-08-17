@@ -10,7 +10,7 @@ require_once __DIR__ . '/../templates/header.php';
             <p>Escolha o perfil que melhor descreve você para personalizarmos sua experiência.</p>
         </header>
         <section>
-            <a href="<?= URL_BASE ?>/onboarding/tutor">
+            <a href="<?= URL_BASE ?>/onboarding/adotante">
                 <button type="button">Quero Adotar</button>
             </a>
             <a href="<?= URL_BASE ?>/onboarding/protetor">
@@ -25,5 +25,7 @@ require_once __DIR__ . '/../templates/header.php';
 <?php 
 require_once __DIR__ . '/../templates/footer.php'; 
 ?>
+
+
 
 

@@ -56,7 +56,7 @@ if ($tipoPerfil === 'administrador') {
         $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
 
-        $menuItens[] = ['url' => URL_BASE . '/animais/cadastrar',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
+        $menuItens[] = ['url' => URL_BASE . '/gerenciar-animais',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
         $menuItens[] = ['url' => URL_BASE . '/solicitacoes',         'label' => 'Solicitações Recebidas', 'icone' => 'solicitacoes.png'];
         $menuItens[] = ['url' => URL_BASE . '/pagina-protetor',      'label' => 'Página',                 'icone' => 'pagina.svg'];
     } else {
@@ -65,7 +65,7 @@ if ($tipoPerfil === 'administrador') {
     }
 
     // ---------------- PERFIL: ADOTANTE ----------------
-} elseif ($tipoPerfil === 'tutor') {
+} elseif ($tipoPerfil === 'adotante') {
     $menuItens[] = ['url' =>  URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg',      'apenas_desktop' => true];
     $menuItens[] = ['url' =>  URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' =>  URL_BASE .'/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
@@ -324,3 +324,4 @@ $itemAuth   = $estaLogado
 
     <div id="area-conteudo" class="flex flex-1 flex-col overflow-y-auto transition-[margin] duration-300 lg:ml-60">
         <main id="conteudo-dinamico" class="mx-auto w-full max-w-figma flex-1 px-4 sm:px-6">
+

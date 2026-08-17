@@ -10,11 +10,11 @@ class SolicitacoesAdocaoRepository extends BaseRepository
 {
     public function salvar(SolicitacoesAdocao $solicitacao): int
     {
-        $sql = "INSERT INTO SOLICITACAO_ADOCAO (tutor_id, animal_id, status_solicitacao, justificativa_recusa) 
-                VALUES (:tutor_id, :animal_id, :status_solicitacao, :justificativa_recusa)";
+        $sql = "INSERT INTO SOLICITACAO_ADOCAO (adotante_id, animal_id, status_solicitacao, justificativa_recusa) 
+                VALUES (:adotante_id, :animal_id, :status_solicitacao, :justificativa_recusa)";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':tutor_id', $solicitacao->getTutorId(), PDO::PARAM_INT);
+        $stmt->bindValue(':adotante_id', $solicitacao->getAdotanteId(), PDO::PARAM_INT);
         $stmt->bindValue(':animal_id', $solicitacao->getAnimalId(), PDO::PARAM_INT);
         $stmt->bindValue(':status_solicitacao', $solicitacao->getStatusSolicitacao() ?? 'pendente', PDO::PARAM_STR);
         $stmt->bindValue(':justificativa_recusa', $solicitacao->getJustificativaRecusa(), PDO::PARAM_STR);
@@ -74,7 +74,7 @@ class SolicitacoesAdocaoRepository extends BaseRepository
     {
         $solicitacao = new SolicitacoesAdocao();
         $solicitacao->setSolicitacaoId((int) $row['solicitacao_id']);
-        $solicitacao->setTutorId((int) $row['tutor_id']);
+        $solicitacao->setAdotanteId((int) $row['adotante_id']);
         $solicitacao->setAnimalId((int) $row['animal_id']);
         $solicitacao->setStatusSolicitacao($row['status_solicitacao']);
         $solicitacao->setDataSolicitacao($row['data_solicitacao']);
