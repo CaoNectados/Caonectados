@@ -12,9 +12,13 @@ $placeholder_doc  = $isOng ? "00.000.000/0000-00" : "000.000.000-00";
 $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 ?>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+
 <form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4">
 
-    <input type="hidden" name="tipo_documento" value="<?= $tipo_perfil ?>">
+    <input type="hidden" name="tipo_documento" id="tipo_documento" value="<?= htmlspecialchars($tipo_perfil, ENT_QUOTES, 'UTF-8') ?>">
+    <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
+    <input type="hidden" name="foto_fundo_cortada" id="foto_fundo_cortada">
 
     <!-- BARRA DE PROGRESSO COM 6 ETAPAS -->
     <div class="flex justify-center gap-2 mb-6">
@@ -50,14 +54,39 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 <p id="erro-documento" class="text-xs text-red-500 mt-1 hidden">O documento informado é inválido.</p>
             </div>
 
-            <div>
-                <label for="dt_nasc" class="block font-medium mb-1">Data de Nascimento *</label>
-                <input type="date" name="dt_nasc" id="dt_nasc" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
-            </div>
+            <?php if ($isOng): ?>
+                <div>
+                    <label for="data_abertura_cnpj" class="block font-medium mb-1">
+                        Data de Abertura do CNPJ *
+                    </label>
+                    <input
+                        type="date"
+                        id="data_abertura_cnpj"
+                        name="data_abertura_cnpj"
+                        max="<?= htmlspecialchars(date('Y-m-d'), ENT_QUOTES, 'UTF-8') ?>"
+                        value="<?= htmlspecialchars($old_input['data_abertura_cnpj'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none"
+                    >
+                </div>
+            <?php else: ?>
+                <div>
+                    <label for="dt_nasc" class="block font-medium mb-1">
+                        Data de Nascimento *
+                    </label>
+                    <input
+                        type="date"
+                        id="dt_nasc"
+                        name="dt_nasc"
+                        max="<?= htmlspecialchars(date('Y-m-d'), ENT_QUOTES, 'UTF-8') ?>"
+                        value="<?= htmlspecialchars($old_input['dt_nasc'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none"
+                    >
+                </div>
+            <?php endif; ?>
 
             <div>
                 <label for="telefone" class="block font-medium mb-1">Telefone / WhatsApp *</label>
-                <input type="tel" name="telefone" id="telefone" required placeholder="(00) 00000-0000" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                <input type="tel" name="telefone" id="telefone" placeholder="(00) 00000-0000" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
             </div>
         </div>
 
@@ -76,7 +105,8 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
         <div class="mb-4 relative text-left">
             <label for="input-busca-bairro" class="block font-medium mb-1">Pesquise seu Bairro / Região *</label>
-            <input type="text" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            <!-- Adicionado 'name' para o AutoSave capturar -->
+            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -96,12 +126,12 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
         <div class="mb-4 text-left">
             <label for="obs_casa" class="block font-medium mb-1">Logradouro e Complemento *</label>
-            <input type="text" name="obs_casa" id="obs_casa" required placeholder="Ex: Avenida Brasil, Apto 42..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            <input type="text" name="obs_casa" id="obs_casa" placeholder="Ex: Avenida Brasil, Apto 42..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
         </div>
 
         <div class="mb-6 text-left">
-            <label for="num_morada" class="block font-medium mb-1">Número do Local *</label>
-            <input type="text" name="num_morada" id="num_morada" required placeholder="Ex: 123, S/N" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            <label for="numero" class="block font-medium mb-1">Número do Local *</label>
+            <input type="text" name="numero" id="numero" placeholder="Ex: 123, S/N" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -145,7 +175,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         </div>
     </div>
 
-    <!-- ETAPA 4: Fotos de Perfil e Capa -->
+    <!-- ETAPA 4: Fotos de Perfil e Capa (Com Cropper.js) -->
     <div class="etapa-form hidden" id="etapa-4">
         <div class="text-center mb-6">
             <h2 class="text-xl font-bold mb-2">Personalize sua página</h2>
@@ -155,15 +185,15 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             <div class="mb-6">
                 <label class="block font-medium mb-2 text-left">Foto de Perfil (Opcional)</label>
                 <div class="flex justify-center mb-2">
-                    <div class="w-32 h-32 rounded-full border-4 border-gray-300 bg-gray-100 flex items-center justify-center overflow-hidden relative shadow-sm">
-                        <span id="foto-placeholder" class="text-gray-400 text-4xl font-bold">&#128247;</span>
-                        <img id="preview-foto" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
+                    <div class="w-32 h-32 rounded-full border-4 border-pink-300 bg-gray-100 flex items-center justify-center overflow-hidden relative shadow-sm cursor-pointer" onclick="document.getElementById('input-arquivo-perfil').click()">
+                        <span id="foto-placeholder-perfil" class="text-gray-400 text-4xl font-bold">&#128247;</span>
+                        <img id="preview-foto-perfil" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
                     </div>
                 </div>
-                <label for="foto_perfil" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
-                    Anexar Perfil
-                </label>
-                <input type="file" name="foto_perfil" id="foto_perfil" accept="image/*" onchange="exibirPreviewFoto(this, 'preview-foto', 'foto-placeholder')" class="hidden">
+                <button type="button" onclick="document.getElementById('input-arquivo-perfil').click()" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900 text-sm">
+                    Ajustar Perfil
+                </button>
+                <input type="file" id="input-arquivo-perfil" accept="image/png, image/jpeg, image/jpg" class="hidden" onchange="iniciarCropperFoto(event, 'perfil')">
             </div>
 
             <hr class="my-4 border-gray-200">
@@ -172,14 +202,14 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             <div class="mb-2">
                 <label class="block font-medium mb-1 text-left">Foto de Capa/Fundo (Opcional)</label>
                 <p class="text-xs text-gray-500 mb-2 text-left">Essa imagem ficará no topo da sua página de perfil.</p>
-                <div class="w-full h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative mb-2">
-                    <span id="fundo-placeholder" class="text-gray-400 text-sm">Preview da Capa</span>
-                    <img id="preview-fundo" src="" alt="Capa" class="w-full h-full object-cover hidden">
+                <div class="w-full h-36 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden relative mb-2 cursor-pointer" onclick="document.getElementById('input-arquivo-fundo').click()">
+                    <span id="fundo-placeholder-capa" class="text-gray-400 text-sm">Preview da Capa</span>
+                    <img id="preview-foto-fundo" src="" alt="Capa" class="w-full h-full object-cover hidden">
                 </div>
-                <label for="foto_fundo" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
-                    Anexar Capa
-                </label>
-                <input type="file" name="foto_fundo" id="foto_fundo" accept="image/*" onchange="exibirPreviewFoto(this, 'preview-fundo', 'fundo-placeholder')" class="hidden">
+                <button type="button" onclick="document.getElementById('input-arquivo-fundo').click()" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900 text-sm">
+                    Ajustar Capa
+                </button>
+                <input type="file" id="input-arquivo-fundo" accept="image/png, image/jpeg, image/jpg" class="hidden" onchange="iniciarCropperFoto(event, 'fundo')">
             </div>
         </div>
 
@@ -199,13 +229,18 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
             </div>
 
             <h1 class="text-2xl font-bold mb-2">Comprove a sua atividade</h1>
-            <p class="text-sm text-gray-600 mb-6">Selecione ou arraste o arquivo do seu comprovante para que nossa equipe possa validar o seu perfil no sistema.</p>
+            
+            <!-- Textos condicionados para ONG ou Protetor Independente -->
+            <?php if ($isOng): ?>
+                <p class="text-sm text-gray-600 mb-6">Anexe o cartão CNPJ atualizado ou um documento de registro da prefeitura comprovando a existência da ONG.</p>
+            <?php else: ?>
+                <p class="text-sm text-gray-600 mb-6">Anexe uma foto de um documento de identidade válido com foto (como RG ou CNH).</p>
+            <?php endif; ?>
 
             <div class="mb-4">
                 <label for="comprovante_documento" class="inline-block bg-emerald-800 text-white font-medium py-2 px-6 rounded-lg cursor-pointer transition hover:bg-emerald-900">
                     Anexar documento
                 </label>
-                <!-- Adicionado o atributo accept -->
                 <input type="file" name="comprovante_documento" id="comprovante_documento" accept=".pdf, .jpg, .jpeg, .png" onchange="exibirNomeArquivo(this, 'nome-arquivo-selecionado')" class="hidden">
             </div>
             <p id="nome-arquivo-selecionado" class="text-xs text-green-700 font-bold mt-2"></p>
@@ -233,7 +268,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
         <div class="mb-6 text-left">
             <label class="flex items-center gap-3 cursor-pointer p-4 bg-pink-50 border border-pink-200 rounded-xl hover:bg-pink-100 transition">
-                <input type="checkbox" name="aceite_termos" required class="w-6 h-6 text-pink-500 rounded focus:ring-pink-400">
+                <input type="checkbox" name="aceite_termos" id="aceite_termos" class="w-6 h-6 text-pink-500 rounded focus:ring-pink-400">
                 <span class="text-sm text-gray-800 font-medium">
                     Li, compreendi e concordo com os Termos de Responsabilidade.
                 </span>
@@ -242,12 +277,109 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium">Finalizar Cadastro</span>
-            <button type="submit" class="w-12 h-12 rounded-full bg-pink-300 text-xl font-bold flex items-center justify-center">&rarr;</button>
+            <button type="button" onclick="submeterFormularioProtetor()" class="w-12 h-12 rounded-full bg-pink-300 text-xl font-bold flex items-center justify-center">&rarr;</button>
         </div>
     </div>
 </form>
 
+<!-- MODAL CROPPER REUTILIZÁVEL -->
+<div id="modal-cropper" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 flex flex-col items-center shadow-2xl">
+        <h3 id="modal-cropper-titulo" class="font-shantell text-xl font-bold mb-1 text-gray-800">Ajustar Foto</h3>
+        <p class="text-xs text-gray-500 mb-4 text-center">Arraste e use o zoom para centralizar.</p>
+        
+        <div class="w-full h-64 bg-gray-100 rounded-2xl overflow-hidden mb-4 flex items-center justify-center">
+            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
+        </div>
+
+        <div class="flex gap-3 w-full">
+            <button type="button" onclick="fecharModalCropper()" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-300 transition">Cancelar</button>
+            <button type="button" onclick="salvarRecorte()" class="flex-1 bg-pink-400 text-white py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="<?= e(URL_BASE) ?>/assets/js/onboarding.js"></script>
+<script src="<?= e(URL_BASE) ?>/assets/js/autosave.js"></script>
+
 <script>
+    let cropper = null;
+    let alvoAtual = null; 
+
+    function iniciarCropperFoto(event, alvo) {
+        alvoAtual = alvo;
+        const fileInput = event.target;
+        if (fileInput.files && fileInput.files.length > 0) {
+            const limiteMB = (alvo === 'perfil') ? 2 : 3;
+            if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, limiteMB)) {
+                mostrarModalFeedback('erro', `A imagem é muito grande. Escolha uma de até ${limiteMB}MB.`);
+                fileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgModal = document.getElementById('imagem-para-cortar');
+                imgModal.src = e.target.result;
+                
+                document.getElementById('modal-cropper-titulo').innerText = (alvo === 'perfil') ? 'Ajustar Foto de Perfil' : 'Ajustar Foto de Capa';
+                document.getElementById('modal-cropper').classList.remove('hidden');
+
+                if (cropper) cropper.destroy();
+
+                const isPerfil = (alvo === 'perfil');
+                document.body.classList.toggle('cropper-circular', isPerfil);
+
+                cropper = new Cropper(imgModal, {
+                    aspectRatio: isPerfil ? 1 / 1 : 16 / 9,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.85
+                });
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    }
+
+    function fecharModalCropper() {
+        document.getElementById('modal-cropper').classList.add('hidden');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        if (alvoAtual === 'perfil') {
+            document.getElementById('input-arquivo-perfil').value = '';
+        } else if (alvoAtual === 'fundo') {
+            document.getElementById('input-arquivo-fundo').value = '';
+        }
+    }
+
+    function salvarRecorte() {
+        if (!cropper) return;
+
+        const options = (alvoAtual === 'perfil') 
+            ? { width: 400, height: 400 } 
+            : { width: 1200, height: 675 };
+
+        const base64String = cropper.getCroppedCanvas(options).toDataURL('image/png');
+
+        if (alvoAtual === 'perfil') {
+            const preview = document.getElementById('preview-foto-perfil');
+            const placeholder = document.getElementById('foto-placeholder-perfil');
+            preview.src = base64String;
+            preview.classList.remove('hidden');
+            if (placeholder) placeholder.classList.add('hidden');
+            document.getElementById('foto_perfil_cortada').value = base64String;
+        } else {
+            const previewFundo = document.getElementById('preview-foto-fundo');
+            const placeholderFundo = document.getElementById('fundo-placeholder-capa');
+            previewFundo.src = base64String;
+            previewFundo.classList.remove('hidden');
+            if (placeholderFundo) placeholderFundo.classList.add('hidden');
+            document.getElementById('foto_fundo_cortada').value = base64String;
+        }
+
+        fecharModalCropper();
+    }
+
     function proximaEtapa() {
         OnboardingManager.avancarEtapa(function(etapaAtual) {
             if (etapaAtual === 1) {
@@ -259,7 +391,7 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 }
                 const inputDoc = document.getElementById('cnpj_cpf');
                 const msgErroDoc = document.getElementById('erro-documento');
-                const inputTipoDoc = document.querySelector('input[name="tipo_documento"]');
+                const inputTipoDoc = document.getElementById('tipo_documento');
                 const tipoDoc = inputTipoDoc ? inputTipoDoc.value.toLowerCase().trim() : 'cpf';
 
                 const docLimpo = inputDoc.value.replace(/[^\d]+/g, '');
@@ -287,15 +419,31 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                     msgErroDoc.classList.add('hidden');
                     inputDoc.classList.remove('border-red-500', 'ring-red-300');
                 }
-                const dataNasc = document.getElementById('dt_nasc');
-                if (!dataNasc.value) {
-                    mostrarModalFeedback('erro', "Informe sua data de nascimento.");
-                    dataNasc.focus();
-                    return false;
-                } else if (!CaonectadosValidator.validarMaioridade(dataNasc.value)) {
-                    mostrarModalFeedback('erro', "É necessário ter pelo menos 18 anos para se cadastrar.");
-                    dataNasc.focus();
-                    return false;
+
+                if (tipoDoc === 'cnpj') {
+                    const dataAbertura = document.getElementById('data_abertura_cnpj');
+                    if (!dataAbertura || !dataAbertura.value) {
+                        mostrarModalFeedback('erro', "Informe a data de abertura do CNPJ.");
+                        dataAbertura.focus();
+                        return false;
+                    }
+                    const hoje = new Date().toISOString().split('T')[0];
+                    if (dataAbertura.value > hoje) {
+                        mostrarModalFeedback('erro', "A data de abertura do CNPJ não pode ser futura.");
+                        dataAbertura.focus();
+                        return false;
+                    }
+                } else {
+                    const dataNasc = document.getElementById('dt_nasc');
+                    if (!dataNasc || !dataNasc.value) {
+                        mostrarModalFeedback('erro', "Informe sua data de nascimento.");
+                        dataNasc.focus();
+                        return false;
+                    } else if (!CaonectadosValidator.validarMaioridade(dataNasc.value)) {
+                        mostrarModalFeedback('erro', "É necessário ter pelo menos 18 anos para se cadastrar.");
+                        dataNasc.focus();
+                        return false;
+                    }
                 }
 
                 const telefoneInput = document.getElementById('telefone');
@@ -304,15 +452,13 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                     telefoneInput.focus();
                     return false;
                 }
-
-
             }
 
             if (etapaAtual === 2) {
                 const inputHidden = document.getElementById('regiao_id_hidden');
                 const msgErro = document.getElementById('erro-bairro-invalido');
                 const obsCasa = document.getElementById('obs_casa');
-                const numMorada = document.getElementById('num_morada');
+                const numMorada = document.getElementById('numero');
 
                 OnboardingManager.sincronizarRegiaoId();
 
@@ -366,20 +512,6 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 }
             }
 
-            if (etapaAtual === 4) {
-                const fotoInput = document.getElementById('foto_perfil');
-                if (fotoInput.files.length > 0 && !CaonectadosValidator.validarTamanhoArquivo(fotoInput, 2)) {
-                    mostrarModalFeedback('erro', "A foto de perfil é muito pesada. Escolha uma imagem de até 2MB.");
-                    return false;
-                }
-
-                const fundoInput = document.getElementById('foto_fundo');
-                if (fundoInput.files.length > 0 && !CaonectadosValidator.validarTamanhoArquivo(fundoInput, 3)) {
-                    mostrarModalFeedback('erro', "A foto de capa é muito pesada. Escolha uma imagem de até 3MB.");
-                    return false;
-                }
-            }
-
             if (etapaAtual === 5) {
                 const docInput = document.getElementById('comprovante_documento');
 
@@ -391,10 +523,8 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
                 const arquivo = docInput.files[0];
                 const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
-                // Nova validação de tipo de arquivo
                 if (!tiposPermitidos.includes(arquivo.type)) {
                     mostrarModalFeedback('erro', "Formato de arquivo inválido. Anexe apenas arquivos em PDF, JPG ou PNG.");
-                    // Reseta o input para o usuário tentar de novo
                     docInput.value = '';
                     document.getElementById('nome-arquivo-selecionado').innerText = '';
                     return false;
@@ -410,28 +540,51 @@ $titulo_pagina    = $isOng ? "Página da ONG" : "Sua Página de Protetor";
         });
     }
 
-    function validarEnvioFinal() {
-        const aceiteTermos = document.querySelector('input[name="aceite_termos"]');
-        if (!aceiteTermos || !aceiteTermos.checked) {
+    async function submeterFormularioProtetor() {
+        const aceiteTermos = document.getElementById('aceite_termos');
+        if (!aceiteTermos.checked) {
             mostrarModalFeedback('aviso', "Você deve ler e concordar com os Termos de Responsabilidade para continuar.");
             aceiteTermos.focus();
-            return false;
+            return;
         }
-        return true;
+
+        const form = document.getElementById('form-onboarding-protetor');
+        const formData = new FormData(form);
+
+        try {
+            const btnSubmit = event.target;
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = 'Aguarde...';
+            btnSubmit.disabled = true;
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'sucesso') {
+                if (typeof limparAutoSave === 'function') limparAutoSave();
+                window.location.href = result.redirect_url;
+            } else {
+                mostrarModalFeedback('erro', result.mensagem);
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         OnboardingManager.init({
             totalEtapas: 6,
             urlSelecionarPerfil: "<?= URL_BASE ?>/onboarding",
-            validarEnvioFinal: validarEnvioFinal
+            validarEnvioFinal: () => true
         });
     });
 </script>
 
-<script src="<?= e(URL_BASE) ?>/assets/js/onboarding.js"></script>
-
-<?php
-require_once __DIR__ . '/../templates/footer.php';
-?>
-
+<?php require_once __DIR__ . '/../templates/footer.php'; ?>

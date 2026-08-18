@@ -141,4 +141,11 @@ class EspecieRepository extends BaseRepository
 
         return $especie;
     }
+    public function buscarAtivas(): array
+    {
+        $sql = "SELECT especie_id, nome FROM ESPECIE WHERE ativo = 1 ORDER BY nome ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }

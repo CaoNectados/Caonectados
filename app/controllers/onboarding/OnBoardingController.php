@@ -24,6 +24,7 @@ class OnboardingController extends Controller
         $this->autenticacaoRequired();
         $this->verificarSeJaPossuiPerfil();
     }
+
     public function index()
     {
         $this->view('onboarding/selecionar_perfil', [
@@ -31,11 +32,11 @@ class OnboardingController extends Controller
             'descricao' => 'Escolha o tipo de perfil que deseja criar.'
         ]);
     }
+
     private function verificarSeJaPossuiPerfil()
     {
         $usuarioId = $_SESSION['usuario_id'] ?? null;
         if ($usuarioId) {
-            // O serviço de checagem deve delegar a busca ao repositório
             if ($this->onboardingService->usuarioJaPossuiPerfil($usuarioId)) {
                 if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
                     $this->redirect('/feed');
@@ -48,11 +49,22 @@ class OnboardingController extends Controller
         }
     }
 
+    /**
+     * Endpoint chamado via AJAX para validar e renderizar espécies ativas
+     */
+    public function especiesAtivasJson()
+    {
+        $especies = $this->especieRepo->buscarAtivas();
+        $this->json(200, [
+            'status' => 'sucesso',
+            'dados'  => $especies
+        ]);
+    }
+
     public function adotante()
     {
-        // Repositories buscam a conexão via BaseRepository automaticamente
         $regioes = $this->regiaoRepo->buscarTodas();
-        $especies = $this->especieRepo->buscarTodas();
+        $especies = $this->especieRepo->buscarAtivas();
 
         $this->view('onboarding/adotante_onboarding', [
             'titulo'   => 'Cadastro de Adotante',
@@ -81,6 +93,51 @@ class OnboardingController extends Controller
             'regioes'     => $regioes,
             'tipo_perfil' => 'cpf'
         ]);
+    }
+
+    public function salvarAdotante()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
+
+                if (!$usuarioId) {
+                    throw new Exception("Sessão expirada. Faça login novamente.");
+                }
+
+                $dadosLimpos = ValidationService::sanitizarArray($_POST);
+                ValidationService::validarCamposObrigatorios($dadosLimpos, ['regiao_id', 'nome_usuario']);
+
+                // Validação de segurança no backend
+                $especiesSelecionadas = $_POST['preferencias_especie'] ?? [];
+                if (!empty($especiesSelecionadas)) {
+                    $especiesAtivas = $this->especieRepo->buscarAtivas();
+                    $idsAtivos = array_map(fn($e) => (int)$e['especie_id'], $especiesAtivas);
+
+                    foreach ($especiesSelecionadas as $espId) {
+                        if (!in_array((int)$espId, $idsAtivos, true)) {
+                            throw new Exception("Uma das espécies selecionadas não está mais ativa no sistema. Por favor, atualize suas opções.");
+                        }
+                    }
+                }
+
+                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, $usuarioId);
+
+                $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
+                $_SESSION['boas_vindas_tipo'] = 'adotante';
+
+                $this->json(200, [
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Seu perfil foi criado com sucesso!',
+                    'redirect_url' => URL_BASE . '/feed'
+                ]);
+            } catch (Exception $e) {
+                $this->json(200, [
+                    'status'   => 'erro',
+                    'mensagem' => $e->getMessage()
+                ]);
+            }
+        }
     }
 
     public function salvarProtetor()
@@ -141,44 +198,11 @@ class OnboardingController extends Controller
         }
     }
 
-    public function salvarAdotante()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
-
-                if (!$usuarioId) {
-                    throw new Exception("Sessão expirada. Faça login novamente.");
-                }
-
-                $dadosLimpos = ValidationService::sanitizarArray($_POST);
-                ValidationService::validarCamposObrigatorios($dadosLimpos, ['regiao_id', 'nome_usuario']);
-
-                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, $usuarioId);
-
-                $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
-                $_SESSION['boas_vindas_tipo'] = 'adotante';
-
-                $this->json(200, [
-                    'status'       => 'sucesso',
-                    'mensagem'     => 'Seu perfil foi criado com sucesso!',
-                    'redirect_url' => URL_BASE . '/feed'
-                ]);
-            } catch (Exception $e) {
-                $this->json(200, [
-                    'status'   => 'erro',
-                    'mensagem' => $e->getMessage()
-                ]);
-            }
-        }
-    }
-
-  public function aguardandoAprovacao()
+    public function aguardandoAprovacao()
     {
         $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
         $validado = $_SESSION['validado'] ?? false;
 
-        // Se o usuário atual for um adotante, ou se a ONG dele JÁ FOI validada, não tem porque ele estar nesta tela.
         if ($tipoPerfil === 'adotante' || $validado === true || $validado === 1) {
             $this->redirect('/feed');
         }
@@ -188,5 +212,3 @@ class OnboardingController extends Controller
         ]);
     }
 }
-
-

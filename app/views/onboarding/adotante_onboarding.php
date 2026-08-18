@@ -2,9 +2,14 @@
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
+<!-- Cropper.js CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+
 <form id="form-onboarding-adotante" action="<?= URL_BASE ?>/onboarding/salvar-adotante" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4">
 
-    <!-- BARRA DE PROGRESSO GLOBAL (AGORA COM 6 ETAPAS) -->
+    <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
+
+    <!-- BARRA DE PROGRESSO GLOBAL (6 ETAPAS) -->
     <div class="flex justify-center gap-2 mb-6">
         <div id="progresso-1" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
         <div id="progresso-2" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
@@ -19,41 +24,79 @@ require_once __DIR__ . '/../templates/header.php';
         &#129144;
     </button>
 
-    <!-- ETAPA 1: Localização -->
+    <!-- ETAPA 1: Como podemos te chamar? -->
     <div class="etapa-form" id="etapa-1">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold mb-2">Selecione a sua localização</h1>
-            <p class="text-sm text-gray-600">Selecione a sua localização para podermos encontrar os pets mais próximos de você e dar início a um novo match!</p>
+            <h1 class="text-2xl font-bold mb-2 font-shantell">Como podemos te chamar?</h1>
+
+            <div class="flex flex-col items-center mb-6 mt-4">
+                <div class="relative cursor-pointer group" onclick="document.getElementById('input-arquivo-perfil').click()">
+                    <div class="w-28 h-28 rounded-full border-4 border-pink-300 overflow-hidden bg-gray-100 flex items-center justify-center shadow">
+                        <span id="foto-placeholder-adotante" class="text-gray-400 text-3xl font-bold">&#128247;</span>
+                        <img id="preview-foto-perfil" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
+                    </div>
+                    <div class="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow border text-gray-700 text-xs group-hover:bg-gray-50">
+                        ✏️
+                    </div>
+                </div>
+                <span class="text-xs text-gray-500 mt-2">Toque para escolher e ajustar sua foto</span>
+                <input type="file" id="input-arquivo-perfil" accept="image/png, image/jpeg, image/jpg" class="hidden" onchange="iniciarCropperPerfil(event)">
+            </div>
+
+            <div class="mb-4 text-left">
+                <label for="nome_usuario" class="block font-medium mb-1">Seu Nome *</label>
+                <input type="text" name="nome_usuario" id="nome_usuario" placeholder="Digite seu nome aqui" class="w-full p-2 border rounded-lg text-left focus:ring-2 focus:ring-pink-300">
+            </div>
+
+            <div class="mb-4 text-left">
+                <label for="descricao" class="block font-medium mb-1">Fale um pouco sobre você (Opcional)</label>
+                <textarea name="descricao" id="descricao" rows="3" placeholder="Por que você quer adotar um pet?" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none"></textarea>
+            </div>
+
+            <div class="space-y-4 mb-6 text-left">
+                <div>
+                    <label for="dt_nasc" class="block font-medium mb-1">Data de Nascimento *</label>
+                    <input type="date" name="dt_nasc" id="dt_nasc" max="<?= htmlspecialchars(date('Y-m-d'), ENT_QUOTES, 'UTF-8') ?>" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                </div>
+
+                <div>
+                    <label for="telefone" class="block font-medium mb-1">Telefone (Opcional)</label>
+                    <input type="tel" name="telefone" id="telefone" placeholder="(00) 00000-0000" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+                </div>
+            </div>
         </div>
 
-        <div class="mb-4 relative text-left">
-            <label for="input-busca-bairro" class="block font-medium mb-1">Pesquise seu Bairro / Região *</label>
-            <input type="text" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+        <div class="flex items-center justify-between mt-8">
+            <span class="font-medium">Ir para Preferências</span>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-pink-200 text-xl font-bold flex items-center justify-center">&rarr;</button>
+        </div>
+    </div>
 
-            <datalist id="lista-regioes">
-                <?php if (!empty($regioes)): ?>
-                    <?php foreach ($regioes as $regiao): ?>
-                        <?php 
-                        $regId = is_array($regiao) ? $regiao['regiao_id'] : $regiao->getRegiaoId();
-                        $regNome = is_array($regiao) ? $regiao['nome_regiao'] : $regiao->getNomeRegiao();
-                        ?>
-                        <option data-id="<?= $regId ?>" value="<?= e($regNome) ?>"></option>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </datalist>
-
-            <input type="hidden" name="regiao_id" id="regiao_id_hidden">
-            <p id="erro-bairro-invalido" class="text-xs text-red-500 mt-1 hidden">Selecione um bairro válido da lista fornecida.</p>
+    <!-- ETAPA 2: Convivência -->
+    <div class="etapa-form hidden" id="etapa-2">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold mb-2">Convivência</h1>
+            <p class="text-sm text-gray-600">Conte-nos um pouco mais sobre sua rotina com outros pets ou família.</p>
         </div>
 
-        <div class="mb-4 text-left">
-            <label for="obs_casa" class="block font-medium mb-1">Logradouro e Complemento *</label>
-            <input type="text" name="obs_casa" id="obs_casa" required placeholder="Ex: Avenida Brasil, Apto 42..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
-        </div>
+        <div class="space-y-4 mb-6 text-left">
+            <div>
+                <label class="block font-medium mb-1">Possui filhos ou crianças em casa? *</label>
+                <select name="possui_criancas" id="possui_criancas" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-pink-300">
+                    <option value="" disabled selected>Escolha</option>
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                </select>
+            </div>
 
-        <div class="mb-6 text-left">
-            <label for="num_morada" class="block font-medium mb-1">Número da Residência *</label>
-            <input type="text" name="num_morada" id="num_morada" required placeholder="Ex: 123, S/N" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+            <div>
+                <label class="block font-medium mb-1">Possui outros pets? *</label>
+                <select name="possui_outros_pets" id="possui_outros_pets" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-pink-300">
+                    <option value="" disabled selected>Escolha</option>
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                </select>
+            </div>
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -61,11 +104,11 @@ require_once __DIR__ . '/../templates/header.php';
             <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-pink-200 text-xl font-bold flex items-center justify-center">&rarr;</button>
         </div>
     </div>
-   
-    <!-- ETAPA 2: Moradia -->
-    <div class="etapa-form hidden" id="etapa-2">
+
+    <!-- ETAPA 3: Moradia -->
+    <div class="etapa-form hidden" id="etapa-3">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold mb-2">Sobre você</h1>
+            <h1 class="text-2xl font-bold mb-2">Moradia</h1>
             <p class="text-sm text-gray-600">Complete esse formulário para acharmos o pet Perfeito para você!</p>
         </div>
 
@@ -109,70 +152,42 @@ require_once __DIR__ . '/../templates/header.php';
         </div>
     </div>
 
-    <!-- ETAPA 3: Convivência -->
-    <div class="etapa-form hidden" id="etapa-3">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold mb-2">Convivência</h1>
-            <p class="text-sm text-gray-600">Conte-nos um pouco mais sobre sua rotina com outros pets ou família.</p>
-        </div>
-
-        <div class="space-y-4 mb-6 text-left">
-            <div>
-                <label class="block font-medium mb-1">Possui filhos ou crianças em casa? *</label>
-                <select name="possui_criancas" id="possui_criancas" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-pink-300">
-                    <option value="" disabled selected>Escolha</option>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block font-medium mb-1">Possui outros pets? *</label>
-                <select name="possui_outros_pets" id="possui_outros_pets" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-pink-300">
-                    <option value="" disabled selected>Escolha</option>
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-between mt-8">
-            <span class="font-medium">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-pink-200 text-xl font-bold flex items-center justify-center">&rarr;</button>
-        </div>
-    </div>
-
-    <!-- ETAPA 4: Nome de Usuário e Informações Pessoais -->
+    <!-- ETAPA 4: Região e Localização -->
     <div class="etapa-form hidden" id="etapa-4">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold mb-2 font-shantell">Como podemos te chamar?</h1>
-            
-            <div class="mb-6 mt-4">
-                <label for="foto_perfil" class="block font-medium mb-1 text-left">Foto de Perfil (Opcional)</label>
-                <input type="file" name="foto_perfil" id="foto_perfil" accept="image/*" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
-            </div>
+            <h1 class="text-2xl font-bold mb-2">Selecione a sua localização</h1>
+            <p class="text-sm text-gray-600">Selecione a sua localização para podermos encontrar os pets mais próximos de você e dar início a um novo match!</p>
+        </div>
 
-            <div class="mb-6">
-                <label for="nome_usuario" class="block font-medium mb-1 text-left">Seu Nome *</label>
-                <input type="text" name="nome_usuario" id="nome_usuario" placeholder="Digite seu nome aqui" class="w-full p-2 border rounded-lg text-left focus:ring-2 focus:ring-pink-300">
-            </div>
+        <div class="mb-4 relative text-left">
+            <label for="input-busca-bairro" class="block font-medium mb-1">Pesquise seu Bairro / Região *</label>
+            <!-- Adicionado 'name' para o AutoSave capturar -->
+            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
 
-            <div class="mb-6 text-left">
-                <label for="descricao" class="block font-medium mb-1">Fale um pouco sobre você (Opcional)</label>
-                <textarea name="descricao" id="descricao" rows="3" placeholder="Por que você quer adotar um pet?" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none"></textarea>
-            </div>
+            <datalist id="lista-regioes">
+                <?php if (!empty($regioes)): ?>
+                    <?php foreach ($regioes as $regiao): ?>
+                        <?php
+                        $regId = is_array($regiao) ? $regiao['regiao_id'] : $regiao->getRegiaoId();
+                        $regNome = is_array($regiao) ? $regiao['nome_regiao'] : $regiao->getNomeRegiao();
+                        ?>
+                        <option data-id="<?= $regId ?>" value="<?= e($regNome) ?>"></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </datalist>
 
-            <div class="space-y-4 mb-6 text-left">
-                <div>
-                    <label for="dt_nasc" class="block font-medium mb-1">Data de Nascimento *</label>
-                    <input type="date" name="dt_nasc" id="dt_nasc" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
-                </div>
+            <input type="hidden" name="regiao_id" id="regiao_id_hidden">
+            <p id="erro-bairro-invalido" class="text-xs text-red-500 mt-1 hidden">Selecione um bairro válido da lista fornecida.</p>
+        </div>
 
-                <div>
-                    <label for="telefone" class="block font-medium mb-1">Telefone (Opcional)</label>
-                    <input type="tel" name="telefone" id="telefone" placeholder="(00) 00000-0000" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
-                </div>
-            </div>
+        <div class="mb-4 text-left">
+            <label for="obs_casa" class="block font-medium mb-1">Logradouro e Complemento *</label>
+            <input type="text" name="obs_casa" id="obs_casa" placeholder="Ex: Avenida Brasil, Apto 42..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
+        </div>
+
+        <div class="mb-6 text-left">
+            <label for="numero" class="block font-medium mb-1">Número da Residência *</label>
+            <input type="text" name="numero" id="numero" placeholder="Ex: 123, S/N" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-300 focus:outline-none">
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -191,35 +206,59 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="space-y-4 mb-6 text-left">
             <div>
                 <span class="font-bold block mb-2">Espécie:</span>
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
-                        <input type="checkbox" name="preferencias_especie[]" value="2"> Gato
-                    </label>
-                    <label class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
-                        <input type="checkbox" name="preferencias_especie[]" value="1"> Cachorro
-                    </label>
-                    <label class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
+
+                <div id="container-especies-padrao" class="space-y-2">
+                    <?php
+                    $especie1 = null;
+                    $especie2 = null;
+                    $outrasEspecies = [];
+
+                    if (!empty($especies)) {
+                        foreach ($especies as $esp) {
+                            $id = is_array($esp) ? $esp['especie_id'] : $esp->getEspecieId();
+                            $nome = is_array($esp) ? $esp['nome'] : $esp->getNome();
+
+                            if ((int)$id === 1) {
+                                $especie1 = ['id' => $id, 'nome' => $nome];
+                            } elseif ((int)$id === 2) {
+                                $especie2 = ['id' => $id, 'nome' => $nome];
+                            } else {
+                                $outrasEspecies[] = ['id' => $id, 'nome' => $nome];
+                            }
+                        }
+                    }
+                    ?>
+
+                    <div id="wrapper-especie-1">
+                        <?php if ($especie1): ?>
+                            <label id="label-especie-<?= $especie1['id'] ?>" class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
+                                <input type="checkbox" name="preferencias_especie[]" value="<?= $especie1['id'] ?>" class="check-especie"> <?= e($especie1['nome']) ?>
+                            </label>
+                        <?php endif; ?>
+                    </div>
+
+                    <div id="wrapper-especie-2">
+                        <?php if ($especie2): ?>
+                            <label id="label-especie-<?= $especie2['id'] ?>" class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
+                                <input type="checkbox" name="preferencias_especie[]" value="<?= $especie2['id'] ?>" class="check-especie"> <?= e($especie2['nome']) ?>
+                            </label>
+                        <?php endif; ?>
+                    </div>
+
+                    <label id="label-opcao-outros" class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100 <?= empty($outrasEspecies) ? 'hidden' : '' ?>">
                         <input type="checkbox" id="checkbox-outras-especies" onchange="toggleOutrasEspecies()" value="outros"> Outros
                     </label>
                 </div>
 
                 <div id="container-outras-especies" class="hidden mt-3 p-3 border border-pink-300 rounded-lg bg-pink-50">
                     <label class="block font-medium mb-2 text-sm">Selecione outras espécies desejadas:</label>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">
-                        <?php if (!empty($especies)): ?>
-                            <?php foreach ($especies as $especie): ?>
-                                <?php
-                                $espId = is_array($especie) ? $especie['especie_id'] : $especie->getEspecieId();
-                                $espNome = is_array($especie) ? $especie['nome'] : $especie->getNome();
-                                ?>
-                                <?php if (!in_array(strtolower($espNome), ['cachorro', 'gato'])): ?>
-                                    <label class="flex items-center gap-2 text-sm cursor-pointer">
-                                        <input type="checkbox" name="preferencias_especie[]" value="<?= $espId ?>" class="check-outras">
-                                        <?= e($espNome) ?>
-                                    </label>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                    <div id="lista-outras-especies-dinamica" class="space-y-2 max-h-40 overflow-y-auto">
+                        <?php foreach ($outrasEspecies as $esp): ?>
+                            <label id="label-especie-<?= $esp['id'] ?>" class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="checkbox" name="preferencias_especie[]" value="<?= $esp['id'] ?>" class="check-outras check-especie">
+                                <?= e($esp['nome']) ?>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -274,7 +313,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="mb-6 text-left">
             <label class="flex items-center gap-3 cursor-pointer p-4 bg-pink-50 border border-pink-200 rounded-xl hover:bg-pink-100 transition">
-                <input type="checkbox" name="aceite_termos" required class="w-6 h-6 text-pink-500 rounded focus:ring-pink-400">
+                <input type="checkbox" name="aceite_termos" id="aceite_termos" class="w-6 h-6 text-pink-500 rounded focus:ring-pink-400">
                 <span class="text-sm text-gray-800 font-medium">
                     Li, compreendi e concordo com os Termos de Responsabilidade.
                 </span>
@@ -283,20 +322,220 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium">Ir para o Feed</span>
-            <button type="submit" class="w-12 h-12 rounded-full bg-pink-300 text-xl font-bold flex items-center justify-center">&rarr;</button>
+            <button type="button" onclick="submeterFormularioAdotante()" class="w-12 h-12 rounded-full bg-pink-300 text-xl font-bold flex items-center justify-center">&rarr;</button>
         </div>
     </div>
 
 </form>
 
+<!-- MODAL CROPPER -->
+<div id="modal-cropper" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl">
+        <h3 class="font-shantell text-xl font-bold mb-1 text-gray-800">Ajustar Foto</h3>
+        <p class="text-xs text-gray-500 mb-4 text-center">Arraste e use o zoom para centralizar.</p>
+
+        <div class="w-full h-64 bg-gray-100 rounded-2xl overflow-hidden mb-4 flex items-center justify-center">
+            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
+        </div>
+
+        <div class="flex gap-3 w-full">
+            <button type="button" onclick="fecharModalCropper()" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-300 transition">Cancelar</button>
+            <button type="button" onclick="salvarRecorte()" class="flex-1 bg-pink-400 text-white py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="<?= e(URL_BASE) ?>/assets/js/onboarding.js"></script>
+<script src="<?= e(URL_BASE) ?>/assets/js/autosave.js"></script>
+
 <script>
+    let cropper = null;
+
+    function iniciarCropperPerfil(event) {
+        const fileInput = event.target;
+        if (fileInput.files && fileInput.files.length > 0) {
+            if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, 5)) {
+                mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
+                fileInput.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagem-para-cortar').src = e.target.result;
+                document.getElementById('modal-cropper').classList.remove('hidden');
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(document.getElementById('imagem-para-cortar'), {
+                    aspectRatio: 1 / 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.8
+                });
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    }
+
+    function fecharModalCropper() {
+        document.getElementById('modal-cropper').classList.add('hidden');
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        document.getElementById('input-arquivo-perfil').value = '';
+    }
+
+    function salvarRecorte() {
+        if (!cropper) return;
+        const base64String = cropper.getCroppedCanvas({
+            width: 400,
+            height: 400
+        }).toDataURL('image/png');
+
+        const preview = document.getElementById('preview-foto-perfil');
+        const placeholder = document.getElementById('foto-placeholder-adotante');
+
+        preview.src = base64String;
+        preview.classList.remove('hidden');
+        if (placeholder) placeholder.classList.add('hidden');
+
+        document.getElementById('foto_perfil_cortada').value = base64String;
+        fecharModalCropper();
+    }
+
+    async function sincronizarEspeciesAtivasAjax() {
+        try {
+            const resp = await fetch("<?= URL_BASE ?>/onboarding/especies-ativas");
+            const res = await resp.json();
+            if (res.status === 'sucesso' && Array.isArray(res.dados)) {
+                const especiesAtivas = res.dados;
+                const marcadasAntes = Array.from(document.querySelectorAll('.check-especie:checked')).map(cb => String(cb.value));
+
+                const esp1 = especiesAtivas.find(e => String(e.especie_id) === '1');
+                const esp2 = especiesAtivas.find(e => String(e.especie_id) === '2');
+                const outras = especiesAtivas.filter(e => String(e.especie_id) !== '1' && String(e.especie_id) !== '2');
+
+                const wrapper1 = document.getElementById('wrapper-especie-1');
+                if (wrapper1) {
+                    if (esp1) {
+                        const checked = marcadasAntes.includes('1') ? 'checked' : '';
+                        wrapper1.innerHTML = `
+                            <label id="label-especie-1" class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
+                                <input type="checkbox" name="preferencias_especie[]" value="1" ${checked} class="check-especie"> ${esp1.nome}
+                            </label>
+                        `;
+                    } else {
+                        wrapper1.innerHTML = '';
+                    }
+                }
+
+                const wrapper2 = document.getElementById('wrapper-especie-2');
+                if (wrapper2) {
+                    if (esp2) {
+                        const checked = marcadasAntes.includes('2') ? 'checked' : '';
+                        wrapper2.innerHTML = `
+                            <label id="label-especie-2" class="flex items-center gap-2 p-2 bg-pink-100/70 rounded-lg cursor-pointer hover:bg-pink-100">
+                                <input type="checkbox" name="preferencias_especie[]" value="2" ${checked} class="check-especie"> ${esp2.nome}
+                            </label>
+                        `;
+                    } else {
+                        wrapper2.innerHTML = '';
+                    }
+                }
+
+                const labelOutros = document.getElementById('label-opcao-outros');
+                const containerOutras = document.getElementById('container-outras-especies');
+                const listaOutras = document.getElementById('lista-outras-especies-dinamica');
+                const checkOutrosPrincipal = document.getElementById('checkbox-outras-especies');
+
+                if (outras.length === 0) {
+                    if (labelOutros) labelOutros.classList.add('hidden');
+                    if (containerOutras) containerOutras.classList.add('hidden');
+                    if (checkOutrosPrincipal) checkOutrosPrincipal.checked = false;
+                } else {
+                    if (labelOutros) labelOutros.classList.remove('hidden');
+                    if (listaOutras) {
+                        listaOutras.innerHTML = '';
+                        let temMarcadaEmOutros = false;
+                        outras.forEach(esp => {
+                            const isChecked = marcadasAntes.includes(String(esp.especie_id));
+                            if (isChecked) temMarcadaEmOutros = true;
+                            listaOutras.innerHTML += `
+                                <label id="label-especie-${esp.especie_id}" class="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input type="checkbox" name="preferencias_especie[]" value="${esp.especie_id}" ${isChecked ? 'checked' : ''} class="check-outras check-especie">
+                                    ${esp.nome}
+                                </label>
+                            `;
+                        });
+
+                        if (temMarcadaEmOutros) {
+                            if (checkOutrosPrincipal) checkOutrosPrincipal.checked = true;
+                            if (containerOutras) containerOutras.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                return especiesAtivas.map(e => String(e.especie_id));
+            }
+        } catch (e) {
+            console.error("Falha ao sincronizar espécies ativas via AJAX", e);
+        }
+        return [];
+    }
+
     function proximaEtapa() {
         OnboardingManager.avancarEtapa(function(etapaAtual) {
             if (etapaAtual === 1) {
+                const nomeInput = document.getElementById('nome_usuario');
+                if (!CaonectadosValidator.validarNome(nomeInput.value)) {
+                    mostrarModalFeedback('erro', "Por favor, informe seu nome corretamente (mínimo de 2 caracteres).");
+                    nomeInput.focus();
+                    return false;
+                }
+
+                const dataNasc = document.getElementById('dt_nasc');
+                if (!dataNasc || !dataNasc.value) {
+                    mostrarModalFeedback('erro', "Por favor, informe sua data de nascimento.");
+                    dataNasc.focus();
+                    return false;
+                } else if (!CaonectadosValidator.validarMaioridade(dataNasc.value)) {
+                    mostrarModalFeedback('erro', "É necessário ter pelo menos 18 anos para se cadastrar.");
+                    dataNasc.focus();
+                    return false;
+                }
+
+                const telefoneInput = document.getElementById('telefone');
+                if (telefoneInput.value.trim() !== '' && !CaonectadosValidator.validarTelefone(telefoneInput.value)) {
+                    mostrarModalFeedback('erro', "O telefone informado é inválido. Certifique-se de incluir o DDD.");
+                    telefoneInput.focus();
+                    return false;
+                }
+            }
+
+            if (etapaAtual === 2) {
+                const criancas = document.getElementById('possui_criancas').value;
+                const pets = document.getElementById('possui_outros_pets').value;
+                if (!criancas || !pets) {
+                    mostrarModalFeedback('aviso', "Por favor, responda às perguntas sobre convivência.");
+                    return false;
+                }
+            }
+
+            if (etapaAtual === 3) {
+                const moradia = document.getElementById('tipo_moradia').value;
+                const interior = document.getElementById('espaco_interior').value;
+                const externo = document.getElementById('espaco_externo').value;
+                if (!moradia || !interior || !externo) {
+                    mostrarModalFeedback('aviso', "Por favor, preencha todas as perguntas sobre a sua moradia.");
+                    return false;
+                }
+            }
+
+            if (etapaAtual === 4) {
                 const inputHidden = document.getElementById('regiao_id_hidden');
                 const msgErro = document.getElementById('erro-bairro-invalido');
                 const obsCasa = document.getElementById('obs_casa');
-                const numMorada = document.getElementById('num_morada');
+                const numMorada = document.getElementById('numero');
 
                 OnboardingManager.sincronizarRegiaoId();
 
@@ -318,57 +557,13 @@ require_once __DIR__ . '/../templates/header.php';
                     numMorada.focus();
                     return false;
                 }
-            }
 
-            if (etapaAtual === 2) {
-                const moradia = document.getElementById('tipo_moradia').value;
-                const interior = document.getElementById('espaco_interior').value;
-                const externo = document.getElementById('espaco_externo').value;
-                if (!moradia || !interior || !externo) {
-                    mostrarModalFeedback('aviso', "Por favor, preencha todas as perguntas sobre a sua moradia.");
-                    return false;
-                }
-            }
-
-            if (etapaAtual === 3) {
-                const criancas = document.getElementById('possui_criancas').value;
-                const pets = document.getElementById('possui_outros_pets').value;
-                if (!criancas || !pets) {
-                    mostrarModalFeedback('aviso', "Por favor, responda às perguntas sobre convivência.");
-                    return false;
-                }
-            }
-
-            if (etapaAtual === 4) {
-                const nomeInput = document.getElementById('nome_usuario');
-                if (!CaonectadosValidator.validarNome(nomeInput.value)) {
-                    mostrarModalFeedback('erro', "Por favor, informe seu nome corretamente (mínimo de 2 caracteres).");
-                    nomeInput.focus();
-                    return false;
-                }
-                
-                const dataNasc = document.getElementById('dt_nasc');
-                if (!dataNasc || !dataNasc.value) {
-                    mostrarModalFeedback('erro', "Por favor, informe sua data de nascimento.");
-                    dataNasc.focus();
-                    return false;
-                } else if (!CaonectadosValidator.validarMaioridade(dataNasc.value)) {
-                    mostrarModalFeedback('erro', "É necessário ter pelo menos 18 anos para se cadastrar.");
-                    dataNasc.focus();
-                    return false;
-                }
-
-                const telefoneInput = document.getElementById('telefone');
-                if (!CaonectadosValidator.validarTelefone(telefoneInput.value)) {
-                    mostrarModalFeedback('erro', "O telefone informado é inválido. Certifique-se de incluir o DDD.");
-                    telefoneInput.focus();
-                    return false;
-                }
+                sincronizarEspeciesAtivasAjax();
             }
 
             if (etapaAtual === 5) {
-                const opcoesEspecie = document.querySelectorAll('input[name="preferencias_especie[]"]:checked');
-                if (opcoesEspecie.length === 0) {
+                const checkboxesMarcados = document.querySelectorAll('.check-especie:checked');
+                if (checkboxesMarcados.length === 0) {
                     mostrarModalFeedback('aviso', "Selecione pelo menos uma preferência de espécie para montar o seu feed.");
                     return false;
                 }
@@ -376,16 +571,6 @@ require_once __DIR__ . '/../templates/header.php';
 
             return true;
         });
-    }
-
-    function validarEnvioFinal() {
-        const aceiteTermos = document.querySelector('input[name="aceite_termos"]');
-        if (!aceiteTermos || !aceiteTermos.checked) {
-            mostrarModalFeedback('aviso', "Você deve ler e concordar com os Termos de Responsabilidade para continuar.");
-            aceiteTermos.focus();
-            return false;
-        }
-        return true;
     }
 
     function toggleOutrasEspecies() {
@@ -403,19 +588,59 @@ require_once __DIR__ . '/../templates/header.php';
         }
     }
 
+    // Função de envio manual via Fetch
+    async function submeterFormularioAdotante() {
+        const aceiteTermos = document.getElementById('aceite_termos');
+        if (!aceiteTermos.checked) {
+            mostrarModalFeedback('aviso', "Você deve ler e concordar com os Termos de Responsabilidade para continuar.");
+            aceiteTermos.focus();
+            return;
+        }
+
+        const form = document.getElementById('form-onboarding-adotante');
+        const formData = new FormData(form);
+
+        try {
+            const btnSubmit = event.target;
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = 'Aguarde...';
+            btnSubmit.disabled = true;
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'sucesso') {
+                if (typeof limparAutoSave === 'function') limparAutoSave();
+                window.location.href = result.redirect_url;
+            } else {
+                mostrarModalFeedback('erro', result.mensagem);
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         OnboardingManager.init({
             totalEtapas: 6,
             urlSelecionarPerfil: "<?= URL_BASE ?>/onboarding",
-            validarEnvioFinal: validarEnvioFinal
+            validarEnvioFinal: () => true 
         });
     });
 </script>
 
-<!-- Utiliza o script onboarding.js compartilhado para gerenciar as chamadas AJAX e Etapas -->
-<script src="<?= e(URL_BASE) ?>/assets/js/onboarding.js"></script>
+<style>
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
+</style>
 
-<?php
-require_once __DIR__ . '/../templates/footer.php';
-?>
-
+<?php require_once __DIR__ . '/../templates/footer.php'; ?>

@@ -161,4 +161,5 @@ const CaonectadosValidator = {
         const numeros = telefone.replace(/[^\d]+/g, '');
         return numeros.length === 10 || numeros.length === 11;
     }
+    
 };

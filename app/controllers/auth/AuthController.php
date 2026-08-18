@@ -114,6 +114,14 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Insira um formato de e-mail válido.']);
         }
 
+        // ==========================================
+        // TRAVA PRÉVIA: VERIFICA SE O EMAIL JÁ EXISTE
+        // ==========================================
+        $usuarioRepo = new UsuarioRepository();
+        if ($usuarioRepo->buscarPorEmail($email) !== null) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Este e-mail já está cadastrado em nossa plataforma.']);
+        }
+
         if ($senha !== $senha_confirmacao) {
             $this->json(400, ['status' => 'erro', 'mensagem' => 'As senhas não coincidem.']);
         }
@@ -134,7 +142,6 @@ class AuthController extends Controller
         $_SESSION['email_pendente_verificacao'] = $email;
 
         try {
-            // CORRIGIDO: O disparo do e-mail do cadastro foi re-inserido dentro do try
             MailService::enviarCodigoVerificacao($email, 'Usuário', $codigo, 'cadastro');
 
             $this->json(200, [
@@ -158,13 +165,12 @@ class AuthController extends Controller
 
         try {
             // ==========================================
-            // CONTEXTO: 2FA DE ADMINISTRADOR (Faltava este bloco!)
+            // CONTEXTO: 2FA DE ADMINISTRADOR
             // ==========================================
             if (isset($_SESSION['admin_2fa'])) {
                 $dadosPendente = $_SESSION['admin_2fa'];
                 $usuarioRepo = new UsuarioRepository();
                 
-                // Valida se o código bate com o do banco, não expirou e não foi usado
                 $registro = $usuarioRepo->buscarCodigoValido($dadosPendente['usuario_id'], $codigoInformado);
 
                 if (!$registro) {
@@ -172,7 +178,6 @@ class AuthController extends Controller
                     return;
                 }
 
-                // Invalida o código e conclui o login
                 $usuarioRepo->marcarCodigoComoUsado((int)$registro['codigo_id']);
                 
                 $usuarioObj = $usuarioRepo->buscarPorEmail($dadosPendente['email']);
@@ -180,7 +185,6 @@ class AuthController extends Controller
                     $this->authService->iniciarSessao($usuarioObj);
                 }
 
-                // Limpa o rastro da verificação
                 unset($_SESSION['admin_2fa'], $_SESSION['email_pendente_verificacao']);
 
                 $this->json(200, [
@@ -188,7 +192,7 @@ class AuthController extends Controller
                     'mensagem'     => 'Acesso administrativo confirmado!', 
                     'redirect_url' => URL_BASE . '/admin/dashboard'
                 ]);
-                return; // Impede que continue executando
+                return;
             }
 
             // ==========================================
@@ -230,13 +234,13 @@ class AuthController extends Controller
                 return;
             }
 
-            // Se não encontrou nenhuma das duas sessões, acusa expiração.
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Sessão expirada. Faça login ou cadastro novamente.']);
 
         } catch (Exception $e) {
             $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
+
     public function reenviarCodigo()
     {
         try {

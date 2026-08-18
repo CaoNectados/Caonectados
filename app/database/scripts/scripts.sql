@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS ESPECIE (
 CREATE TABLE IF NOT EXISTS USUARIO (
     usuario_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     regiao_id INT UNSIGNED NULL,
+    regiao_id INT UNSIGNED NULL,
     logradouro TEXT NULL,
     numero VARCHAR(20) NULL,
     telefone VARCHAR(20) NULL DEFAULT NULL,
@@ -85,6 +86,7 @@ CREATE TABLE IF NOT EXISTS PROTETOR (
     codigo_documento VARCHAR(20) NOT NULL,
     tipo_documento ENUM('cpf', 'cnpj') NOT NULL,
     nome_fantasia VARCHAR(45) NOT NULL,
+    data_abertura_cnpj DATE NULL,
     comprovante_documento VARCHAR(255) NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,

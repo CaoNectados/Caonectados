@@ -13,6 +13,7 @@ use app\repositories\AdotanteRepository;
 use app\repositories\ProtetorRepository;
 use app\repositories\PaginaRepository;
 use app\repositories\RedeRepository;
+use app\services\UploadService;
 use Exception;
 
 class OnboardingService
@@ -22,19 +23,18 @@ class OnboardingService
     private ProtetorRepository $protetorRepo;
     private PaginaRepository $paginaRepo;
     private RedeRepository $redeRepo;
+    private UploadService $uploadService;
 
     public function __construct()
     {
-        $this->usuarioRepo = new UsuarioRepository();
-        $this->adotanteRepo = new AdotanteRepository();
-        $this->protetorRepo = new ProtetorRepository();
-        $this->paginaRepo = new PaginaRepository();
-        $this->redeRepo = new RedeRepository();
+        $this->usuarioRepo   = new UsuarioRepository();
+        $this->adotanteRepo  = new AdotanteRepository();
+        $this->protetorRepo  = new ProtetorRepository();
+        $this->paginaRepo    = new PaginaRepository();
+        $this->redeRepo      = new RedeRepository();
+        $this->uploadService = new UploadService();
     }
 
-    /**
-     * Verifica se o usuário já possui perfil cadastrado no sistema
-     */
     public function usuarioJaPossuiPerfil(int $usuarioId): bool
     {
         $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
@@ -59,7 +59,7 @@ class OnboardingService
         ValidationService::validarNome($dados['nome_usuario'] ?? '');
         ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
-        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'num_morada']);
+        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero']);
 
         if ((int)$dados['regiao_id'] <= 0) {
             throw new Exception("Selecione um bairro/região válido.");
@@ -78,26 +78,27 @@ class OnboardingService
             $usuario->setNome(trim($dados['nome_usuario']));
             $usuario->setRegiaoId((int)$dados['regiao_id']);
             $usuario->setLogradouro(trim($dados['obs_casa']));
-            $usuario->setNumero(trim($dados['num_morada']));
+            $usuario->setNumero(trim($dados['numero']));
             $usuario->setTelefone($telefoneLimpo);
             $usuario->setDtNasc($dados['dt_nasc']);
             $usuario->setTipoAtual('adotante');
             $usuario->setStatusConta($statusAtual);
 
-            // Salva na tabela USUARIO e adiciona 'adotante' ao SET perfis_ativos
             $this->usuarioRepo->atualizarOnboarding($usuario, 'adotante');
 
-            // 3. Upload da Foto de Perfil
+            // 3. Upload da Foto de Perfil via método unificado salvar($dado, 'foto_perfil')
             $caminhoFoto = null;
-            if (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                $uploadFotoPerfil = new UploadService('uploads/foto_perfil');
-                $caminhoFoto = $uploadFotoPerfil->salvar($arquivos['foto_perfil']);
+            if (!empty($dados['foto_perfil_cortada'])) {
+                $caminhoFoto = $this->uploadService->salvar($dados['foto_perfil_cortada'], 'foto_perfil');
+            } elseif (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
+                $caminhoFoto = $this->uploadService->salvar($arquivos['foto_perfil'], 'foto_perfil');
             }
 
             // 4. Monta e salva o ADOTANTE
             $adotante = new Adotante();
             $adotante->setUsuarioId($usuarioId);
-            $adotante->setTipoMorada(($dados['tipo_moradia'] === 'chacara') ? 'sitio' : ($dados['tipo_moradia'] ?? 'casa'));
+            $tipoMoradiaInput = $dados['tipo_moradia'] ?? 'casa';
+            $adotante->setTipoMoradia(($tipoMoradiaInput === 'chacara') ? 'sitio' : $tipoMoradiaInput);
             $adotante->setFotoPerfil($caminhoFoto);
             $adotante->setDescricao(!empty($dados['descricao']) ? $dados['descricao'] : null);
             $adotante->setTamanhoInternoMoradia(!empty($dados['espaco_interior']) ? strtolower($dados['espaco_interior']) : null);
@@ -123,7 +124,7 @@ class OnboardingService
             
             $_SESSION['tipo_perfil']  = 'adotante';
             $_SESSION['status_conta'] = $statusAtual; 
-            $_SESSION['adotante_id']     = $adotanteId;
+            $_SESSION['adotante_id']  = $adotanteId;
             $_SESSION['usuario_nome'] = trim($dados['nome_usuario']);
             
             if (!in_array('adotante', $_SESSION['perfis_ativos'] ?? [])) {
@@ -140,24 +141,37 @@ class OnboardingService
         }
     }
 
-   public function processarOng(array $dados, array $arquivos, int $usuarioId): void
+    public function processarOng(array $dados, array $arquivos, int $usuarioId): void
     {
         // 1. Validações Básicas
         ValidationService::validarNome($dados['nome_fantasia'] ?? '');
-        ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
-        $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
 
+        $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
+        $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
+
+        if ($tipoDoc === 'cnpj') {
+            if (empty($dados['data_abertura_cnpj'])) {
+                throw new Exception("A data de abertura do CNPJ é obrigatória.");
+            }
+            if (!ValidationService::validarDataNaoFutura($dados['data_abertura_cnpj'])) {
+                throw new Exception("A data de abertura do CNPJ não pode ser futura.");
+            }
+        } else {
+            ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
+        }
+
+        $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
         if (empty($telefoneLimpo)) { 
             throw new Exception("O telefone é obrigatório."); 
         }
         
-        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'num_morada']);
+        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero']);
 
         if ((int)$dados['regiao_id'] <= 0) { 
             throw new Exception("Selecione um bairro/região válido."); 
         }
 
-        // 2. Validação de Arquivo (Comprovante) Obrigatório e Extensão
+        // 2. Validação do Comprovante
         if (!isset($arquivos['comprovante_documento']) || $arquivos['comprovante_documento']['error'] !== UPLOAD_ERR_OK) {
             throw new Exception("O envio do comprovante de atividade é obrigatório para ONGs e Protetores.");
         }
@@ -175,11 +189,6 @@ class OnboardingService
             $conexao->beginTransaction();
 
             $documentoLimpo = preg_replace('/[^0-9]/', '', $dados['cnpj_cpf']);
-            $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
-            $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
-
-            // Se o usuário já tiver uma conta ativa (ex: já for adotante), não podemos prender ele.
-            // A trava será feita unicamente pelo 'validado' na tabela Protetor.
             $statusAtual = $_SESSION['status_conta'] ?? 'ativo';
 
             // 3. Atualiza a tabela USUARIO
@@ -188,40 +197,41 @@ class OnboardingService
             $usuario->setNome(trim($dados['nome_fantasia']));
             $usuario->setRegiaoId((int)$dados['regiao_id']);
             $usuario->setLogradouro(trim($dados['obs_casa']));
-            $usuario->setNumero(trim($dados['num_morada']));
+            $usuario->setNumero(trim($dados['numero']));
             $usuario->setTelefone($telefoneLimpo);
-            $usuario->setDtNasc($dados['dt_nasc']);
+            $usuario->setDtNasc($tipoDoc === 'cpf' ? ($dados['dt_nasc'] ?? null) : null);
             $usuario->setTipoAtual($tipoPerfil);
             $usuario->setStatusConta($statusAtual);
 
-            // Salva na tabela USUARIO e adiciona o tipo ao SET perfis_ativos
             $this->usuarioRepo->atualizarOnboarding($usuario, $tipoPerfil);
 
-            // 4. Upload do Comprovante
-            $uploadComprovante = new UploadService('uploads/comprovantes');
-            $caminhoDocumento = $uploadComprovante->salvar($arquivos['comprovante_documento']);
+            // 4. Upload do Comprovante via método unificado salvar($dado, 'comprovante')
+            $caminhoDocumento = $this->uploadService->salvar($arquivos['comprovante_documento'], 'comprovante');
 
-            // 5. Monta o objeto Protetor e Salva (validado fica 0 por padrão no banco)
+            // 5. Monta o objeto Protetor
             $protetor = new Protetor();
             $protetor->setUsuarioId($usuarioId);
             $protetor->setCodigoDocumento($documentoLimpo);
             $protetor->setTipoDocumento($tipoDoc);
             $protetor->setNomeFantasia(trim($dados['nome_fantasia']));
             $protetor->setComprovanteDocumento($caminhoDocumento);
+            $protetor->setDataAberturaCnpj($tipoDoc === 'cnpj' ? ($dados['data_abertura_cnpj'] ?? null) : null);
 
             $protetorId = $this->protetorRepo->salvar($protetor);
 
-            // 6. Upload das Fotos da Página
+            // 6. Upload das Fotos da Página via método unificado salvar($dado, 'foto_pagina')
             $caminhoFotoPerfil = null;
-            if (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-                $uploadPerfil = new UploadService('uploads/foto_pagina');
-                $caminhoFotoPerfil = $uploadPerfil->salvar($arquivos['foto_perfil']);
+            if (!empty($dados['foto_perfil_cortada'])) {
+                $caminhoFotoPerfil = $this->uploadService->salvar($dados['foto_perfil_cortada'], 'foto_pagina');
+            } elseif (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
+                $caminhoFotoPerfil = $this->uploadService->salvar($arquivos['foto_perfil'], 'foto_pagina');
             }
 
             $caminhoFotoFundo = null;
-            if (isset($arquivos['foto_fundo']) && $arquivos['foto_fundo']['error'] === UPLOAD_ERR_OK) {
-                $uploadFundo = new UploadService('uploads/foto_pagina');
-                $caminhoFotoFundo = $uploadFundo->salvar($arquivos['foto_fundo']);
+            if (!empty($dados['foto_fundo_cortada'])) {
+                $caminhoFotoFundo = $this->uploadService->salvar($dados['foto_fundo_cortada'], 'foto_pagina');
+            } elseif (isset($arquivos['foto_fundo']) && $arquivos['foto_fundo']['error'] === UPLOAD_ERR_OK) {
+                $caminhoFotoFundo = $this->uploadService->salvar($arquivos['foto_fundo'], 'foto_pagina');
             }
 
             // 7. Criação da PAGINA
@@ -260,7 +270,7 @@ class OnboardingService
             $_SESSION['status_conta'] = $statusAtual;
             $_SESSION['protetor_id']  = $protetorId;
             $_SESSION['usuario_nome'] = trim($dados['nome_fantasia']);
-            $_SESSION['validado']     = false; // Trava o acesso até o admin aprovar
+            $_SESSION['validado']     = false;
 
             if (!in_array($tipoPerfil, $_SESSION['perfis_ativos'] ?? [])) {
                 $_SESSION['perfis_ativos'][] = $tipoPerfil;
@@ -276,4 +286,3 @@ class OnboardingService
         }
     }
 }
-

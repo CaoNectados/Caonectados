@@ -4,6 +4,7 @@ namespace app\services;
 
 use Exception;
 use DateTime;
+use DateTimeZone;
 
 class ValidationService
 {
@@ -210,5 +211,28 @@ class ValidationService
             }
         }
         return $dadosLimpos;
+    }
+
+    /**
+     * Valida formato e garante que a data não seja superior à data atual
+     */
+    public static function validarDataNaoFutura(?string $data): bool
+    {
+        if (empty($data)) {
+            return false;
+        }
+
+        $timezone = new DateTimeZone(date_default_timezone_get() ?: 'America/Sao_Paulo');
+        $d = DateTime::createFromFormat('Y-m-d', $data, $timezone);
+
+        // Verifica formato e integridade real da data (evita 2026-02-31)
+        if (!$d || $d->format('Y-m-d') !== $data) {
+            return false;
+        }
+
+        $hoje = new DateTime('today', $timezone);
+        $d->setTime(0, 0, 0);
+
+        return $d <= $hoje;
     }
 }

@@ -133,7 +133,7 @@ class PerfilService
                     }
 
                     $uploadService = new UploadService('uploads/comprovantes');
-                    $comprovanteCaminho = $uploadService->salvar($arquivos['comprovante_documento']);
+                    $comprovanteCaminho = $uploadService->salvar($arquivos['comprovante_documento'], 'comprovante');
                     $revalidarDocumento = true;
                 }
 

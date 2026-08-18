@@ -13,6 +13,16 @@ const OnboardingManager = {
         this.registrarEventos(config.validacoesPorEtapa, config.validarEnvioFinal);
     },
 
+    salvarEtapaSessao: function() {
+        const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search + '_etapa';
+        sessionStorage.setItem(storageKey, this.etapaAtual);
+    },
+
+    mostrarEtapa: function(etapa) {
+        this.etapaAtual = parseInt(etapa, 10);
+        this.atualizarVisualEtapas();
+    },
+
     atualizarVisualEtapas: function() {
         for (let i = 1; i <= this.totalEtapas; i++) {
             const elEtapa = document.getElementById(`etapa-${i}`);
@@ -36,6 +46,8 @@ const OnboardingManager = {
                 }
             }
         }
+        // Salva a etapa atual no SessionStorage toda vez que a tela atualiza
+        this.salvarEtapaSessao();
     },
 
     sincronizarRegiaoId: function() {
@@ -87,9 +99,6 @@ const OnboardingManager = {
     },
 
     registrarEventos: function(validacoesPorEtapa, validarEnvioFinal) {
-        const self = this;
-
-        // AJAX submit handler
         const form = document.querySelector('form');
         if (form) {
             form.addEventListener('submit', async function(event) {
@@ -141,7 +150,6 @@ const OnboardingManager = {
     }
 };
 
-// Funções globais auxiliares para reuso de preview de imagens
 function exibirPreviewFoto(input, idPreview, idPlaceholder) {
     const imgPreview = document.getElementById(idPreview);
     const placeholder = document.getElementById(idPlaceholder);
@@ -170,4 +178,23 @@ function exibirNomeArquivo(input, idLabel) {
             pNome.innerText = "";
         }
     }
+}
+
+function validarDataNaoFutura(dataStr) {
+    if (!dataStr || typeof dataStr !== 'string') return false;
+
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dataStr)) return false;
+
+    const dataEntrada = new Date(dataStr + 'T00:00:00');
+    if (isNaN(dataEntrada.getTime())) return false;
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    return dataEntrada <= hoje;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { validarDataNaoFutura };
 }

@@ -40,8 +40,8 @@ $router->get('/onboarding', 'onboarding/OnBoardingController@index');
 $router->get('/onboarding/adotante', 'onboarding/OnBoardingController@adotante');
 $router->get('/onboarding/ong', 'onboarding/OnBoardingController@ong');
 $router->get('/onboarding/protetor', 'onboarding/OnBoardingController@protetor');
-
-// Rotas de submissão do formulário dados
+// Rota para a requisição AJAX das espécies ativas no onboarding
+$router->get('/onboarding/especies-ativas', 'onboarding/OnBoardingController@especiesAtivasJson');// Rotas de submissão do formulário dados
 $router->post('/onboarding/salvar-adotante', 'onboarding/OnBoardingController@salvarAdotante');
 $router->post('/onboarding/salvar-protetor', 'onboarding/OnBoardingController@salvarProtetor');
 $router->get('/onboarding/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');

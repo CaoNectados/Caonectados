@@ -10,15 +10,16 @@ class ProtetorRepository extends BaseRepository
 {
     public function salvar(Protetor $protetor): int
     {
-        $sql = "INSERT INTO PROTETOR (usuario_id, validado, codigo_documento, tipo_documento, nome_fantasia, comprovante_documento) 
-            VALUES (:usuario_id, 0, :codigo_documento, :tipo_documento, :nome_fantasia, :comprovante_documento)";
+        $sql = "INSERT INTO PROTETOR (usuario_id, validado, codigo_documento, tipo_documento, nome_fantasia, data_abertura_cnpj, comprovante_documento) 
+            VALUES (:usuario_id, 0, :codigo_documento, :tipo_documento, :nome_fantasia, :data_abertura_cnpj, :comprovante_documento)";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':usuario_id', $protetor->getUsuarioId(), \PDO::PARAM_INT);
-        $stmt->bindValue(':codigo_documento', $protetor->getCodigoDocumento(), \PDO::PARAM_STR);
-        $stmt->bindValue(':tipo_documento', $protetor->getTipoDocumento(), \PDO::PARAM_STR);
-        $stmt->bindValue(':nome_fantasia', $protetor->getNomeFantasia(), \PDO::PARAM_STR);
-        $stmt->bindValue(':comprovante_documento', $protetor->getComprovanteDocumento(), $protetor->getComprovanteDocumento() ? \PDO::PARAM_STR : \PDO::PARAM_NULL);
+        $stmt->bindValue(':usuario_id', $protetor->getUsuarioId(), PDO::PARAM_INT);
+        $stmt->bindValue(':codigo_documento', $protetor->getCodigoDocumento(), PDO::PARAM_STR);
+        $stmt->bindValue(':tipo_documento', $protetor->getTipoDocumento(), PDO::PARAM_STR);
+        $stmt->bindValue(':nome_fantasia', $protetor->getNomeFantasia(), PDO::PARAM_STR);
+        $stmt->bindValue(':data_abertura_cnpj', $protetor->getDataAberturaCnpj(), $protetor->getDataAberturaCnpj() ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(':comprovante_documento', $protetor->getComprovanteDocumento(), $protetor->getComprovanteDocumento() ? PDO::PARAM_STR : PDO::PARAM_NULL);
 
         $stmt->execute();
         return (int) $this->db->lastInsertId();
