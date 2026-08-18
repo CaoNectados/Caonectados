@@ -23,10 +23,15 @@ class RacaController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $isJsonRoute = str_contains($uri, '/raca/json') || str_contains($uri, '/admin/raca/json');
 
-        if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
+        if (!$isJsonRoute && ($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
             $this->redirect('/login');
         }
+        // if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
+        //     $this->redirect('/login');
+        // }
 
         $pdo = ConnectionFactory::getConnection();
 
@@ -81,7 +86,7 @@ class RacaController extends Controller
     {
         $id = (int)($_GET['id'] ?? 0);
         $raca = $this->service->buscarPorId($id);
-       
+
         if (!$raca) {
             $this->redirect('/admin/raca');
         }

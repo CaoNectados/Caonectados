@@ -51,24 +51,26 @@ class AnimalRepository extends BaseRepository
     public function buscarPorId(int $id): ?Animal
     {
         $sql = "SELECT
-            animal_id,
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            criado_em,
-            deletado_em,
-            atualizado_em
-        FROM ANIMAL
-        WHERE animal_id = :animal_id";
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            r.nome AS raca_nome,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em
+        FROM ANIMAL a
+        LEFT JOIN RACA r ON a.raca_id = r.raca_id
+        WHERE a.animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -79,30 +81,45 @@ class AnimalRepository extends BaseRepository
         return $row === false ? null : $this->mapAnimal($row);
     }
 
-    public function listarAnimal(): array
+    public function listarAnimal(string $filtro = 'todos'): array
     {
         $sql = "SELECT
-            animal_id,
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            criado_em,
-            deletado_em,
-            atualizado_em
-        FROM ANIMAL
-        WHERE deletado_em IS NULL
-        ORDER BY criado_em DESC";
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            r.nome AS raca_nome,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em
+        FROM ANIMAL a
+        LEFT JOIN RACA r ON a.raca_id = r.raca_id
+        WHERE 1=1 ";
 
-        $stmt = $this->db->query($sql);
+        $params = [];
+
+        if ($filtro === 'desativado') {
+            $sql .= "AND a.deletado_em IS NOT NULL ";
+        } else {
+            if ($filtro !== 'todos') {
+                $sql .= "AND a.status = :status ";
+                $params[':status'] = $filtro;
+            }
+        }
+
+        $sql .= "ORDER BY a.animal_id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
@@ -148,7 +165,11 @@ class AnimalRepository extends BaseRepository
 
     public function excluirLogico(int $id): bool
     {
-        $sql = "UPDATE ANIMAL SET deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id AND deletado_em IS NULL";
+        $sql = "UPDATE ANIMAL 
+            SET status = 'desativado', 
+                deletado_em = CURRENT_TIMESTAMP, 
+                atualizado_em = CURRENT_TIMESTAMP 
+            WHERE animal_id = :animal_id AND deletado_em IS NULL";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -159,7 +180,11 @@ class AnimalRepository extends BaseRepository
 
     public function reativarAnimal(int $id): bool
     {
-        $sql = "UPDATE ANIMAL SET deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
+        $sql = "UPDATE ANIMAL 
+            SET status = 'disponivel', 
+                deletado_em = NULL, 
+                atualizado_em = CURRENT_TIMESTAMP 
+            WHERE animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -171,25 +196,27 @@ class AnimalRepository extends BaseRepository
     public function buscarPorProtetor(int $protetorId): array
     {
         $sql = "SELECT
-            animal_id,
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            criado_em,
-            deletado_em,
-            atualizado_em
-        FROM ANIMAL
-        WHERE protetor_id = :protetor_id AND deletado_em IS NULL
-        ORDER BY criado_em DESC";
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            r.nome AS raca_nome,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em
+        FROM ANIMAL a
+        LEFT JOIN RACA r ON a.raca_id = r.raca_id
+        WHERE a.protetor_id = :protetor_id AND a.deletado_em IS NULL
+        ORDER BY a.criado_em DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
@@ -266,6 +293,7 @@ class AnimalRepository extends BaseRepository
         $animal->setAnimalId((int) $row['animal_id']);
         $animal->setProtetorId((int) $row['protetor_id']);
         $animal->setRacaId((int) $row['raca_id']);
+        $animal->setRacaNome($row['raca_nome'] ?? null);
         $animal->setNome($row['nome']);
         $animal->setDtNasc($row['dt_nasc']);
         $animal->setSexo($row['sexo']);

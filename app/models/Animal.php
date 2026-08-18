@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+#[\AllowDynamicProperties]
 class Animal
 {
     private ?int $animalId = null;
@@ -20,10 +21,10 @@ class Animal
     private ?string $criadoEm = null;
     private ?string $deletadoEm = null;
     private ?string $atualizadoEm = null;
+    private ?string $racaNome = null;
 
-    public function __construct()
-    {
-    }
+
+    public function __construct() {}
 
     public function getAnimalId(): ?int
     {
@@ -200,6 +201,14 @@ class Animal
         $this->atualizadoEm = $atualizadoEm;
         return $this;
     }
-}
 
-//teste teste
+    public function getRacaNome(): ?string
+    {
+        return $this->racaNome;
+    }
+
+    public function setRacaNome(?string $racaNome): void
+    {
+        $this->racaNome = $racaNome;
+    }
+}
