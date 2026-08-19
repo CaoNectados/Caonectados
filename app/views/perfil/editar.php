@@ -1,5 +1,5 @@
-<?php 
-require_once __DIR__ . '/../templates/header.php'; 
+<?php
+require_once __DIR__ . '/../templates/header.php';
 
 $tipoPerfil = $_SESSION['perfil_ativo']['tipo'] ?? $_SESSION['tipo_perfil'] ?? 'adotante';
 $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
@@ -12,7 +12,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
     <!-- CABEÇALHO -->
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem] mb-6">
-        <a href="<?= URL_BASE ?>/perfil" class="text-2xl hover:scale-110 transition-transform text-text-dark">&larr;</a>
+        <a href="<?= URL_BASE ?>/perfil" class="text-2xl hover:scale-110 transition-transform text-text-dark dark:text-white">&larr;</a>
     </div>
 
     <div class="px-4">
@@ -25,16 +25,18 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 <div class="relative <?= $tipoPerfil !== 'administrador' ? 'cursor-pointer group' : '' ?>" <?= $tipoPerfil !== 'administrador' ? 'onclick="abrirSeletorFoto()"' : '' ?>>
                     <div class="w-32 h-32 rounded-full border-4 border-roxinhoFofo overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow p-1">
                         <?php
-                        $caminhoDB = $especifico['foto_perfil'] ?? '';
+                        $caminhoDB = $especifico['foto_perfil'] ?? $_SESSION['foto_perfil'] ?? '';
                         if ($tipoPerfil === 'administrador') {
                             $fotoSrc = $urlBase . '/assets/img/logo.png';
+                        } elseif (!empty($caminhoDB)) {
+                            $fotoLimpa = ltrim(trim($caminhoDB), '/');
+                            $fotoLimpa = preg_replace('#^(assets/)?(uploads/)+#', '', $fotoLimpa);
+                            $fotoSrc = $urlBase . '/assets/uploads/' . htmlspecialchars($fotoLimpa);
                         } else {
-                            $fotoSrc = !empty($caminhoDB)
-                                ? $urlBase . '/' . ltrim($caminhoDB, '/')
-                                : $urlBase . '/assets/img/perfil-placeholder.png';
+                            $fotoSrc = $urlBase . '/assets/img/perfil-placeholder.png';
                         }
                         ?>
-                        <img src="<?= htmlspecialchars($fotoSrc) ?>" id="preview-foto" alt="Sua foto" class="w-full h-full rounded-full <?= $tipoPerfil === 'administrador' ? 'object-contain' : 'object-cover' ?>">
+                        <img src="<?= $fotoSrc ?>" id="preview-foto" alt="Sua foto" class="w-full h-full rounded-full <?= $tipoPerfil === 'administrador' ? 'object-contain' : 'object-cover' ?>" onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
                     </div>
 
                     <!-- Lápis flutuante APENAS se NÃO for administrador -->
@@ -63,12 +65,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
                     <div>
                         <label class="label-padrao">Nome (Responsável) *</label>
-                        <input type="text" name="nome" id="nome" value="<?= htmlspecialchars($usuario['nome'] ?? '') ?>" required class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                        <input type="text" name="nome" id="nome" value="<?= htmlspecialchars($usuario['nome'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                     </div>
 
                     <div>
                         <label class="label-padrao">Telefone / WhatsApp *</label>
-                        <input type="tel" name="telefone" id="telefone" value="<?= htmlspecialchars($usuario['telefone'] ?? '') ?>" required class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                        <input type="tel" name="telefone" id="telefone" value="<?= htmlspecialchars($usuario['telefone'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                     </div>
 
                     <div>
@@ -138,7 +140,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                     <div id="acc-local" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
                         <div class="relative">
                             <label class="label-padrao">Bairro / Região *</label>
-                            <?php 
+                            <?php
                             $nomeRegiaoAtual = '';
                             if (!empty($regiaoAtual)) {
                                 $nomeRegiaoAtual = is_array($regiaoAtual) ? ($regiaoAtual['nome_regiao'] ?? '') : $regiaoAtual->getNomeRegiao();
@@ -386,7 +388,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
     <div class="bg-surface dark:bg-preto1 rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl border border-rosa-3">
         <h3 class="font-shantell text-xl font-bold mb-1 text-text-dark dark:text-white">Ajustar Foto</h3>
         <p class="text-xs text-text-muted mb-4 text-center">Arraste e use o zoom para centralizar.</p>
-        
+
         <div class="w-full h-64 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
             <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
         </div>
@@ -399,7 +401,6 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-<script src="<?= URL_BASE ?>/assets/js/validacoes.js"></script>
 
 <script>
     const tipoPerfilAtual = '<?= $tipoPerfil ?>';

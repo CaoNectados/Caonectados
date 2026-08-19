@@ -51,6 +51,7 @@ class OnboardingController extends Controller
             '/onboarding/especies-ativas',
             '/onboarding/protetor',
             '/onboarding/ong',
+            '/onboarding/adotante',
             '/logout'
         ];
 
@@ -74,6 +75,44 @@ class OnboardingController extends Controller
 
             if ($uriAtual !== '/feed') {
                 $this->redirect('/feed');
+            }
+        }
+    }
+
+    public function adotante(): void
+    {
+        $regioes = $this->regiaoRepo->buscarTodas();
+        $especies = $this->especieRepo->buscarTodas();
+
+        $this->view('onboarding/adotante_onboarding', [
+            'titulo'   => 'Cadastro de Adotante',
+            'regioes'  => $regioes,
+            'especies' => $especies
+        ]);
+    }
+
+    public function salvarAdotante(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $usuarioId = $_SESSION['usuario_id'] ?? null;
+                if (!$usuarioId) {
+                    throw new Exception("Sessão expirada. Faça login novamente.");
+                }
+
+                $dadosLimpos = ValidationService::sanitizarArray($_POST);
+                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, (int)$usuarioId);
+
+                $this->json(200, [
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Perfil de adotante criado com sucesso!',
+                    'redirect_url' => URL_BASE . '/feed'
+                ]);
+            } catch (Exception $e) {
+                $this->json(200, [
+                    'status'   => 'erro',
+                    'mensagem' => $e->getMessage()
+                ]);
             }
         }
     }
@@ -131,6 +170,29 @@ class OnboardingController extends Controller
                     'mensagem' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function especiesAtivas(): void
+    {
+        try {
+            $especies = $this->especieRepo->buscarTodas();
+            $dados = array_map(function($esp) {
+                return [
+                    'especie_id' => is_array($esp) ? $esp['especie_id'] : $esp->getEspecieId(),
+                    'nome'       => is_array($esp) ? $esp['nome'] : $esp->getNome()
+                ];
+            }, $especies);
+
+            $this->json(200, [
+                'status' => 'sucesso',
+                'dados'  => $dados
+            ]);
+        } catch (Exception $e) {
+            $this->json(200, [
+                'status'   => 'erro',
+                'mensagem' => $e->getMessage()
+            ]);
         }
     }
 

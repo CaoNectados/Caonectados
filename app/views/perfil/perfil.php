@@ -1,10 +1,34 @@
 <?php 
 require_once __DIR__ . '/../templates/header.php';
 
-// Leitura compatível com a estrutura de sessão e fallbacks
 $tipoPerfil = $_SESSION['perfil_ativo']['tipo'] ?? $_SESSION['tipo_perfil'] ?? 'adotante';
 $nomeUsuario = $_SESSION['usuario']['nome'] ?? $_SESSION['usuario_nome'] ?? 'Nome de Usuário';
-$fotoPerfil = $_SESSION['foto_perfil'] ?? $_SESSION['perfil_ativo']['foto_perfil'] ?? null;
+
+$fotoPerfilSessao = $_SESSION['foto_perfil'] ?? null;
+if (empty($fotoPerfilSessao)) {
+    if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
+        $adotanteInfo = (new \app\repositories\AdotanteRepository())->buscarPorUsuarioId((int)$_SESSION['usuario_id']);
+        $fotoPerfilSessao = $adotanteInfo['foto_perfil'] ?? null;
+    } else {
+        $protetorInfo = (new \app\repositories\ProtetorRepository())->buscarPorUsuarioId((int)$_SESSION['usuario_id']);
+        if ($protetorInfo) {
+            $paginaInfo = (new \app\repositories\PaginaRepository())->buscarPorProtetorId((int)$protetorInfo['protetor_id']);
+            $fotoPerfilSessao = $paginaInfo['foto_perfil'] ?? null;
+        }
+    }
+}
+
+$urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
+
+if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
+    $srcFoto = $urlBase . '/assets/img/logo.png';
+} elseif (!empty($fotoPerfilSessao)) {
+    $fotoLimpa = ltrim(trim($fotoPerfilSessao), '/');
+    $fotoLimpa = preg_replace('#^(assets/)?(uploads/)+#', '', $fotoLimpa);
+    $srcFoto = $urlBase . '/assets/uploads/' . htmlspecialchars($fotoLimpa);
+} else {
+    $srcFoto = $urlBase . '/assets/img/perfil-placeholder.png';
+}
 
 $tituloCabecalho = 'Perfil';
 $badgeTexto = ucfirst($tipoPerfil);
@@ -34,7 +58,6 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Denunciar',        'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
     ];
 } else { 
-    // Adotante / Usuário Comum
     $botoes = [
         ['label' => 'Editar Perfil',          'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil',        'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
@@ -47,15 +70,6 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
 }
 
 $paginasBotoes = array_chunk($botoes, 6);
-$urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
-
-if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
-    $srcFoto = $urlBase . '/assets/img/logo.png';
-} else {
-    $srcFoto = !empty($fotoPerfil) 
-        ? $urlBase . '/' . ltrim($fotoPerfil, '/') 
-        : $urlBase . '/assets/img/perfil-placeholder.png';
-}
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
@@ -64,19 +78,20 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     <div class="px-6 -mt-4 pt-10 flex flex-col items-center">
         
         <!-- Badge de Perfil Atual -->
-        <div class="bg-roxinhoFofo/80 dark:bg-primary text-white font-shantell font-bold text-xl px-12 py-1 rounded-full relative mb-6 shadow-sm">
-            <span class="absolute -left-3 -top-2 text-2xl">🐾</span>
+        <div class="bg-rosa-3 dark:bg-primary text-text-dark dark:text-white font-shantell font-bold text-xl px-12 py-1.5 rounded-full relative mb-6 shadow-sm border border-rosa-2">
+            <span class="absolute -left-3 -top-1 text-xl">🐾</span>
             <?= htmlspecialchars($badgeTexto) ?>
-            <span class="absolute -right-3 -top-2 text-2xl">🐾</span>
+            <span class="absolute -right-3 -top-1 text-xl">🐾</span>
         </div>
 
         <!-- Foto de Perfil -->
         <div class="relative mb-4">
-            <div class="w-32 h-32 rounded-full border-[6px] border-roxinhoFofo/60 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow-md">
+            <div class="w-32 h-32 rounded-full border-[5px] border-rosa-3 dark:border-preto3 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow-md">
                 <img src="<?= htmlspecialchars($srcFoto) ?>" 
                      id="foto-perfil-display" 
                      alt="Foto de perfil" 
-                     class="w-full h-full rounded-full <?= ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') ? 'object-contain p-2' : 'object-cover' ?>">
+                     class="w-full h-full rounded-full <?= ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') ? 'object-contain p-2 bg-white' : 'object-cover' ?>"
+                     onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
             </div>
             
             <?php if (!in_array($tipoPerfil, ['administrador', 'admin'], true)): ?>
@@ -96,7 +111,7 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         </h2>
 
         <!-- Container de Ações -->
-        <div class="w-full bg-surface/80 dark:bg-preto1 rounded-3xl p-5 shadow-inner relative border border-rosa-2 dark:border-preto3">
+        <div class="w-full bg-surface dark:bg-preto1 rounded-3xl p-5 shadow-inner relative border border-rosa-2 dark:border-preto3">
             <div class="flex items-center justify-center gap-2 mb-4">
                 <span class="text-xl">⚙️</span>
                 <h3 class="font-bold text-lg text-text-dark dark:text-white"><?= htmlspecialchars($tituloCabecalho) ?></h3>
@@ -108,12 +123,12 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
                     <div class="min-w-full snap-center grid grid-cols-3 gap-3 auto-rows-max">
                         <?php foreach ($pagina as $botao): ?>
                             <?php if (isset($botao['action'])): ?>
-                                <button type="button" onclick="<?= htmlspecialchars($botao['action']) ?>" class="flex flex-col items-center justify-center bg-surface dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-24 cursor-pointer border border-rosa-2 dark:border-preto3 w-full">
+                                <button type="button" onclick="<?= htmlspecialchars($botao['action']) ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-24 cursor-pointer border border-rosa-2 dark:border-preto3 w-full">
                                     <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-8 w-8 mb-2 object-contain">
                                     <span class="text-[10px] font-bold leading-tight text-text-dark dark:text-white"><?= htmlspecialchars($botao['label']) ?></span>
                                 </button>
                             <?php else: ?>
-                                <a href="<?= $urlBase . $botao['url'] ?>" class="flex flex-col items-center justify-center bg-surface dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-24 border border-rosa-2 dark:border-preto3">
+                                <a href="<?= $urlBase . $botao['url'] ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-24 border border-rosa-2 dark:border-preto3">
                                     <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-8 w-8 mb-2 object-contain">
                                     <span class="text-[10px] font-bold leading-tight text-text-dark dark:text-white"><?= htmlspecialchars($botao['label']) ?></span>
                                 </a>
@@ -130,14 +145,14 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
                         <div class="w-2.5 h-2.5 rounded-full <?= $index === 0 ? 'bg-primary dark:bg-roxinhoFofo' : 'bg-text-muted' ?> indicador-pagina transition-all duration-300" data-index="<?= $index ?>"></div>
                     <?php endforeach; ?>
                 </div>
-                <button type="button" id="btn-prev" class="absolute inset-y-0 left-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-90">&lsaquo;</button>
-                <button type="button" id="btn-next" class="absolute inset-y-0 right-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-90">&rsaquo;</button>
+                <button type="button" id="btn-prev" class="absolute inset-y-0 left-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-95">&lsaquo;</button>
+                <button type="button" id="btn-next" class="absolute inset-y-0 right-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-95">&rsaquo;</button>
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<!-- Modal Trocar Perfil -->
+<!-- Modal Trocar Perfil (Sem fotos listadas, apenas seleção de texto/papel) -->
 <div id="modalTrocarPerfil" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-surface dark:bg-preto1 rounded-3xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 border border-rosa-3">
         <div class="flex justify-between items-center mb-4 border-b border-cinzaMarrom/20 pb-3">
@@ -181,7 +196,7 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     </div>
 </div>
 
-<!-- Modal Cropper -->
+<!-- Modal Cropper Direto -->
 <div id="modal-cropper-direto" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 hidden">
     <div class="bg-surface dark:bg-preto1 rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl border border-rosa-3">
         <h3 class="font-shantell text-xl font-bold mb-1 text-text-dark dark:text-white">Ajustar Foto</h3>
@@ -315,6 +330,7 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
                     mostrarModalFeedback('sucesso', result.mensagem || 'Foto atualizada com sucesso!');
                 }
                 fecharCropperDireto();
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 if (typeof mostrarModalFeedback === 'function') {
                     mostrarModalFeedback('erro', result.mensagem || 'Falha ao atualizar foto.');

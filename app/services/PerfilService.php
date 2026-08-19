@@ -38,6 +38,7 @@ class PerfilService
         $numero = trim($dados['numero'] ?? $dados['num_morada'] ?? 'S/N');
         $regiaoId = !empty($dados['regiao_id']) ? (int)$dados['regiao_id'] : null;
 
+        $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
         $conexao = ConnectionFactory::getConnection();
 
         try {
@@ -46,16 +47,33 @@ class PerfilService
             $this->usuarioRepo->atualizarDadosPerfil($usuarioId, trim($dados['nome']), $telefoneLimpo, $regiaoId, $logradouro, $numero);
 
             $caminhoFoto = null;
-            if (!empty($dados['foto_cortada'])) {
-                $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
-                $uploadService = new UploadService($subpastaFoto);
-                $caminhoFoto = $this->salvarBase64ViaUploadService($dados['foto_cortada'], $uploadService);
+            $fotoBase64 = $dados['foto_cortada'] ?? $dados['foto_perfil'] ?? null;
+            
+            if (!empty($fotoBase64)) {
+                $tipoUpload = $isProtetorOng ? 'foto_pagina' : 'foto_perfil';
+
+                if ($isProtetorOng) {
+                    $prot = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+                    if ($prot) {
+                        $pagAntiga = $this->paginaRepo->buscarPorProtetorId((int)$prot['protetor_id']);
+                        if (!empty($pagAntiga['foto_perfil'])) {
+                            $this->removerArquivoAntigo($pagAntiga['foto_perfil']);
+                        }
+                    }
+                } else {
+                    $adotAntigo = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+                    if (!empty($adotAntigo['foto_perfil'])) {
+                        $this->removerArquivoAntigo($adotAntigo['foto_perfil']);
+                    }
+                }
+
+                $uploadService = new UploadService();
+                $caminhoFoto = $uploadService->salvar($fotoBase64, $tipoUpload);
             }
 
-            if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
+            if (!$isProtetorOng) {
                 $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
 
-                // Normaliza espécies selecionadas sanitizando os IDs numéricos
                 $especiesLimpos = [];
                 if (!empty($dados['preferencias_especie']) && is_array($dados['preferencias_especie'])) {
                     foreach ($dados['preferencias_especie'] as $espId) {
@@ -75,7 +93,7 @@ class PerfilService
                 }
 
                 $detalhesJson = json_encode([
-                    'possui_criancas'      => $dados['possui_criancas'] ?? 'nao',
+                    'possui_criancas'     => $dados['possui_criancas'] ?? 'nao',
                     'possui_outros_pets'   => $dados['possui_outros_pets'] ?? 'nao',
                     'espaco_externo'       => $dados['espaco_externo'] ?? '',
                     'preferencias_especie' => array_values(array_unique($especiesLimpos)),
@@ -84,16 +102,49 @@ class PerfilService
                     'preferencias_sexo'    => $dados['preferencias_sexo'] ?? []
                 ]);
 
-                $this->adotanteRepo->atualizarDadosAdotante(
-                    $usuarioId,
-                    $dados['tipo_morada'] ?? 'casa',
-                    $dados['tamanho_interno_morada'] ?? 'medio',
-                    $detalhesJson,
-                    $caminhoFoto ?? ($adotanteAtual['foto_perfil'] ?? null)
-                );
+                $tipoMoradia = $dados['tipo_morada'] ?? ($adotanteAtual['tipo_moradia'] ?? 'casa');
+                $tamanhoInterno = $dados['tamanho_interno_morada'] ?? ($adotanteAtual['tamanho_interno_morada'] ?? 'medio');
+                $fotoFinal = $caminhoFoto ?? ($adotanteAtual['foto_perfil'] ?? null);
+
+                if ($adotanteAtual) {
+                    $this->adotanteRepo->atualizarDadosAdotante($usuarioId, $tipoMoradia, $tamanhoInterno, $detalhesJson, $fotoFinal);
+                } else {
+                    $adotante = new \app\models\Adotante();
+                    $adotante->setUsuarioId($usuarioId);
+                    $adotante->setTipoMoradia($tipoMoradia);
+                    $adotante->setTamanhoInternoMorada($tamanhoInterno);
+                    $adotante->setDetalhes($detalhesJson);
+                    $adotante->setFotoPerfil($fotoFinal);
+                    $this->adotanteRepo->salvar($adotante);
+                }
+            } else {
+                $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+                if ($protetor) {
+                    $protetorId = (int)$protetor['protetor_id'];
+                    $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
+                    
+                    if ($paginaAtual) {
+                        $this->paginaRepo->atualizarPagina(
+                            $protetorId, 
+                            $dados['descricao'] ?? ($paginaAtual['descricao'] ?? null), 
+                            $dados['chave_pix'] ?? ($paginaAtual['chave_pix'] ?? null), 
+                            $caminhoFoto ?? ($paginaAtual['foto_perfil'] ?? null)
+                        );
+                    } else {
+                        $pagina = new \app\models\Pagina();
+                        $pagina->setProtetorId($protetorId);
+                        $pagina->setDescricao($dados['descricao'] ?? null);
+                        $pagina->setChavePix($dados['chave_pix'] ?? null);
+                        $pagina->setFotoPerfil($caminhoFoto);
+                        $this->paginaRepo->salvar($pagina);
+                    }
+                }
             }
 
             $conexao->commit();
+            if ($caminhoFoto) {
+                $_SESSION['foto_perfil'] = $caminhoFoto;
+            }
             return 'Perfil atualizado com sucesso!';
         } catch (Exception $e) {
             $conexao->rollBack();
@@ -103,80 +154,65 @@ class PerfilService
 
     public function atualizarApenasFoto(string $base64Data, int $usuarioId, string $tipoPerfilSessao): void
     {
-        $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
-        $uploadService = new UploadService($subpastaFoto);
-        $caminhoFoto = $this->salvarBase64ViaUploadService($base64Data, $uploadService);
+        $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
+        $tipoUpload = $isProtetorOng ? 'foto_pagina' : 'foto_perfil';
 
-        if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
+        if ($isProtetorOng) {
+            $prot = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            if ($prot) {
+                $pagAntiga = $this->paginaRepo->buscarPorProtetorId((int)$prot['protetor_id']);
+                if (!empty($pagAntiga['foto_perfil'])) {
+                    $this->removerArquivoAntigo($pagAntiga['foto_perfil']);
+                }
+            }
+        } else {
+            $adotAntigo = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+            if (!empty($adotAntigo['foto_perfil'])) {
+                $this->removerArquivoAntigo($adotAntigo['foto_perfil']);
+            }
+        }
+
+        $uploadService = new UploadService();
+        $caminhoFoto = $uploadService->salvar($base64Data, $tipoUpload);
+
+        if (!$caminhoFoto) {
+            throw new Exception("Falha ao salvar a imagem no servidor.");
+        }
+
+        if (!$isProtetorOng) {
             $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
             if ($adotanteAtual) {
-                if (!empty($adotanteAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($adotanteAtual['foto_perfil']);
-                }
-                $this->adotanteRepo->atualizarDadosAdotante($usuarioId, $adotanteAtual['tipo_morada'], $adotanteAtual['tamanho_interno_morada'], $adotanteAtual['detalhes'], $caminhoFoto);
+                $this->adotanteRepo->atualizarDadosAdotante(
+                    $usuarioId, 
+                    $adotanteAtual['tipo_morada'], 
+                    $adotanteAtual['tamanho_interno_morada'], 
+                    $adotanteAtual['detalhes'], 
+                    $caminhoFoto
+                );
+            } else {
+                $adotante = new \app\models\Adotante();
+                $adotante->setUsuarioId($usuarioId);
+                $adotante->setTipoMoradia('casa');
+                $adotante->setFotoPerfil($caminhoFoto);
+                $this->adotanteRepo->salvar($adotante);
             }
-        } elseif (in_array($tipoPerfilSessao, ['ong', 'protetor'], true)) {
+        } else {
             $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($protetor) {
                 $protetorId = (int)$protetor['protetor_id'];
                 $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
-                if ($paginaAtual && !empty($paginaAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($paginaAtual['foto_perfil']);
+                if ($paginaAtual) {
+                    $this->paginaRepo->atualizarPagina($protetorId, $paginaAtual['descricao'] ?? null, $paginaAtual['chave_pix'] ?? null, $caminhoFoto);
+                } else {
+                    $pagina = new \app\models\Pagina();
+                    $pagina->setProtetorId($protetorId);
+                    $pagina->setFotoPerfil($caminhoFoto);
+                    $this->paginaRepo->salvar($pagina);
                 }
-                $this->paginaRepo->atualizarPagina($protetorId, $paginaAtual['descricao'] ?? null, $paginaAtual['chave_pix'] ?? null, $caminhoFoto);
             }
         }
 
         $_SESSION['foto_perfil'] = $caminhoFoto;
-    }
-
-/**
-     * Salva a imagem enviada em Base64 pelo Cropper diretamente na pasta pública de assets
-     */
-    private function salvarBase64ViaUploadService(string $base64Data, UploadService $uploadService): string
-    {
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $tipo)) {
-            $extensao = strtolower($tipo[1]);
-            $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
-        } else {
-            $extensao = 'png';
-        }
-
-        $binario = base64_decode($base64Data);
-        if ($binario === false) {
-            throw new Exception("Falha ao processar arquivo de imagem recortada.");
-        }
-
-        // Normaliza extensão jpeg para jpg
-        if ($extensao === 'jpeg') {
-            $extensao = 'jpg';
-        }
-
-        $extensoesPermitidas = ['jpg', 'png', 'webp'];
-        if (!in_array($extensao, $extensoesPermitidas, true)) {
-            $extensao = 'png';
-        }
-
-        // Gera o nome único utilizando o mesmo padrão MD5 do UploadService
-        $nomeUnico = md5(uniqid((string)rand(), true)) . '.' . $extensao;
-        
-        // Usa reflexão ou recupera a subpasta do UploadService para montar o diretório destino
-        $subpasta = ($extensao === 'png' || str_contains($base64Data, 'png')) ? 'uploads/foto_perfil' : 'uploads/foto_perfil';
-        
-        // Define o caminho absoluto correto baseado na estrutura do UploadService
-        $diretorioDestino = __DIR__ . '/../../public/assets/' . trim($subpasta, '/') . '/';
-        if (!is_dir($diretorioDestino)) {
-            mkdir($diretorioDestino, 0755, true);
-        }
-
-        $caminhoAbsoluto = $diretorioDestino . $nomeUnico;
-
-        if (file_put_contents($caminhoAbsoluto, $binario) !== false) {
-            // Retorna o caminho relativo exato esperado pelo banco
-            return 'assets/' . trim($subpasta, '/') . '/' . $nomeUnico;
-        }
-
-        throw new Exception("Falha ao salvar a imagem recortada no servidor.");
     }
 
     private function removerArquivoAntigo(?string $caminhoRelativo): void
@@ -189,7 +225,6 @@ class PerfilService
             return;
         }
 
-        // Como o UploadService grava com prefixo 'assets/', removemos para achar a raiz public/
         $caminhoRelativoLimpo = preg_replace('#^assets/#', '', ltrim($caminhoRelativo, '/'));
         $caminhoAbsoluto = __DIR__ . '/../../public/assets/' . $caminhoRelativoLimpo;
 
@@ -197,47 +232,4 @@ class PerfilService
             @unlink($caminhoAbsoluto);
         }
     }
-
-
-    public function obterPerfisAtivos(int $usuarioId): array
-    {
-        $perfis = [];
-
-        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
-        if ($adotante && strtolower($adotante['status']) === 'ativo') {
-            $perfis[] = [
-                'tipo' => 'adotante',
-                'id' => (int)$adotante['id'],
-                'nome' => $adotante['nome'] ?? 'Adotante',
-                'status' => 'ativo'
-            ];
-        }
-
-        $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
-        if ($protetor && strtolower($protetor['status']) === 'ativo') {
-            $perfis[] = [
-                'tipo' => 'protetor',
-                'id' => (int)$protetor['id'],
-                'nome' => $protetor['nome'] ?? 'Protetor',
-                'status' => 'ativo'
-            ];
-        }
-
-        return $perfis;
-    }
-
-    public function trocarPerfil(int $usuarioId, string $tipo, int $perfilId): bool
-    {
-        $perfisValidos = $this->obterPerfisAtivos($usuarioId);
-
-        foreach ($perfisValidos as $perfil) {
-            if ($perfil['tipo'] === $tipo && (int)$perfil['id'] === $perfilId) {
-                $_SESSION['perfil_ativo'] = $perfil;
-                return true;
-            }
-        }
-
-        return false;
-    }
 }
-

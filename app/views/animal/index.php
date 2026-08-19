@@ -14,7 +14,7 @@ $animais = $animais ?? [];
             </div>
 
             <a href="<?= URL_BASE ?>/animal/cadastrar"
-                class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-msgEnvia-claro dark:bg-msgEnvia-escuro text-white hover:opacity-90 font-medium text-sm transition-all shadow-sm">
+                class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-accent dark:bg-msgEnvia-escuro text-white hover:opacity-90 font-medium text-sm transition-all shadow-sm">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>

@@ -80,25 +80,24 @@ class PerfilController extends Controller
         $redes = [];
         $especiesAtivas = $this->especieRepo->listarAtivas();
 
-        if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
+      if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
             $adotanteRepo = new AdotanteRepository();
             $dadosEspecificos = $adotanteRepo->buscarPorUsuarioId($usuarioId) ?? [];
 
             $detalhes = json_decode($dadosEspecificos['detalhes'] ?? '{}', true) ?: [];
             
-            // Converte preferências salvas para strings para bater com os values do HTML
-            $prefEspecies = array_map('strval', $detalhes['preferencias_especie'] ?? []);
-            $prefPorte    = $detalhes['preferencias_porte'] ?? [];
-            $prefSexo     = $detalhes['preferencias_sexo'] ?? [];
-            $prefRacas    = array_map('strval', $detalhes['preferencias_raca'] ?? []);
+            $rawEspecies = $detalhes['preferencias_especie'] ?? $detalhes['preferencias']['especie'] ?? [];
+            $rawPorte    = $detalhes['preferencias_porte'] ?? $detalhes['preferencias']['porte'] ?? [];
+            $rawSexo     = $detalhes['preferencias_sexo'] ?? $detalhes['preferencias']['sexo'] ?? [];
+            $rawRacas    = $detalhes['preferencias_raca'] ?? $detalhes['preferencias']['raca'] ?? [];
 
             $dadosEspecificos['possui_criancas']      = $detalhes['possui_criancas'] ?? 'nao';
             $dadosEspecificos['possui_outros_pets']   = $detalhes['possui_outros_pets'] ?? 'nao';
             $dadosEspecificos['espaco_externo']       = $detalhes['espaco_externo'] ?? '';
-            $dadosEspecificos['preferencias_especie'] = $prefEspecies;
-            $dadosEspecificos['preferencias_porte']   = $prefPorte;
-            $dadosEspecificos['preferencias_sexo']    = $prefSexo;
-            $dadosEspecificos['preferencias_raca']    = $prefRacas;
+            $dadosEspecificos['preferencias_especie'] = array_map('strval', is_array($rawEspecies) ? $rawEspecies : []);
+            $dadosEspecificos['preferencias_porte']   = is_array($rawPorte) ? $rawPorte : [];
+            $dadosEspecificos['preferencias_sexo']    = is_array($rawSexo) ? $rawSexo : [];
+            $dadosEspecificos['preferencias_raca']    = array_map('strval', is_array($rawRacas) ? $rawRacas : []);
         } elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
             $paginaRepo = new PaginaRepository();
             $redeRepo = new RedeRepository();
@@ -171,7 +170,9 @@ class PerfilController extends Controller
         try {
             $usuarioId = (int)$_SESSION['usuario_id'];
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
-            $base64Data = $_POST['foto_cortada'] ?? '';
+            
+            // Aceita tanto 'foto_cortada' (do modal direto) quanto 'foto_perfil'
+            $base64Data = $_POST['foto_cortada'] ?? $_POST['foto_perfil'] ?? '';
 
             if (empty($base64Data)) {
                 throw new Exception('Nenhuma imagem enviada.');
@@ -185,7 +186,10 @@ class PerfilController extends Controller
             ]);
 
         } catch (Exception $e) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            $this->json(200, [
+                'status'   => 'erro',
+                'mensagem' => $e->getMessage()
+            ]);
         }
     }
 
@@ -338,13 +342,15 @@ class PerfilController extends Controller
         }
     }
 
-    public function alternar(): void
+   public function alternar(): void
     {
         $tipo = strtolower(trim($_POST['tipo'] ?? ''));
         $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
 
-        if (!in_array($tipo, $perfisAtivos, true)) {
-            $this->redirecionarComMensagem('erro', 'Perfil inválido ou não disponível para sua conta.', '/perfil');
+        // Garante que o tipo informado seja estritamente um dos 4 permitidos
+        $perfisPermitidos = ['adotante', 'protetor', 'ong', 'administrador', 'admin'];
+        if (!in_array($tipo, $perfisPermitidos, true)) {
+            $this->redirecionarComMensagem('erro', 'Tipo de perfil inválido.', '/perfil');
             return;
         }
 
@@ -357,15 +363,35 @@ class PerfilController extends Controller
         $stmt->bindValue(':id', $usuarioId, \PDO::PARAM_INT);
         $stmt->execute();
 
-        // Atualiza a sessão
-        $_SESSION['tipo_perfil'] = $tipo;
+        // Normaliza para os papéis oficiais
+        $tipoSession = ($tipo === 'admin') ? 'administrador' : $tipo;
+
+        // Busca a foto correspondente ao perfil exato que está sendo ativado
+        $fotoPerfilAtiva = null;
+        if ($tipoSession === 'adotante') {
+            $adotanteRepo = new AdotanteRepository();
+            $adotante = $adotanteRepo->buscarPorUsuarioId($usuarioId);
+            $fotoPerfilAtiva = $adotante['foto_perfil'] ?? null;
+        } elseif (in_array($tipoSession, ['ong', 'protetor'], true)) {
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            if ($protetor) {
+                $paginaRepo = new PaginaRepository();
+                $pagina = $paginaRepo->buscarPorProtetorId((int)$protetor['protetor_id']);
+                $fotoPerfilAtiva = $pagina['foto_perfil'] ?? null;
+            }
+        }
+
+        // Atualiza a sessão completamente com os dados do perfil correto
+        $_SESSION['tipo_perfil'] = $tipoSession;
+        $_SESSION['foto_perfil'] = $fotoPerfilAtiva;
         $_SESSION['perfil_ativo'] = [
-            'id'   => $usuarioId,
-            'tipo' => $tipo
+            'id'          => $usuarioId,
+            'tipo'        => $tipoSession,
+            'foto_perfil' => $fotoPerfilAtiva
         ];
 
-        // Sincroniza status do protetor
-        if (in_array($tipo, ['ong', 'protetor'], true)) {
+        // Sincroniza status do protetor/ong se aplicável
+        if (in_array($tipoSession, ['ong', 'protetor'], true)) {
             $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             $_SESSION['protetor_id'] = $protetor ? (int)$protetor['protetor_id'] : 0;
             $_SESSION['validado'] = $protetor ? (bool)$protetor['validado'] : false;
@@ -373,6 +399,6 @@ class PerfilController extends Controller
             $_SESSION['validado'] = true;
         }
 
-        $this->redirecionarComMensagem('sucesso', 'Perfil alternado para ' . ucfirst($tipo) . ' com sucesso!', '/perfil');
+        $this->redirecionarComMensagem('sucesso', 'Perfil alternado para ' . ucfirst($tipoSession) . ' com sucesso!', '/perfil');
     }
 }

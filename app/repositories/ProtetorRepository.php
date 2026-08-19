@@ -181,4 +181,33 @@ class ProtetorRepository extends BaseRepository
 
         return $stmt->execute();
     }
+    public function buscarPorUsuarioIdCompleto(int $usuarioId): ?array
+    {
+        $sql = "SELECT 
+                    p.*,
+                    u.nome AS usuario_nome,
+                    u.email AS usuario_email,
+                    u.telefone,
+                    u.dt_nasc,
+                    u.logradouro,
+                    u.numero,
+                    u.regiao_id,
+                    pag.descricao AS pagina_descricao,
+                    pag.chave_pix,
+                    pag.foto_perfil,
+                    pag.foto_fundo
+                FROM PROTETOR p
+                INNER JOIN USUARIO u ON p.usuario_id = u.usuario_id
+                LEFT JOIN PAGINA pag ON p.protetor_id = pag.protetor_id
+                WHERE p.usuario_id = :usuario_id
+                ORDER BY p.protetor_id DESC
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $resultado ?: null;
+    }
 }
