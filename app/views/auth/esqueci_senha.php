@@ -21,7 +21,7 @@
         </button>
     </form>
 
-    <div class="mt-6 border-t border-gray-200 pt-4">
+    <div class="mt-6 border-t border-rosa-2 pt-4">
         <a href="<?= URL_BASE ?>/login" class="text-sm text-primary hover:underline font-medium inline-flex items-center gap-1">
             &#129144; Voltar para o Login
         </a>
@@ -61,6 +61,6 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     }
 });
 </script>
-    <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
+<script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

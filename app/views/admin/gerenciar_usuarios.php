@@ -150,7 +150,7 @@
         <?php endif; ?>
     </div>
 
-  <!-- Paginação -->
+    <!-- Paginação -->
     <?php 
         $paginaAtual = $paginaAtual ?? (int)($filtros['pagina'] ?? 1);
         $totalPaginas = $totalPaginas ?? 1;

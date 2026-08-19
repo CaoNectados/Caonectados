@@ -5,7 +5,7 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
     
     if ($tipo === 'adotante') {
         $saudacao = "Oba, " . e($nome) . "! 🎉";
-        $mensagemCurta = "Seu cadastro foi realizado com sucesso! Você tem <strong class='text-pink-500'>10 petiscos por dia</strong> para demonstrar interesse nos animais.";
+        $mensagemCurta = "Seu cadastro foi realizado com sucesso! Você tem <strong class='text-rosaAlerta'>10 petiscos por dia</strong> para demonstrar interesse nos animais.";
         $dicas = [
             "Use o catálogo para encontrar seu novo melhor amigo.",
             "Ao dar um 'Petisco', o responsável pelo animal será notificado.",
@@ -22,25 +22,23 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
     }
 ?>
 
-<!-- Modal de Boas Vindas e Instruções -->
-<div id="modal-boas-vindas" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
-    <div class="bg-white rounded-2xl p-6 md:p-8 text-center max-w-lg w-full shadow-2xl transform transition-all relative">
+<div id="modal-boas-vindas" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-preto/60">
+    <div class="bg-surface rounded-2xl p-6 md:p-8 text-center max-w-lg w-full shadow-2xl transform transition-all">
         
-        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-            <span class="text-green-500 text-3xl font-bold">✓</span>
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-sucesso/20 mb-6">
+            <span class="text-sucesso text-3xl font-bold">✓</span>
         </div>
 
-        <h2 class="text-2xl font-bold mb-2 font-shantell text-gray-800">
+        <h2 class="text-2xl font-bold mb-2 font-shantell text-text-dark">
             <?= $saudacao ?>
         </h2>
         
-        <p class="text-gray-600 mb-4 font-poppins text-sm md:text-base">
+        <p class="text-text-muted mb-4 font-poppins text-sm md:text-base">
             <?= $mensagemCurta ?>
         </p>
 
-        <!-- Caixa de Dicas Rápidas -->
-        <div class="bg-gray-50 rounded-xl p-4 text-left text-xs md:text-sm text-gray-600 mb-6 border border-gray-200 shadow-inner">
-            <h3 class="font-bold text-gray-800 mb-2 font-shantell">Dicas de uso:</h3>
+        <div class="bg-rosa-1/30 rounded-xl p-4 text-left text-xs md:text-sm text-text-dark/80 mb-6 border border-rosa-2 shadow-inner">
+            <h3 class="font-bold text-text-dark mb-2 font-shantell">Dicas de uso:</h3>
             <ul class="list-disc pl-4 space-y-2 font-poppins">
                 <?php foreach ($dicas as $dica): ?>
                     <li><?= $dica ?></li>
@@ -48,7 +46,7 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
             </ul>
         </div>
 
-        <button onclick="fecharModalBoasVindas()" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition duration-300 hover:bg-green-600 hover:shadow-md font-poppins">
+        <button onclick="fecharModalBoasVindas()" class="w-full bg-sucesso text-white font-bold py-3 px-4 rounded-xl transition duration-300 hover:opacity-90 hover:shadow-md font-poppins">
             Entendido e Continuar
         </button>
     </div>
@@ -57,14 +55,11 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
 <script>
     function fecharModalBoasVindas() {
         const modal = document.getElementById('modal-boas-vindas');
-        if (modal) {
-            modal.remove();
-        }
+        if (modal) modal.remove();
     }
 </script>
 
 <?php 
-    // Limpa a sessão para exibir apenas uma vez após o login/cadastro
     unset($_SESSION['boas_vindas_tipo']); 
     unset($_SESSION['boas_vindas_nome']); 
 endif; 

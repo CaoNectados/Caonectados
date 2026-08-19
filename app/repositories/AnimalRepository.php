@@ -153,7 +153,8 @@ class AnimalRepository extends BaseRepository
         LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
         ORDER BY a.criado_em DESC";
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
@@ -275,6 +276,7 @@ class AnimalRepository extends BaseRepository
         $animal->setAnimalId((int) $row['animal_id']);
         $animal->setProtetorId((int) $row['protetor_id']);
         $animal->setRacaId((int) $row['raca_id']);
+        $animal->setRacaNome($row['raca_nome'] ?? null);
         $animal->setNome($row['nome']);
         $animal->setDtNasc($row['dt_nasc']);
         $animal->setSexo($row['sexo']);

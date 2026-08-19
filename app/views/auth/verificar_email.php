@@ -40,7 +40,7 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
         </p>
     </div>
 
-    <div class="mt-4 pt-4 border-t border-gray-200">
+    <div class="mt-4 pt-4 border-t border-rosa-2">
         <a href="<?= URL_BASE ?>/cadastro" class="text-xs text-rosaAlerta hover:underline font-medium inline-flex items-center gap-1">
             &#9998; Digitou o e-mail errado? Clique aqui para editar
         </a>
@@ -65,80 +65,78 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
     }, 1000);
 
     document.querySelector('form').addEventListener('submit', async function(event) {
-    event.preventDefault(); 
+        event.preventDefault(); 
 
-    const form = event.target;
-    const formData = new FormData(form);
-    const btnSubmit = form.querySelector('button[type="submit"]');
-    const btnTextoOriginal = btnSubmit.innerHTML;
+        const form = event.target;
+        const formData = new FormData(form);
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const btnTextoOriginal = btnSubmit.innerHTML;
 
-    btnSubmit.disabled = true;
-    btnSubmit.innerHTML = 'Aguarde...';
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Aguarde...';
 
-    try {
-        const response = await fetch(form.action, { method: 'POST', body: formData });
-        const result = await response.json();
+        try {
+            const response = await fetch(form.action, { method: 'POST', body: formData });
+            const result = await response.json();
 
-        if (result.status === 'erro') {
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = btnTextoOriginal;
+                mostrarModalFeedback('erro', result.mensagem); 
+            } else if (result.status === 'sucesso') {
+                if (typeof limparAutoSave === 'function') limparAutoSave();
+                
+                mostrarModalFeedback('sucesso', result.mensagem);
+                setTimeout(() => { window.location.href = result.redirect_url; }, 1500);
+            }
+        } catch (error) {
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = btnTextoOriginal;
-            mostrarModalFeedback('erro', result.mensagem); 
-        } else if (result.status === 'sucesso') {
-            if (typeof limparAutoSave === 'function') limparAutoSave();
-            
-            mostrarModalFeedback('sucesso', result.mensagem);
-            setTimeout(() => { window.location.href = result.redirect_url; }, 1500);
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
         }
-    } catch (error) {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = btnTextoOriginal;
-        mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
-    }
-});
+    });
 
-async function solicitarReenvioCodigo() {
-    const linkReenviar = document.getElementById('link-reenviar');
-    linkReenviar.classList.add('hidden'); // Oculta o botão temporariamente
+    async function solicitarReenvioCodigo() {
+        const linkReenviar = document.getElementById('link-reenviar');
+        linkReenviar.classList.add('hidden');
 
-    try {
-        const response = await fetch('<?= URL_BASE ?>/reenviar-codigo', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        });
-        
-        const result = await response.json();
-
-        if (result.status === 'sucesso') {
-            mostrarModalFeedback('sucesso', result.mensagem);
-            
-            // Reinicia o contador de 60 segundos
-            tempoRestante = 60;
-            document.getElementById('tempo').textContent = tempoRestante;
-            document.getElementById('contador-tempo').classList.remove('hidden');
-            
-            // Reinicia o intervalo do timer
-            const novoTimer = setInterval(() => {
-                tempoRestante--;
-                document.getElementById('tempo').textContent = tempoRestante;
-                if (tempoRestante <= 0) {
-                    clearInterval(novoTimer);
-                    document.getElementById('contador-tempo').classList.add('hidden');
-                    linkReenviar.classList.remove('hidden');
+        try {
+            const response = await fetch('<?= URL_BASE ?>/reenviar-codigo', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
-            }, 1000);
+            });
+            
+            const result = await response.json();
 
-        } else {
-            mostrarModalFeedback('erro', result.mensagem);
+            if (result.status === 'sucesso') {
+                mostrarModalFeedback('sucesso', result.mensagem);
+                
+                tempoRestante = 60;
+                document.getElementById('tempo').textContent = tempoRestante;
+                document.getElementById('contador-tempo').classList.remove('hidden');
+                
+                const novoTimer = setInterval(() => {
+                    tempoRestante--;
+                    document.getElementById('tempo').textContent = tempoRestante;
+                    if (tempoRestante <= 0) {
+                        clearInterval(novoTimer);
+                        document.getElementById('contador-tempo').classList.add('hidden');
+                        linkReenviar.classList.remove('hidden');
+                    }
+                }, 1000);
+
+            } else {
+                mostrarModalFeedback('erro', result.mensagem);
+                linkReenviar.classList.remove('hidden');
+            }
+        } catch (error) {
+            mostrarModalFeedback('erro', 'Ocorreu um erro ao tentar reenviar o código.');
             linkReenviar.classList.remove('hidden');
         }
-    } catch (error) {
-        mostrarModalFeedback('erro', 'Ocorreu um erro ao tentar reenviar o código.');
-        linkReenviar.classList.remove('hidden');
     }
-}
 </script>
 <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
 

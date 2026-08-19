@@ -25,80 +25,79 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
-<form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4 bg-surface rounded-3xl border border-cinzaMarrom/20 shadow-sm my-6">
+<form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4 bg-surface dark:bg-preto1 rounded-3xl border border-rosa-2 dark:border-preto3 shadow-sm my-6 text-text-dark">
 
     <input type="hidden" name="tipo_documento" id="tipo_documento" value="<?= htmlspecialchars($tipo_perfil, ENT_QUOTES, 'UTF-8') ?>">
     <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
     <input type="hidden" name="foto_fundo_cortada" id="foto_fundo_cortada">
 
-    <!-- BARRA DE PROGRESSO COM 6 ETAPAS -->
+    <!-- BARRA DE PROGRESSO -->
     <div class="flex justify-center gap-2 mb-6">
         <div id="progresso-1" class="h-2 w-8 rounded-full bg-primary transition-colors duration-300"></div>
-        <div id="progresso-2" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-3" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-4" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-5" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
-        <div id="progresso-6" class="h-2 w-8 rounded-full bg-gray-300 transition-colors duration-300"></div>
+        <div id="progresso-2" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-3" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-4" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-5" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-6" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
     </div>
 
     <!-- BOTÃO VOLTAR -->
-    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-2xl font-bold cursor-pointer transition hover:opacity-75 text-text-dark" title="Voltar">
+    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-2xl font-bold cursor-pointer transition hover:opacity-75 text-text-dark dark:text-white" title="Voltar">
         &#129144;
     </button>
 
     <!-- ETAPA 1: Validação -->
     <div class="etapa-form" id="etapa-1">
         <div class="text-center mb-6">
-            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark"><?= $titulo_etapa1 ?></h1>
-            <p class="text-sm text-text-muted"><?= $texto_etapa1 ?></p>
+            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white"><?= $titulo_etapa1 ?></h1>
+            <p class="text-sm text-text-muted">Para garantir a segurança dos nossos pets e adotantes, <?= $texto_etapa1 ?></p>
         </div>
 
         <div class="space-y-4 mb-6 text-left">
             <div>
                 <label for="nome_fantasia" class="label-padrao"><?= $label_nome ?></label>
-                <input type="text" name="nome_fantasia" id="nome_fantasia" value="<?= htmlspecialchars($d['nome_fantasia'] ?? ($d['usuario_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $placeholder_nome ?>" class="input-padrao">
+                <input type="text" name="nome_fantasia" id="nome_fantasia" value="<?= htmlspecialchars($d['nome_fantasia'] ?? ($d['usuario_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $placeholder_nome ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
-
             <div>
                 <label for="cnpj_cpf" class="label-padrao"><?= $label_doc ?></label>
-                <input type="text" name="cnpj_cpf" id="cnpj_cpf" value="<?= htmlspecialchars($d['codigo_documento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $placeholder_doc ?>" class="input-padrao">
+                <input type="text" name="cnpj_cpf" id="cnpj_cpf" value="<?= htmlspecialchars($d['codigo_documento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $placeholder_doc ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                 <p id="erro-documento" class="text-xs text-erro mt-1 hidden">O documento informado é inválido.</p>
             </div>
 
             <?php if ($isOng): ?>
                 <div>
                     <label for="data_abertura_cnpj" class="label-padrao">Data de Abertura do CNPJ *</label>
-                    <input type="date" id="data_abertura_cnpj" name="data_abertura_cnpj" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($d['data_abertura_cnpj'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="input-padrao">
+                    <input type="date" id="data_abertura_cnpj" name="data_abertura_cnpj" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($d['data_abertura_cnpj'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                 </div>
             <?php else: ?>
                 <div>
                     <label for="dt_nasc" class="label-padrao">Data de Nascimento *</label>
-                    <input type="date" id="dt_nasc" name="dt_nasc" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($d['dt_nasc'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="input-padrao">
+                    <input type="date" id="dt_nasc" name="dt_nasc" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($d['dt_nasc'] ?? '', ENT_QUOTES, 'UTF-8') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                 </div>
             <?php endif; ?>
 
             <div>
                 <label for="telefone" class="label-padrao">Telefone / WhatsApp *</label>
-                <input type="tel" name="telefone" id="telefone" value="<?= htmlspecialchars($d['telefone'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="(45) 90000-0000" class="input-padrao">
+                <input type="tel" name="telefone" id="telefone" value="<?= htmlspecialchars($d['telefone'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="(45) 90000-0000" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
         </div>
 
         <div class="flex items-center justify-between mt-8">
             <span class="text-sm font-medium text-text-muted">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-secondary transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
         </div>
     </div>
 
     <!-- ETAPA 2: Localização -->
     <div class="etapa-form hidden" id="etapa-2">
         <div class="text-center mb-6">
-            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark">Selecione a sua localização</h1>
-            <p class="text-sm text-text-muted">Onde fica a sua sede/atuação?</p>
+            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white">Selecione a sua localização</h1>
+            <p class="text-sm text-text-muted">Onde fica a sua sede/atuação? Informe a localização para que adotantes da região encontrem seus animais.</p>
         </div>
 
         <div class="mb-4 text-left">
             <label for="input-busca-bairro" class="label-padrao">Pesquise seu Bairro / Região *</label>
-            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" value="<?= htmlspecialchars($d['nome_regiao'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao">
+            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" value="<?= htmlspecialchars($d['nome_regiao'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -118,57 +117,62 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="mb-4 text-left">
             <label for="obs_casa" class="label-padrao">Logradouro e Complemento *</label>
-            <input type="text" name="obs_casa" id="obs_casa" value="<?= htmlspecialchars($d['logradouro'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Ex: Avenida Brasil, Apto 42..." class="input-padrao">
+            <input type="text" name="obs_casa" id="obs_casa" value="<?= htmlspecialchars($d['logradouro'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Ex: Avenida Brasil, Apto 42..." class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
         </div>
-
         <div class="mb-6 text-left">
             <label for="numero" class="label-padrao">Número do Local *</label>
-            <input type="text" name="numero" id="numero" value="<?= htmlspecialchars($d['numero'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Ex: 123, S/N" class="input-padrao">
+            <input type="text" name="numero" id="numero" value="<?= htmlspecialchars($d['numero'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Ex: 123, S/N" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
         </div>
 
         <div class="flex items-center justify-between mt-8">
-            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-secondary transition">&rarr;</button>
+            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
         </div>
     </div>
 
     <!-- ETAPA 3: Dados da Página -->
     <div class="etapa-form hidden" id="etapa-3">
         <div class="text-center mb-6">
-            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark"><?= $titulo_pagina ?></h1>
+            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white"><?= $titulo_pagina ?></h1>
             <p class="text-sm text-text-muted">Configure como você aparecerá para a comunidade.</p>
         </div>
 
         <div class="space-y-4 mb-6 text-left">
             <div>
                 <label for="descricao" class="label-padrao">Descrição / Causa *</label>
-                <textarea name="descricao" id="descricao" rows="3" placeholder="Mínimo de 15 caracteres apresentando a causa..." class="input-padrao"><?= htmlspecialchars($d['pagina_descricao'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                <textarea name="descricao" id="descricao" rows="3" placeholder="Mínimo de 15 caracteres apresentando a causa..." class="input-padrao bg-branco dark:bg-preto2 dark:text-white"><?= htmlspecialchars($d['pagina_descricao'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
             </div>
-
+            <div>
+                <label for="instagram" class="label-padrao">Link do Instagram</label>
+                <input type="text" name="instagram" id="instagram" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+            </div>
+            <div>
+                <label for="facebook" class="label-padrao">Link do Facebook</label>
+                <input type="text" name="facebook" id="facebook" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+            </div>
             <div>
                 <label for="chave_pix" class="label-padrao">Chave PIX para doações</label>
-                <input type="text" name="chave_pix" id="chave_pix" value="<?= htmlspecialchars($d['chave_pix'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="E-mail, CNPJ, CPF ou Chave Aleatória" class="input-padrao">
+                <input type="text" name="chave_pix" id="chave_pix" value="<?= htmlspecialchars($d['chave_pix'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="E-mail, CNPJ, CPF ou Chave Aleatória" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
         </div>
 
         <div class="flex items-center justify-between mt-8">
-            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-secondary transition">&rarr;</button>
+            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
         </div>
     </div>
 
-    <!-- ETAPA 4: Fotos de Perfil e Capa -->
+    <!-- ETAPA 4: Fotos -->
     <div class="etapa-form hidden" id="etapa-4">
         <div class="text-center mb-6">
-            <h2 class="font-shantell text-xl font-bold mb-2 text-text-dark">Personalize sua página</h2>
+            <h2 class="font-shantell text-xl font-bold mb-2 text-text-dark dark:text-white">Personalize sua página</h2>
             <p class="text-sm text-text-muted mb-6">Adicione imagens para identificação.</p>
 
-            <!-- Foto de Perfil -->
             <div class="mb-6">
-                <label class="block font-medium mb-2 text-left text-sm text-text-dark">Foto de Perfil (Opcional)</label>
+                <label class="block font-medium mb-2 text-left text-sm text-text-dark dark:text-white">Foto de Perfil (Opcional)</label>
                 <div class="flex justify-center mb-2">
-                    <div class="w-32 h-32 rounded-full border-4 border-rosa-2 bg-gray-100 flex items-center justify-center overflow-hidden relative shadow-sm cursor-pointer" onclick="document.getElementById('input-arquivo-perfil').click()">
-                        <span id="foto-placeholder-perfil" class="text-gray-400 text-4xl font-bold <?= !empty($fotoPerfilUrl) ? 'hidden' : '' ?>">&#128247;</span>
+                    <div class="w-32 h-32 rounded-full border-4 border-rosa-2 bg-surface dark:bg-preto2 flex items-center justify-center overflow-hidden relative shadow-sm cursor-pointer" onclick="document.getElementById('input-arquivo-perfil').click()">
+                        <span id="foto-placeholder-perfil" class="text-text-muted text-4xl font-bold <?= !empty($fotoPerfilUrl) ? 'hidden' : '' ?>">&#128247;</span>
                         <img id="preview-foto-perfil" src="<?= htmlspecialchars($fotoPerfilUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Foto de Perfil" class="w-full h-full object-cover <?= empty($fotoPerfilUrl) ? 'hidden' : '' ?>">
                     </div>
                 </div>
@@ -178,13 +182,13 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                 <input type="file" id="input-arquivo-perfil" accept="image/png, image/jpeg, image/jpg" class="hidden" onchange="iniciarCropperFoto(event, 'perfil')">
             </div>
 
-            <hr class="my-4 border-cinzaMarrom/20">
+            <hr class="my-4 border-rosa-2 dark:border-preto3">
 
             <!-- Foto de Capa -->
             <div class="mb-2">
-                <label class="block font-medium mb-1 text-left text-sm text-text-dark">Foto de Capa/Fundo (Opcional)</label>
-                <div class="w-full h-36 bg-gray-100 rounded-xl border-2 border-dashed border-cinzaMarrom/40 flex items-center justify-center overflow-hidden relative mb-2 cursor-pointer" onclick="document.getElementById('input-arquivo-fundo').click()">
-                    <span id="fundo-placeholder-capa" class="text-gray-400 text-sm <?= !empty($fotoFundoUrl) ? 'hidden' : '' ?>">Preview da Capa</span>
+                <label class="block font-medium mb-1 text-left text-sm text-text-dark dark:text-white">Foto de Capa/Fundo (Opcional)</label>
+                <div class="w-full h-36 bg-surface dark:bg-preto2 rounded-xl border-2 border-dashed border-rosa-2 dark:border-preto3 flex items-center justify-center overflow-hidden relative mb-2 cursor-pointer" onclick="document.getElementById('input-arquivo-fundo').click()">
+                    <span id="fundo-placeholder-capa" class="text-text-muted text-sm <?= !empty($fotoFundoUrl) ? 'hidden' : '' ?>">Preview da Capa</span>
                     <img id="preview-foto-fundo" src="<?= htmlspecialchars($fotoFundoUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Capa" class="w-full h-full object-cover <?= empty($fotoFundoUrl) ? 'hidden' : '' ?>">
                 </div>
                 <button type="button" onclick="document.getElementById('input-arquivo-fundo').click()" class="btn-secundario text-xs py-1.5 px-4 rounded-xl">
@@ -195,19 +199,19 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         </div>
 
         <div class="flex items-center justify-between mt-8">
-            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-secondary transition">&rarr;</button>
+            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
         </div>
     </div>
 
-    <!-- ETAPA 5: Comprovante de Atividade -->
+    <!-- ETAPA 5: Comprovante -->
     <div class="etapa-form hidden" id="etapa-5">
         <div class="text-center mb-6">
-            <div class="w-20 h-20 rounded-full bg-rosa-1 text-primary flex items-center justify-center mx-auto mb-4 text-3xl">
+            <div class="w-20 h-20 rounded-full bg-rosa-1 dark:bg-preto2 text-primary flex items-center justify-center mx-auto mb-4 text-3xl">
                 <i class="fa-solid fa-file-shield"></i>
             </div>
 
-            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark">Comprove a sua atividade</h1>
+            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white">Comprove a sua atividade</h1>
             
             <?php if ($isOng): ?>
                 <p class="text-sm text-text-muted mb-6">Anexe o cartão CNPJ atualizado ou um comprovante municipal da ONG.</p>
@@ -227,32 +231,32 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         </div>
 
         <div class="flex items-center justify-between mt-8">
-            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-secondary transition">&rarr;</button>
+            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
         </div>
     </div>
 
-    <!-- ETAPA 6: TERMOS DE RESPONSABILIDADE -->
+    <!-- ETAPA 6: Termos -->
     <div class="etapa-form hidden" id="etapa-6">
         <div class="text-center mb-6">
-            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark">Termos de Responsabilidade</h1>
+            <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white">Termos de Responsabilidade</h1>
             <p class="text-sm text-text-muted">Confirme seus dados e envie para validação.</p>
         </div>
 
-        <div class="bg-branco border border-cinzaMarrom/30 rounded-xl p-4 mb-4 text-xs text-text-muted space-y-2 text-left max-h-48 overflow-y-auto">
-            <p>1. Declaro ser maior de 18 anos e possuir capacidade civil.</p>
-            <p>2. Concordo com a checagem da documentação pela equipe do CãoNectados.</p>
-            <p>3. Assumo responsabilidade sobre os dados e animais cadastrados.</p>
+        <div class="bg-surface dark:bg-preto2 border border-rosa-2 dark:border-preto3 rounded-xl p-4 mb-4 text-xs text-text-dark dark:text-white space-y-2 text-left max-h-48 overflow-y-auto">
+            <p><strong>1. Maioridade Civil:</strong> Declaro ser maior de 18 anos e possuir capacidade civil.</p>
+            <p><strong>2. Checagem de Dados:</strong> Concordo com a checagem da documentação pela equipe do CãoNectados.</p>
+            <p><strong>3. Responsabilidade:</strong> Assumo inteira responsabilidade sobre os dados e animais cadastrados.</p>
         </div>
 
-        <label class="flex items-center gap-3 p-3 bg-rosa-1/30 rounded-xl mb-6 text-left cursor-pointer">
+        <label class="flex items-center gap-3 p-3 bg-rosa-1/30 dark:bg-preto2 rounded-xl mb-6 text-left cursor-pointer border border-rosa-2 dark:border-preto3">
             <input type="checkbox" name="aceite_termos" id="aceite_termos" <?= $modoEdicao ? 'checked' : '' ?> class="w-5 h-5 rounded text-primary">
-            <span class="text-xs text-text-dark font-medium">Li e concordo com os termos de validação.</span>
+            <span class="text-xs text-text-dark dark:text-white font-medium">Li e concordo com os termos de validação.</span>
         </label>
 
         <div class="flex items-center justify-between mt-8">
-            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark underline">Voltar</button>
-            <button type="button" onclick="submeterFormularioProtetor()" class="btn-primario py-3 px-6 rounded-full font-bold shadow-md">
+            <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
+            <button type="button" onclick="submeterFormularioProtetor()" class="btn-primario py-3 px-6 rounded-full font-bold shadow-md cursor-pointer">
                 <?= $modoEdicao ? 'Reenviar Solicitação' : 'Finalizar Cadastro' ?>
             </button>
         </div>
@@ -261,21 +265,21 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
 <!-- MODAL CROPPER REUTILIZÁVEL -->
 <div id="modal-cropper" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 flex flex-col items-center shadow-2xl">
-        <h3 id="modal-cropper-titulo" class="font-shantell text-xl font-bold mb-1 text-gray-800">Ajustar Foto</h3>
-        <p class="text-xs text-gray-500 mb-4 text-center">Arraste e use o zoom para centralizar.</p>
+    <div class="bg-surface dark:bg-preto1 rounded-3xl max-w-md w-full p-6 flex flex-col items-center shadow-2xl border border-rosa-3">
+        <h3 id="modal-cropper-titulo" class="font-shantell text-xl font-bold mb-1 text-text-dark dark:text-white">Ajustar Foto</h3>
+        <p class="text-xs text-text-muted mb-4 text-center">Arraste e use o zoom para centralizar.</p>
         
-        <div class="w-full h-64 bg-gray-100 rounded-2xl overflow-hidden mb-4 flex items-center justify-center">
+        <div class="w-full h-64 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
             <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
         </div>
 
         <div class="flex gap-3 w-full">
-            <button type="button" onclick="fecharModalCropper()" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-300 transition">Cancelar</button>
+            <button type="button" onclick="fecharModalCropper()" class="flex-1 bg-cinzaMarrom/30 text-text-dark dark:text-white py-2.5 rounded-xl font-bold text-sm hover:opacity-80 transition">Cancelar</button>
             <button type="button" onclick="salvarRecorte()" class="flex-1 btn-primario py-2.5 rounded-xl font-bold text-sm">Aplicar</button>
         </div>
     </div>
 </div>
-<!-- SCRIPTS LOCAIS APENAS (Validacoes e Cropper vêm do footer.php) -->
+
 <script src="<?= URL_BASE ?>/assets/js/onboarding.js"></script>
 
 <?php if (!$modoEdicao): ?>
@@ -300,7 +304,6 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         const fileInput = event.target;
         if (fileInput.files && fileInput.files.length > 0) {
             const limiteMB = (alvo === 'perfil') ? 2 : 3;
-            // Usa o Validator que foi carregado GLOBALMENTE no footer.php
             if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, limiteMB)) {
                 mostrarModalFeedback('erro', `A imagem é muito grande. Escolha uma de até ${limiteMB}MB.`);
                 fileInput.value = '';
@@ -378,12 +381,11 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                 let docValido = false;
                 let msgErroEspecifica = "";
 
-                // VALIDAÇÃO MELHORADA COM FEEDBACK EXATO DO ERRO
                 if (tipoDoc === 'cnpj') {
                     if (docLimpo.length !== 14) {
                         msgErroEspecifica = "O CNPJ deve conter exatamente 14 números. Você digitou " + docLimpo.length + ".";
                     } else if (!CaonectadosValidator.isCnpjValido(docLimpo)) {
-                        msgErroEspecifica = "O CNPJ digitado é inválido (dígito verificador incorreto). Confira se os números estão corretos.";
+                        msgErroEspecifica = "O CNPJ digitado é inválido.";
                     } else {
                         docValido = true;
                     }
@@ -391,7 +393,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                     if (docLimpo.length !== 11) {
                         msgErroEspecifica = "O CPF deve conter exatamente 11 números. Você digitou " + docLimpo.length + ".";
                     } else if (!CaonectadosValidator.isCpfValido(docLimpo)) {
-                        msgErroEspecifica = "O CPF digitado é inválido (dígito verificador incorreto). Confira se os números estão corretos.";
+                        msgErroEspecifica = "O CPF digitado é inválido.";
                     } else {
                         docValido = true;
                     }
@@ -418,12 +420,6 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                         dataAbertura.focus();
                         return false;
                     }
-                    const hoje = new Date().toISOString().split('T')[0];
-                    if (dataAbertura.value > hoje) {
-                        mostrarModalFeedback('erro', "A data de abertura do CNPJ não pode ser futura.");
-                        dataAbertura.focus();
-                        return false;
-                    }
                 } else {
                     const dataNasc = document.getElementById('dt_nasc');
                     if (!dataNasc || !dataNasc.value) {
@@ -439,7 +435,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
                 const telefoneInput = document.getElementById('telefone');
                 if (!telefoneInput.value || !CaonectadosValidator.validarTelefone(telefoneInput.value)) {
-                    mostrarModalFeedback('erro', "O telefone informado é inválido ou está vazio. Certifique-se de incluir o DDD.");
+                    mostrarModalFeedback('erro', "O telefone informado é inválido ou está vazio.");
                     telefoneInput.focus();
                     return false;
                 }
@@ -483,14 +479,14 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
                 const insta = document.getElementById('instagram') ? document.getElementById('instagram').value.trim() : '';
                 if (insta !== '' && typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarLinkSocial(insta, 'instagram')) {
-                    mostrarModalFeedback('erro', "Informe um link válido do Instagram (Ex: instagram.com/sua_ong).");
+                    mostrarModalFeedback('erro', "Informe um link válido do Instagram.");
                     document.getElementById('instagram').focus();
                     return false;
                 }
 
                 const face = document.getElementById('facebook') ? document.getElementById('facebook').value.trim() : '';
                 if (face !== '' && typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarLinkSocial(face, 'facebook')) {
-                    mostrarModalFeedback('erro', "Informe um link válido do Facebook (Ex: facebook.com/sua_ong).");
+                    mostrarModalFeedback('erro', "Informe um link válido do Facebook.");
                     document.getElementById('facebook').focus();
                     return false;
                 }
@@ -580,4 +576,12 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         });
     });
 </script>
+
+<style>
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
+</style>
+
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

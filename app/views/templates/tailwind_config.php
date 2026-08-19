@@ -64,7 +64,7 @@
                     rosaClaro2:   'var(--color-rosaClaro2)',
                     roxinhoFofo:  'var(--color-roxinhoFofo)',
 
-                    // Cores suaves (Atenção: aqui estão as que estavam faltando!)
+                    // Cores suaves
                     roxo:         'var(--color-roxo)',
                     cinzaMarrom:  'var(--color-cinzaMarrom)',
                     roxo1:        'var(--color-roxo1)',
@@ -204,53 +204,6 @@
         .rotulo-link {
             @apply whitespace-nowrap font-poppins font-medium transition-opacity duration-200;
         }
-
-        /* Scrollbars */
-        #area-conteudo::-webkit-scrollbar {
-            width: 34px;
-        }
-        #area-conteudo::-webkit-scrollbar-track {
-            @apply bg-rosa-6 dark:bg-preto2;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            background-clip: padding-box;
-        }
-        #area-conteudo::-webkit-scrollbar-thumb {
-            @apply bg-roxo1 dark:bg-roxo1;
-            border-radius: 20px;
-            border: 12px solid transparent;
-            background-clip: padding-box;
-        }
-        #area-conteudo::-webkit-scrollbar-thumb:hover {
-            @apply bg-primary dark:bg-primary;
-        }
-        #area-conteudo::-webkit-scrollbar-button:single-button {
-            display: block;
-            height: 34px;
-            background-color: transparent;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-        }
-        #area-conteudo::-webkit-scrollbar-button:single-button:vertical:decrement {
-            background-image: url("<?= e(URL_BASE) ?>/assets/img/patinha-cima.png");
-        }
-        #area-conteudo::-webkit-scrollbar-button:single-button:vertical:increment {
-            background-image: url("<?= e(URL_BASE) ?>/assets/img/patinha-baixo.png");
-        }
-        #sidebar nav::-webkit-scrollbar {
-            width: 10px;
-        }
-        #sidebar nav::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #sidebar nav::-webkit-scrollbar-thumb {
-            @apply bg-white/20 dark:bg-white/10;
-            border-radius: 10px;
-        }
-        #sidebar nav::-webkit-scrollbar-thumb:hover {
-            @apply bg-white/40 dark:bg-roxo2;
-        }
     }
 </style>
 
@@ -259,7 +212,6 @@
 ============================================================= -->
 <style>
     :root {
-        /* Aliases semânticos */
         --color-primary: #4F4873;
         --color-secondary: #716C93;
         --color-accent: #FA5672;
@@ -268,7 +220,6 @@
         --color-text-dark: #2C2C2C;
         --color-text-muted: #9E9E9E;
 
-        /* Cores destaque */
         --color-rosa-1: #FBDBEB;
         --color-rosa-2: #F3ACBB;
         --color-rosa-3: #F6BFCE;
@@ -289,20 +240,17 @@
         --color-msgRespondida: #E9EBEE;
         --color-perfilChats: #21262E;
 
-        /* Cores claras */
         --color-branco: #FFFFFF;
         --color-brancoRosado: #FEF8FB;
         --color-rosaClaro: #FBDEED;
         --color-rosaClaro2: #FDEBF4;
         --color-roxinhoFofo: #E0D1FF;
 
-        /* Cores suaves */
         --color-roxo: #A8849B;
         --color-cinzaMarrom: #B4A4A4;
         --color-roxo1: #6C6494;
         --color-roxo2: #716C93;
 
-        /* Cores escuras */
         --color-preto: #000000;
         --color-preto1: #171415;
         --color-preto2: #2E282B;
@@ -312,7 +260,6 @@
         --color-roxoApagado: #CDB3C0;
         --color-rosaEscura: #E4C7D6;
 
-        /* Cores inversas */
         --color-verdeEscuro: #042414;
         --color-azul: #4DA3BA;
         --color-amarelo: #EEEFBD;
@@ -320,13 +267,11 @@
         --color-azulEscuro: #111042;
         --color-laranjaEscuro: #B25C45;
 
-        /* Modais (feedback) */
         --color-erro: #740704;
         --color-aviso: #F8AE00;
         --color-sucesso: #43A047;
         --color-informativo: #0F62CE;
 
-        /* Primitives */
         --color-corBarra: #505965;
         --color-cinza2: #2D2D2D;
         --color-cinza3: #3D3D3D;
@@ -340,7 +285,6 @@
         --color-text-dark: #FFFFFF;
         --color-text-muted: #d4d4d4;
 
-        /* Cores destaque */
         --color-rosa-1: #d18cae;
         --color-rosa-2: #ce687e;
         --color-rosa-3: #d38399;
@@ -361,20 +305,17 @@
         --color-msgRespondida: #1D1D1D;
         --color-perfilChats: #FFFFFF;
 
-        /* Cores claras */
         --color-branco: #6c6c6c;
         --color-brancoRosado: #fda7d2;
         --color-rosaClaro: #eb7eb4;
         --color-rosaClaro2: #ec5fa6;
         --color-roxinhoFofo: #a282e1;
 
-        /* Cores suaves */
         --color-roxo: #bd8dac;
         --color-cinzaMarrom: #b08484;
         --color-roxo1: #8b82b8;
         --color-roxo2: #8d87b8;
 
-        /* Cores escuras */
         --color-preto: #000000;
         --color-preto1: #171415;
         --color-preto2: #2E282B;
@@ -384,7 +325,6 @@
         --color-roxoApagado: #CDB3C0;
         --color-rosaEscura: #E4C7D6;
 
-        /* Cores inversas */
         --color-verdeEscuro: #042414;
         --color-azul: #4DA3BA;
         --color-amarelo: #EEEFBD;
@@ -398,5 +338,3 @@
         --color-informativo: #74c0fc;
     }
 </style>
-
-
