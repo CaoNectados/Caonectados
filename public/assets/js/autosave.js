@@ -6,9 +6,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search;
     const stepKey = storageKey + '_etapa';
 
-    // 1. RECUPERAÇÃO DOS CAMPOS
-    const savedData = sessionStorage.getItem(storageKey);
-    if (savedData) {
+    // Função auxiliar para restaurar valores salvos
+    function restaurarValoresFormulario() {
+        const savedData = sessionStorage.getItem(storageKey);
+        if (!savedData) return;
+
         try {
             const parsedData = JSON.parse(savedData);
             
@@ -21,6 +23,11 @@ document.addEventListener("DOMContentLoaded", function() {
                         if (savedValues.includes(element.value)) {
                             element.checked = true;
                         }
+                    } else if (element.tagName === 'SELECT') {
+                        // Define o valor do select
+                        element.value = parsedData[key];
+                        // Dispara o evento change para acionar dependências (ex: carregar raças ao restaurar espécie)
+                        element.dispatchEvent(new Event('change'));
                     } else if (element.type !== 'password' && element.type !== 'file') {
                         element.value = parsedData[key];
                     }
@@ -43,6 +50,25 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error("Erro ao restaurar dados salvos:", e);
         }
     }
+
+    // 1. Executa a restauração inicial
+    restaurarValoresFormulario();
+
+    // Especial para o cadastro de animais: Se a espécie já foi salva no autosave, aguarda um instante e força a seleção da raça salva
+    setTimeout(() => {
+        const savedData = sessionStorage.getItem(storageKey);
+        if (savedData) {
+            try {
+                const parsedData = JSON.parse(savedData);
+                if (parsedData['raca_id']) {
+                    const racaSelect = document.getElementById('raca_id');
+                    if (racaSelect) {
+                        racaSelect.value = parsedData['raca_id'];
+                    }
+                }
+            } catch (err) {}
+        }
+    }, 500);
 
     // 2. RECUPERAÇÃO DA ETAPA ATUAL
     const savedStep = sessionStorage.getItem(stepKey);
@@ -73,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function() {
         sessionStorage.setItem(storageKey, JSON.stringify(data));
     }
 
-    // Escuta tanto a digitação, quanto mudança e desfoque do input
+    // Escuta a digitação, mudanças em selects e desfoque
     form.addEventListener('input', salvarDados);
     form.addEventListener('change', salvarDados);
     form.addEventListener('focusout', salvarDados); 

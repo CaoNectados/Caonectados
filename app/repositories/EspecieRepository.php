@@ -26,15 +26,25 @@ class EspecieRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapEspecie($row), $dados);
     }
 
-    public function buscarPorId(int $id): ?Especie
+    public function listarAtivas(): array
     {
-        $sql = "SELECT * FROM ESPECIE WHERE especie_id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $sql = "SELECT especie_id, nome, ativo 
+                FROM ESPECIE 
+                WHERE ativo = 1 
+                ORDER BY nome ASC";
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-        return $row === false ? null : $this->mapEspecie($row);
+    public function buscarPorId(int $especieId): ?Especie
+    {
+        $sql = "SELECT * FROM ESPECIE WHERE especie_id = :id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $especieId, PDO::PARAM_INT);
+        $stmt->execute();
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $res ? $this->mapEspecie($res) : null;
     }
 
     public function buscarOuCriarPorNome(string $nome): Especie
@@ -141,11 +151,11 @@ class EspecieRepository extends BaseRepository
 
         return $especie;
     }
+
     public function buscarAtivas(): array
     {
         $sql = "SELECT especie_id, nome FROM ESPECIE WHERE ativo = 1 ORDER BY nome ASC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
 }

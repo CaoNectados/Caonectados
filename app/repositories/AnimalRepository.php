@@ -51,24 +51,26 @@ class AnimalRepository extends BaseRepository
     public function buscarPorId(int $id): ?Animal
     {
         $sql = "SELECT
-            animal_id,
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            criado_em,
-            deletado_em,
-            atualizado_em
-        FROM ANIMAL
-        WHERE animal_id = :animal_id";
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em,
+            rc.nome AS raca_nome
+        FROM ANIMAL a
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        WHERE a.animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -79,28 +81,77 @@ class AnimalRepository extends BaseRepository
         return $row === false ? null : $this->mapAnimal($row);
     }
 
+    public function listarComFiltros(string $tipoPerfil, int $protetorId, string $status = 'todos'): array
+    {
+        $sql = "SELECT
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em,
+            rc.nome AS raca_nome
+        FROM ANIMAL a
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        WHERE 1=1";
+
+        $params = [];
+
+        if ($tipoPerfil !== 'administrador') {
+            $sql .= " AND a.protetor_id = :protetor_id";
+            $params[':protetor_id'] = $protetorId;
+        }
+
+        if ($status !== 'todos' && !empty($status)) {
+            $sql .= " AND a.status = :status";
+            $params[':status'] = $status;
+        }
+
+        $sql .= " ORDER BY a.criado_em DESC";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
+    }
+
     public function listarAnimal(): array
     {
         $sql = "SELECT
-            animal_id,
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            criado_em,
-            deletado_em,
-            atualizado_em
-        FROM ANIMAL
-        WHERE deletado_em IS NULL
-        ORDER BY criado_em DESC";
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em,
+            rc.nome AS raca_nome
+        FROM ANIMAL a
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        ORDER BY a.criado_em DESC";
 
         $stmt = $this->db->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -131,7 +182,7 @@ class AnimalRepository extends BaseRepository
         $stmt->bindValue(':animal_id', $animal->getAnimalId(), PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->rowCount() > 0;
+        return $stmt->rowCount() >= 0;
     }
 
     public function alterarStatus(int $id, string $status): bool
@@ -148,7 +199,7 @@ class AnimalRepository extends BaseRepository
 
     public function excluirLogico(int $id): bool
     {
-        $sql = "UPDATE ANIMAL SET deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id AND deletado_em IS NULL";
+        $sql = "UPDATE ANIMAL SET status = 'desativado', deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -159,7 +210,7 @@ class AnimalRepository extends BaseRepository
 
     public function reativarAnimal(int $id): bool
     {
-        $sql = "UPDATE ANIMAL SET deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
+        $sql = "UPDATE ANIMAL SET status = 'disponivel', deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -171,25 +222,27 @@ class AnimalRepository extends BaseRepository
     public function buscarPorProtetor(int $protetorId): array
     {
         $sql = "SELECT
-            animal_id,
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            criado_em,
-            deletado_em,
-            atualizado_em
-        FROM ANIMAL
-        WHERE protetor_id = :protetor_id AND deletado_em IS NULL
-        ORDER BY criado_em DESC";
+            a.animal_id,
+            a.protetor_id,
+            a.raca_id,
+            a.nome,
+            a.dt_nasc,
+            a.sexo,
+            a.porte,
+            a.status,
+            a.descricao,
+            a.vacinado,
+            a.castrado,
+            a.comportamento,
+            a.historico_saude,
+            a.criado_em,
+            a.deletado_em,
+            a.atualizado_em,
+            rc.nome AS raca_nome
+        FROM ANIMAL a
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        WHERE a.protetor_id = :protetor_id
+        ORDER BY a.criado_em DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
@@ -198,50 +251,6 @@ class AnimalRepository extends BaseRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
-    }
-
-    public function verificarExistencia(int $id): bool
-    {
-        $sql = "SELECT 1 FROM ANIMAL WHERE animal_id = :animal_id LIMIT 1";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchColumn() !== false;
-    }
-
-    public function verificarExclusaoLogica(int $id): bool
-    {
-        $sql = "SELECT deletado_em FROM ANIMAL WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $deletedAt = $stmt->fetchColumn();
-
-        return $deletedAt !== false && $deletedAt !== null;
-    }
-
-    public function salvar(Animal $animal): int
-    {
-        return $this->cadastrarAnimal($animal);
-    }
-
-    public function listarTodos(): array
-    {
-        return $this->listarAnimal();
-    }
-
-    public function atualizar(Animal $animal): bool
-    {
-        return $this->editarAnimal($animal);
-    }
-
-    public function deletar(int $id): bool
-    {
-        return $this->excluirLogico($id);
     }
 
     private function bindAnimalValues(PDOStatement $stmt, Animal $animal): void
@@ -279,6 +288,10 @@ class AnimalRepository extends BaseRepository
         $animal->setCriadoEm($row['criado_em']);
         $animal->setDeletadoEm($row['deletado_em']);
         $animal->setAtualizadoEm($row['atualizado_em']);
+        
+        if (isset($row['raca_nome'])) {
+            $animal->setRacaNome($row['raca_nome']);
+        }
 
         return $animal;
     }

@@ -78,7 +78,6 @@ class AnimalService
     private function validarAnimal(Animal $animal): void
     {
         $this->validarNome($animal->getNome());
-        $this->validarDescricao($animal->getDescricao());
         $this->validarRaca($animal->getRacaId());
         $this->validarSexo($animal->getSexo());
         $this->validarPorte($animal->getPorte());
@@ -90,13 +89,6 @@ class AnimalService
     {
         if (trim((string) $nome) === '') {
             throw new InvalidArgumentException('O nome do animal é obrigatório.');
-        }
-    }
-
-    private function validarDescricao(?string $descricao): void
-    {
-        if (trim((string) $descricao) === '') {
-            throw new InvalidArgumentException('A descrição do animal é obrigatória.');
         }
     }
 
@@ -157,7 +149,7 @@ class AnimalService
 
         $usuarioId = $_SESSION['usuario_id'] ?? null;
         $protetorId = $_SESSION['protetor_id'] ?? null;
-        $tipoPerfil = $_SESSION['tipo_perfil'] ?? $_SESSION['tipo_perfil'] ?? null;
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? null;
 
         if ($usuarioId === null && $protetorId === null) {
             throw new InvalidArgumentException('Usuário não autenticado.');

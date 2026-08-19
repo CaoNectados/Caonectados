@@ -5,13 +5,13 @@ namespace app\services;
 use app\repositories\ProtetorRepository;
 use Exception;
 
-class ProtetorService
+class SolicitacaoService
 {
     private ProtetorRepository $protetorRepository;
 
-    public function __construct(ProtetorRepository $protetorRepository)
+    public function __construct(?ProtetorRepository $protetorRepository = null)
     {
-        $this->protetorRepository = $protetorRepository;
+        $this->protetorRepository = $protetorRepository ?? new ProtetorRepository();
     }
 
     public function listarSolicitacoes(string $status = 'pendentes', string $busca = ''): array
@@ -21,7 +21,8 @@ class ProtetorService
             $status = 'pendentes';
         }
 
-        return $this->protetorRepository->listarSolicitacoes($status, trim($busca));
+        $lista = $this->protetorRepository->listarSolicitacoes($status, trim($busca));
+        return array_map([$this, 'adicionarStatusFormatado'], $lista);
     }
 
     public function obterDetalhesSolicitacao(int $protetorId): ?array
@@ -30,7 +31,12 @@ class ProtetorService
             return null;
         }
 
-        return $this->protetorRepository->buscarDetalhesSolicitacao($protetorId);
+        $detalhes = $this->protetorRepository->buscarDetalhesSolicitacao($protetorId);
+        if (!$detalhes) {
+            return null;
+        }
+
+        return $this->adicionarStatusFormatado($detalhes);
     }
 
     public function aprovarSolicitacao(int $protetorId): bool
@@ -74,6 +80,7 @@ class ProtetorService
         $sucesso = $this->protetorRepository->recusarSolicitacao($protetorId);
 
         if ($sucesso && !empty($solicitacao['usuario_email'])) {
+            $_SESSION['motivo_recusa_protetor_' . $protetorId] = $motivo;
             try {
                 MailService::enviarNotificacaoRecusa(
                     $solicitacao['usuario_email'],
@@ -86,5 +93,18 @@ class ProtetorService
         }
 
         return $sucesso;
+    }
+
+    private function adicionarStatusFormatado(array $registro): array
+    {
+        if (!empty($registro['deletado_em'])) {
+            $registro['status'] = 'recusado';
+        } elseif (!empty($registro['validado'])) {
+            $registro['status'] = 'aprovado';
+        } else {
+            $registro['status'] = 'pendente';
+        }
+
+        return $registro;
     }
 }

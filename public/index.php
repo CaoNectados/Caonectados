@@ -94,11 +94,19 @@ $router->post('/redefinir-senha/processar', 'auth/AuthController@processarRedefi
 // Dashboard
 $router->get('/admin/dashboard', 'admin/DashboardController@index');
 
-// Solicitações de Cadastro
-$router->get('/admin/validacao-cadastros', 'admin/SolicitacaoController@index');
+// ==========================================
+// Solicitações de Cadastro (ONGs e Protetores)
+// ==========================================
+$router->get('/admin/solicitacoes', 'admin\SolicitacaoProtetorController@index');
+$router->get('/admin/solicitacoes/detalhes', 'admin\SolicitacaoProtetorController@detalhes');
+$router->post('/admin/solicitacoes/aprovar', 'admin\SolicitacaoProtetorController@aprovar');
+$router->post('/admin/solicitacoes/rejeitar', 'admin\SolicitacaoProtetorController@rejeitar');
 
 // Gerenciamento de Usuários
 $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
+$router->get('/admin/gerenciar-usuarios/editar', 'admin/UsuarioController@edit');
+$router->post('/admin/gerenciar-usuarios/atualizar', 'admin/UsuarioController@update');
+$router->post('/admin/gerenciar-usuarios/deletar', 'admin/UsuarioController@destroy');
 
 //Raças e especies
 $router->get('/admin/gerenciar-especies-racas', 'admin/RacaController@gerenciarEspeciesRacas');
@@ -115,7 +123,7 @@ $router->get('/admin/regiao/excluir', 'admin/RegiaoController@deleteView');
 $router->post('/admin/regiao/salvar', 'admin/RegiaoController@store');
 $router->post('/admin/regiao/atualizar', 'admin/RegiaoController@update');
 $router->post('/admin/regiao/deletar', 'admin/RegiaoController@destroy');
-
+$router->post('/admin/regiao/deletar-multiplos', 'admin/RegiaoController@deletarMultiplos');
 $router->get('/admin/regiao/json', 'admin/RegiaoController@buscarJson');
 
 // ==========================================
@@ -156,16 +164,45 @@ $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
 $router->get('/admin/usuarios/detalhes', 'admin/UsuarioController@detalhes');
 $router->post('/admin/usuarios/alterar-status', 'admin/UsuarioController@alterarStatusUsuario');
 $router->post('/admin/usuarios/alterar-status-perfil', 'admin/UsuarioController@alterarStatusPerfil');
+
 // ==========================================
 // ROTAS CRUD ANIMAL
 // ==========================================
+
+// ==========================================
+// ROTA PÚBLICA / COMPARTILHADA PARA AJAX DE RAÇAS
+// ==========================================
+$router->get('/raca/json', 'admin\RacaController@buscarJson');
+// ==========================================
+// ROTAS CRUD ANIMAL
+// ==========================================
+
+$router->get('/admin/usuarios/detalhes', 'admin/UsuarioController@detalhes');
+$router->post('/admin/usuarios/alterar-status', 'admin/UsuarioController@alterarStatusUsuario');
+$router->post('/admin/usuarios/alterar-status-perfil', 'admin/UsuarioController@alterarStatusPerfil');
 $router->get('/animal', 'animal/AnimalController@index');
+$router->get('/gerenciar-animais', 'animal/AnimalController@index');
 $router->get('/animal/mostrar', 'animal/AnimalController@show');
 $router->post('/animal', 'animal/AnimalController@store');
 $router->post('/animal/editar', 'animal/AnimalController@update');
 $router->post('/animal/status', 'animal/AnimalController@status');
 $router->post('/animal/reativar', 'animal/AnimalController@reativar');
 $router->post('/animal/excluir', 'animal/AnimalController@destroy');
+$router->get('/animal/cadastrar', 'animal/AnimalController@create');
+$router->get('/animal/editar', 'animal/AnimalController@edit');
+
+
+// Rotas de exclusão (GET para mostrar a tela de confirmação, POST para efetivar)
+$router->get('/animal/excluir', 'animal/AnimalController@deleteView');
+$router->post('/animal/excluir', 'animal/AnimalController@destroy');
+$router->get('/animal/cadastrar', 'animal/AnimalController@create');
+$router->get('/animal/editar', 'animal/AnimalController@edit');
+
+
+// ==========================================
+// ALTERNAR PERFIL
+// ==========================================
+$router->post('/perfil/trocar', 'geral/PerfilController@alternar');
 
 $router->run();
 

@@ -3,7 +3,7 @@
 namespace app\core;
 
 use RuntimeException;
-
+use app\repositories\UsuarioRepository;
 class Controller
 {
     public function view(string $view, ?array $data = null): void
@@ -77,15 +77,23 @@ class Controller
             }
         }
 
-        // Se for ONG/Protetor e não estiver validado (0)
+       // Se for ONG/Protetor e não estiver validado (0)
         if (in_array($tipoUsuario, ['ong', 'protetor'], true) && ($validado === false || $validado === 0 || $validado === '0')) {
             
-            // As únicas rotas que um protetor PENDENTE pode acessar quando está logado:
             $rotasLivres = [
                 '/', 
                 '/home', 
                 '/aguardando-aprovacao', 
                 '/onboarding/aguardando-aprovacao', 
+                '/onboarding',
+                '/onboarding/ong',
+                '/onboarding/protetor',
+                '/onboarding/salvar-protetor',
+                '/onboarding/especies-ativas',
+                '/perfil',
+                '/perfil/trocar',
+                '/raca/json',
+                '/admin/raca/json',
                 '/logout'
             ];
 
@@ -111,5 +119,29 @@ class Controller
         ];
 
         $this->redirect($rota);
+    }
+
+
+    public function exigirLogin(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION['usuario']) || empty($_SESSION['usuario']['id'])) {
+            $this->redirect('/login');
+        }
+
+        // Validação em tempo de execução: expulsa usuário se desativado após login
+        $repo = new UsuarioRepository();
+        $usuario = $repo->buscarPorId((int)$_SESSION['usuario']['id']);
+
+        if (!$usuario || (int)$usuario['ativo'] !== 1) {
+            unset($_SESSION['usuario'], $_SESSION['perfis'], $_SESSION['perfil_ativo']);
+            session_destroy();
+            session_start();
+            $_SESSION['flash_error'] = 'Sua conta foi desativada durante a sessão.';
+            $this->redirect('/login');
+        }
     }
 }

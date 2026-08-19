@@ -21,23 +21,22 @@ CREATE TABLE IF NOT EXISTS ESPECIE (
 CREATE TABLE IF NOT EXISTS USUARIO (
     usuario_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     regiao_id INT UNSIGNED NULL,
-    regiao_id INT UNSIGNED NULL,
     logradouro TEXT NULL,
     numero VARCHAR(20) NULL,
     telefone VARCHAR(20) NULL DEFAULT NULL,
     senha VARCHAR(255) NOT NULL,
 
--- TIPO ATUAL: O perfil ativo na sessão no momento (ENUM = escolhe 1 por vez)
-tipo_atual ENUM(
-    'usuario',
-    'adotante',
-    'protetor',
-    'ong',
-    'administrador'
-) NOT NULL DEFAULT 'usuario',
+    -- TIPO ATUAL: O perfil ativo na sessão no momento (ENUM = escolhe 1 por vez)
+    tipo_atual ENUM(
+        'usuario',
+        'adotante',
+        'protetor',
+        'ong',
+        'administrador'
+    ) NOT NULL DEFAULT 'usuario',
 
--- PERFIS ATIVOS: Permite ter MULTIPLOS perfis vinculados ao mesmo usuario (SET)
-perfis_ativos SET(
+    -- PERFIS ATIVOS: Permite ter MULTIPLOS perfis vinculados ao mesmo usuario (SET)
+    perfis_ativos SET(
         'usuario',
         'adotante',
         'protetor',
@@ -358,28 +357,84 @@ CREATE TABLE IF NOT EXISTS LOG_SISTEMA (
     ip_usuario VARCHAR(45) NOT NULL,
     CONSTRAINT fk_log_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 -- ===========================================
--- USUÁRIO ADMINISTRADOR
+-- USUÁRIO ADMINISTRADOR COM MULTIPERFIS
 -- ===========================================
-INSERT INTO
-    USUARIO (
-        telefone,
-        senha,
-        tipo_atual,
-        perfis_ativos,
-        status_conta,
-        email,
-        nome
-    )
-VALUES (
-        '45900000000',
-        '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
-        'administrador',
-        'administrador',
-        'ativo',
-        'caonectados2026@gmail.com',
-        'Admin CãoNectados'
-    );
+INSERT INTO USUARIO (
+    usuario_id,
+    regiao_id,
+    logradouro,
+    numero,
+    telefone,
+    senha,
+    tipo_atual,
+    perfis_ativos,
+    status_conta,
+    email,
+    nome
+) VALUES (
+    1,
+    NULL, -- CORRIGIDO: Passando NULL para evitar erro de chave estrangeira
+    'Av. Brasil',
+    '1000',
+    '45900000000',
+    '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
+    'administrador',
+    'adotante,protetor,ong,administrador',
+    'ativo',
+    'caonectados2026@gmail.com',
+    'Admin CãoNectados'
+);
+
+-- PERFIL ADOTANTE PARA O ADMIN (Monitoramento e Testes)
+INSERT INTO ADOTANTE (
+    adotante_id,
+    usuario_id,
+    tipo_moradia,
+    tamanho_interno_moradia,
+    descricao,
+    detalhes
+) VALUES (
+    1,
+    1,
+    'casa',
+    'grande',
+    'Perfil Adotante do Administrador para Testes e Monitoramento',
+    '{"possui_criancas":"nao","possui_outros_pets":"sim","espaco_externo":"grande"}'
+);
+
+-- PERFIL PROTETOR / ONG PARA O ADMIN (Monitoramento e Testes)
+INSERT INTO PROTETOR (
+    protetor_id,
+    usuario_id,
+    validado,
+    codigo_documento,
+    tipo_documento,
+    nome_fantasia,
+    data_validacao
+) VALUES (
+    1,
+    1,
+    TRUE,
+    '00000000000191',
+    'cnpj',
+    'ONG Administrativa CãoNectados',
+    CURRENT_TIMESTAMP
+);
+
+-- PÁGINA INSTITUCIONAL DA ONG/PROTETOR ADMIN
+INSERT INTO PAGINA (
+    pagina_id,
+    protetor_id,
+    descricao,
+    chave_pix
+) VALUES (
+    1,
+    1,
+    'Página de testes e monitoramento institucional da ONG do Admin',
+    'admin@caonectados.com.br'
+);
 
 INSERT INTO
     REGIAO (nome_regiao)

@@ -1,10 +1,9 @@
 <?php require_once __DIR__ . '/../templates/header.php'; 
-/** @var \app\models\Especie $especie */
-$especie = $especie ?? new \app\models\Especie();
+
 ?>
 
 <main class="mx-auto max-w-md p-4 sm:p-6 min-h-[80vh] flex flex-col justify-center">
-    <div class="card-destaque text-center shadow-xl rounded-2xl border border-rosa-3 bg-rosa-1 dark:bg-preto2 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition duration-200 p-6 sm:p-8">
+    <div class="card-destaque text-center shadow-xl border border-rosa-2/60 bg-surface dark:bg-surface p-6 sm:p-8 rounded-2xl">
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-rosaAlerta/20 text-3xl">
             ⚠️
         </div>
@@ -21,10 +20,10 @@ $especie = $especie ?? new \app\models\Especie();
         </div>
 
         <form action="<?= URL_BASE ?>/admin/especie/deletar?id=<?= $especie->getId(); ?>" method="POST" class="space-y-3">
-            <button type="submit" class="btn-acao w-full hover:bg-rosa-2 hover:text-text-dark transition">
+            <button type="submit" class="btn-acao w-full hover:bg-erro transition">
                 Sim, Confirmar Exclusão
             </button>
-            <a href="<?= URL_BASE ?>/admin/especie" class="btn-secundario w-full text-center block bg-white dark:bg-preto1 hover:bg-cinzaMarrom/10 dark:hover:bg-preto3 text-text-dark dark:text-white border-cinzaMarrom transition">
+            <a href="<?= URL_BASE ?>/admin/especie" class="btn-secundario w-full text-center block bg-white dark:bg-preto2 hover:bg-cinzaMarrom/10 dark:hover:bg-preto3 text-text-dark dark:text-white border-cinzaMarrom">
                 ⬅️ Cancelar
             </a>
         </form>

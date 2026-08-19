@@ -9,20 +9,26 @@ use PDO;
 
 class RacaRepository extends BaseRepository
 {
-    public function buscarTodas(): array
-    {
-        $sql = "SELECT raca_id, especie_id, nome FROM RACA ORDER BY nome ASC";
-        $stmt = $this->db->query($sql);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     public function buscarPorEspecie(int $especieId): array
     {
-        $sql = "SELECT raca_id, especie_id, nome FROM RACA WHERE especie_id = :especie_id ORDER BY nome ASC";
+        $sql = "SELECT raca_id, especie_id, nome, ativo 
+                FROM RACA 
+                WHERE especie_id = :especie_id 
+                  AND ativo = TRUE 
+                ORDER BY nome ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':especie_id', $especieId, PDO::PARAM_INT);
         $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function buscarTodas(): array
+    {
+        $sql = "SELECT raca_id, especie_id, nome, ativo 
+                FROM RACA 
+                WHERE ativo = TRUE 
+                ORDER BY nome ASC";
+        $stmt = $this->db->query($sql);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -49,15 +55,10 @@ class RacaRepository extends BaseRepository
 
     public function buscarPorId(int $id): ?Raca
     {
-        $sql = "SELECT r.*, e.nome AS especie_nome 
-            FROM RACA r 
-            INNER JOIN ESPECIE e ON r.especie_id = e.especie_id 
-            WHERE r.raca_id = :id";
-
+        $sql = "SELECT * FROM RACA WHERE raca_id = :id";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
-
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row === false ? null : $this->mapRaca($row);
@@ -106,11 +107,31 @@ class RacaRepository extends BaseRepository
 
     public function reativar(int $id): bool
     {
-        $sql = "UPDATE RACA SET ativo = TRUE WHERE raca_id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        try {
+            $this->db->beginTransaction();
 
-        return $stmt->execute();
+            // Ativa a raça
+            $sql = "UPDATE RACA SET ativo = TRUE WHERE raca_id = :id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Ativa obrigatoriamente a espécie vinculada caso esteja inativa
+            $sqlEspecie = "UPDATE ESPECIE e 
+                           INNER JOIN RACA r ON e.especie_id = r.especie_id 
+                           SET e.ativo = TRUE 
+                           WHERE r.raca_id = :id";
+            $stmtEsp = $this->db->prepare($sqlEspecie);
+            $stmtEsp->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmtEsp->execute();
+
+            return $this->db->commit();
+        } catch (\PDOException $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            return false;
+        }
     }
 
     private function mapRaca(array $row): Raca

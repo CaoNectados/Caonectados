@@ -213,21 +213,31 @@ class UsuarioRepository extends BaseRepository
         $stmt->execute();
     }
 
-   /**
-     * Lista usuários com paginação e filtros de busca
+  /**
+     * Lista usuários com paginação, filtros e busca dinâmica de foto
      */
-    public function listarUsuariosAdmin(string $busca = '', string $filtroStatus = '', string $filtroPerfil = '', int $pagina = 1, int $porPagina = 10): array
+   public function listarUsuariosAdmin(string $busca = '', string $filtroStatus = '', string $filtroPerfil = '', int $pagina = 1, int $porPagina = 10): array
     {
         $offset = ($pagina - 1) * $porPagina;
         $sql = "SELECT u.usuario_id, u.nome, u.email, u.telefone, u.status_conta, u.tipo_atual, u.perfis_ativos, u.criado_em,
-                       (SELECT COUNT(*) FROM adotante t WHERE t.usuario_id = u.usuario_id) as tem_adotante,
-                       (SELECT p.tipo_documento FROM protetor p WHERE p.usuario_id = u.usuario_id LIMIT 1) as tipo_protetor
-                FROM usuario u
+                       (SELECT COUNT(*) FROM ADOTANTE t WHERE t.usuario_id = u.usuario_id) as tem_adotante,
+                       (SELECT pr.tipo_documento FROM PROTETOR pr WHERE pr.usuario_id = u.usuario_id LIMIT 1) as tipo_protetor,
+                       COALESCE(
+                           (SELECT pg.foto_perfil 
+                              FROM PROTETOR pr 
+                              INNER JOIN PAGINA pg ON pr.protetor_id = pg.protetor_id 
+                             WHERE pr.usuario_id = u.usuario_id 
+                             LIMIT 1),
+                           (SELECT a.foto_perfil 
+                              FROM ADOTANTE a 
+                             WHERE a.usuario_id = u.usuario_id 
+                             LIMIT 1)
+                       ) AS foto_perfil
+                FROM USUARIO u
                 WHERE 1=1";
         
         $params = [];
 
-        // CORREÇÃO: Parâmetros de busca separados para Nome e E-mail
         if (!empty($busca)) {
             $sql .= " AND (u.nome LIKE :busca_nome OR u.email LIKE :busca_email)";
             $params[':busca_nome'] = "%{$busca}%";
@@ -260,7 +270,6 @@ class UsuarioRepository extends BaseRepository
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-
     /**
      * Conta o total de usuários (para a paginação)
      */

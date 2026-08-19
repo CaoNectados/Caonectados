@@ -3,6 +3,7 @@
 namespace app\controllers\geral;
 
 use app\core\Controller;
+use app\database\ConnectionFactory;
 use app\repositories\UsuarioRepository;
 use app\repositories\RegiaoRepository;
 use app\repositories\AdotanteRepository;
@@ -19,6 +20,8 @@ class PerfilController extends Controller
     private PerfilService $perfilService;
     private UsuarioRepository $usuarioRepo;
     private RegiaoRepository $regiaoRepo;
+    private EspecieRepository $especieRepo;
+    private ProtetorRepository $protetorRepo;
 
     public function __construct()
     {
@@ -26,6 +29,8 @@ class PerfilController extends Controller
         $this->perfilService = new PerfilService();
         $this->usuarioRepo = new UsuarioRepository();
         $this->regiaoRepo = new RegiaoRepository();
+        $this->especieRepo = new EspecieRepository();
+        $this->protetorRepo = new ProtetorRepository();
     }
 
     public function index(): void
@@ -39,9 +44,8 @@ class PerfilController extends Controller
             $adotante = $adotanteRepo->buscarPorUsuarioId($usuarioId);
             $fotoPerfil = $adotante['foto_perfil'] ?? null;
         } elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
-            $protetorRepo = new ProtetorRepository();
             $paginaRepo = new PaginaRepository();
-            $protetor = $protetorRepo->buscarPorUsuarioId($usuarioId);
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($protetor) {
                 $pagina = $paginaRepo->buscarPorProtetorId((int)$protetor['protetor_id']);
                 $fotoPerfil = $pagina['foto_perfil'] ?? null;
@@ -74,33 +78,32 @@ class PerfilController extends Controller
 
         $dadosEspecificos = [];
         $redes = [];
+        $especiesAtivas = $this->especieRepo->listarAtivas();
 
-        if ($tipoPerfil === 'adotante') {
+        if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
             $adotanteRepo = new AdotanteRepository();
             $dadosEspecificos = $adotanteRepo->buscarPorUsuarioId($usuarioId) ?? [];
-            
-            // Busca as espécies para exibir nos checkboxes de preferência
-            // Certifique-se de ter importado: use app\repositories\EspecieRepository; no topo do controller
-            $especies = [];
-            if (class_exists('app\repositories\EspecieRepository')) {
-                $especieRepo = new \app\repositories\EspecieRepository();
-                $especies = $especieRepo->buscarTodas();
-            }
 
-            // Descompacta as preferências avançadas salvas no JSON
-            $detalhes = json_decode($dadosEspecificos['detalhes'] ?? '{}', true);
+            $detalhes = json_decode($dadosEspecificos['detalhes'] ?? '{}', true) ?: [];
+            
+            // Converte preferências salvas para strings para bater com os values do HTML
+            $prefEspecies = array_map('strval', $detalhes['preferencias_especie'] ?? []);
+            $prefPorte    = $detalhes['preferencias_porte'] ?? [];
+            $prefSexo     = $detalhes['preferencias_sexo'] ?? [];
+            $prefRacas    = array_map('strval', $detalhes['preferencias_raca'] ?? []);
+
             $dadosEspecificos['possui_criancas']      = $detalhes['possui_criancas'] ?? 'nao';
             $dadosEspecificos['possui_outros_pets']   = $detalhes['possui_outros_pets'] ?? 'nao';
             $dadosEspecificos['espaco_externo']       = $detalhes['espaco_externo'] ?? '';
-            $dadosEspecificos['preferencias_especie'] = $detalhes['preferencias_especie'] ?? [];
-            $dadosEspecificos['preferencias_porte']   = $detalhes['preferencias_porte'] ?? [];
-            $dadosEspecificos['preferencias_sexo']    = $detalhes['preferencias_sexo'] ?? [];
+            $dadosEspecificos['preferencias_especie'] = $prefEspecies;
+            $dadosEspecificos['preferencias_porte']   = $prefPorte;
+            $dadosEspecificos['preferencias_sexo']    = $prefSexo;
+            $dadosEspecificos['preferencias_raca']    = $prefRacas;
         } elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
-            $protetorRepo = new ProtetorRepository();
             $paginaRepo = new PaginaRepository();
             $redeRepo = new RedeRepository();
 
-            $protetor = $protetorRepo->buscarPorUsuarioId($usuarioId);
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($protetor) {
                 $protetorId = (int)$protetor['protetor_id'];
                 $dadosEspecificos = $protetor;
@@ -120,11 +123,7 @@ class PerfilController extends Controller
         $emailCompleto = $usuario['email'] ?? '';
         $partes = explode('@', $emailCompleto);
         $emailMascarado = strlen($partes[0]) > 2 ? substr($partes[0], 0, 2) . '***@' . $partes[1] : $emailCompleto;
-        $especies = [];
-      
-        $especieRepo = new \app\repositories\EspecieRepository();
-         $especies = $especieRepo->buscarTodas();
-        
+
         $this->view('perfil/editar', [
             'titulo'         => 'Editar Perfil',
             'usuario'        => $usuario,
@@ -134,7 +133,7 @@ class PerfilController extends Controller
             'redes'          => $redes,
             'tipoPerfil'     => $tipoPerfil,
             'emailMascarado' => $emailMascarado,
-            'especies'       => $especies 
+            'especies'       => $especiesAtivas
         ]);
     }
 
@@ -338,5 +337,42 @@ class PerfilController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
-}
 
+    public function alternar(): void
+    {
+        $tipo = strtolower(trim($_POST['tipo'] ?? ''));
+        $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
+
+        if (!in_array($tipo, $perfisAtivos, true)) {
+            $this->redirecionarComMensagem('erro', 'Perfil inválido ou não disponível para sua conta.', '/perfil');
+            return;
+        }
+
+        $usuarioId = (int)$_SESSION['usuario_id'];
+        $db = ConnectionFactory::getConnection();
+
+        // Persiste o tipo_atual no banco
+        $stmt = $db->prepare("UPDATE USUARIO SET tipo_atual = :tipo WHERE usuario_id = :id");
+        $stmt->bindValue(':tipo', $tipo);
+        $stmt->bindValue(':id', $usuarioId, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        // Atualiza a sessão
+        $_SESSION['tipo_perfil'] = $tipo;
+        $_SESSION['perfil_ativo'] = [
+            'id'   => $usuarioId,
+            'tipo' => $tipo
+        ];
+
+        // Sincroniza status do protetor
+        if (in_array($tipo, ['ong', 'protetor'], true)) {
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            $_SESSION['protetor_id'] = $protetor ? (int)$protetor['protetor_id'] : 0;
+            $_SESSION['validado'] = $protetor ? (bool)$protetor['validado'] : false;
+        } else {
+            $_SESSION['validado'] = true;
+        }
+
+        $this->redirecionarComMensagem('sucesso', 'Perfil alternado para ' . ucfirst($tipo) . ' com sucesso!', '/perfil');
+    }
+}

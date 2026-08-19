@@ -43,10 +43,8 @@ class PerfilService
         try {
             $conexao->beginTransaction();
 
-            // 1. Atualiza dados globais na tabela USUARIO
             $this->usuarioRepo->atualizarDadosPerfil($usuarioId, trim($dados['nome']), $telefoneLimpo, $regiaoId, $logradouro, $numero);
 
-            // 2. Processa Imagem de Perfil Recortada (via UploadService adaptado para Base64)
             $caminhoFoto = null;
             if (!empty($dados['foto_cortada'])) {
                 $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
@@ -54,21 +52,34 @@ class PerfilService
                 $caminhoFoto = $this->salvarBase64ViaUploadService($dados['foto_cortada'], $uploadService);
             }
 
-            $revalidarDocumento = false;
-
-            // 3. Atualização para perfil ADOTANTE / USUÁRIO
             if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
                 $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
 
-                if ($caminhoFoto && !empty($adotanteAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($adotanteAtual['foto_perfil']);
+                // Normaliza espécies selecionadas sanitizando os IDs numéricos
+                $especiesLimpos = [];
+                if (!empty($dados['preferencias_especie']) && is_array($dados['preferencias_especie'])) {
+                    foreach ($dados['preferencias_especie'] as $espId) {
+                        if (is_numeric($espId)) {
+                            $especiesLimpos[] = (int)$espId;
+                        }
+                    }
+                }
+
+                $racasLimpos = [];
+                if (!empty($dados['preferencias_raca']) && is_array($dados['preferencias_raca'])) {
+                    foreach ($dados['preferencias_raca'] as $racaId) {
+                        if (is_numeric($racaId)) {
+                            $racasLimpos[] = (int)$racaId;
+                        }
+                    }
                 }
 
                 $detalhesJson = json_encode([
                     'possui_criancas'      => $dados['possui_criancas'] ?? 'nao',
                     'possui_outros_pets'   => $dados['possui_outros_pets'] ?? 'nao',
                     'espaco_externo'       => $dados['espaco_externo'] ?? '',
-                    'preferencias_especie' => $dados['preferencias_especie'] ?? [],
+                    'preferencias_especie' => array_values(array_unique($especiesLimpos)),
+                    'preferencias_raca'    => array_values(array_unique($racasLimpos)),
                     'preferencias_porte'   => $dados['preferencias_porte'] ?? [],
                     'preferencias_sexo'    => $dados['preferencias_sexo'] ?? []
                 ]);
@@ -81,89 +92,9 @@ class PerfilService
                     $caminhoFoto ?? ($adotanteAtual['foto_perfil'] ?? null)
                 );
             }
-            // 4. Atualização para PROTETOR / ONG
-            elseif (in_array($tipoPerfilSessao, ['ong', 'protetor'], true)) {
-                $protetorAtual = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
-                if (!$protetorAtual) {
-                    throw new Exception("Perfil de protetor não encontrado.");
-                }
-
-                $protetorId = (int)$protetorAtual['protetor_id'];
-                $nomeFantasia = trim($dados['nome_fantasia'] ?? $dados['nome']);
-
-                $codigoDocAntigo = preg_replace('/[^0-9]/', '', (string)$protetorAtual['codigo_documento']);
-                $codigoDocNovo = preg_replace('/[^0-9]/', '', (string)($dados['codigo_documento'] ?? ''));
-
-                if (empty($codigoDocNovo)) {
-                    $codigoDocNovo = $codigoDocAntigo;
-                }
-
-                if ($tipoPerfilSessao === 'ong') {
-                    if (strlen($codigoDocNovo) !== 14 || !ValidationService::validarCnpj($codigoDocNovo)) {
-                        throw new Exception("ONGs devem informar obrigatoriamente um CNPJ válido com 14 dígitos.");
-                    }
-                } elseif ($tipoPerfilSessao === 'protetor') {
-                    if (strlen($codigoDocNovo) !== 11 || !ValidationService::validarCpf($codigoDocNovo)) {
-                        throw new Exception("Protetores independentes devem informar obrigatoriamente um CPF válido com 11 dígitos.");
-                    }
-                }
-
-                if (!empty($dados['instagram']) && !ValidationService::validarLinkRedeSocial($dados['instagram'], 'instagram')) {
-                    throw new Exception("O link do Instagram informado é inválido.");
-                }
-
-                if (!empty($dados['facebook']) && !ValidationService::validarLinkRedeSocial($dados['facebook'], 'facebook')) {
-                    throw new Exception("O link do Facebook informado é inválido.");
-                }
-
-                if (!empty($dados['chave_pix']) && !ValidationService::validarChavePix($dados['chave_pix'])) {
-                    throw new Exception("A chave PIX informada é inválida.");
-                }
-
-                $comprovanteCaminho = $protetorAtual['comprovante_documento'];
-
-                if ($codigoDocNovo !== $codigoDocAntigo) {
-                    $revalidarDocumento = true;
-                }
-
-                // Utiliza o UploadService para o comprovante
-                if (isset($arquivos['comprovante_documento']) && $arquivos['comprovante_documento']['error'] === UPLOAD_ERR_OK) {
-                    if (!empty($protetorAtual['comprovante_documento'])) {
-                        $this->removerArquivoAntigo($protetorAtual['comprovante_documento']);
-                    }
-
-                    $uploadService = new UploadService('uploads/comprovantes');
-                    $comprovanteCaminho = $uploadService->salvar($arquivos['comprovante_documento'], 'comprovante');
-                    $revalidarDocumento = true;
-                }
-
-                $this->protetorRepo->atualizarDadosProtetor($protetorId, $nomeFantasia, $codigoDocNovo, $comprovanteCaminho, $revalidarDocumento);
-
-                $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
-
-                if ($caminhoFoto && !empty($paginaAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($paginaAtual['foto_perfil']);
-                }
-
-                $this->paginaRepo->atualizarPagina(
-                    $protetorId,
-                    $dados['descricao'] ?? ($paginaAtual['descricao'] ?? null),
-                    $dados['chave_pix'] ?? null,
-                    $caminhoFoto ?? ($paginaAtual['foto_perfil'] ?? null)
-                );
-
-                $this->redeRepo->sincronizarRedes($protetorId, $dados['instagram'] ?? null, $dados['facebook'] ?? null);
-            }
 
             $conexao->commit();
-
-            if ($revalidarDocumento) {
-                $_SESSION['validado'] = false;
-                return 'Perfil atualizado! Como houve alteração de documento/comprovante, seu perfil passará por uma nova aprovação.';
-            }
-
             return 'Perfil atualizado com sucesso!';
-
         } catch (Exception $e) {
             $conexao->rollBack();
             throw $e;
@@ -265,6 +196,48 @@ class PerfilService
         if (file_exists($caminhoAbsoluto) && is_file($caminhoAbsoluto)) {
             @unlink($caminhoAbsoluto);
         }
+    }
+
+
+    public function obterPerfisAtivos(int $usuarioId): array
+    {
+        $perfis = [];
+
+        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+        if ($adotante && strtolower($adotante['status']) === 'ativo') {
+            $perfis[] = [
+                'tipo' => 'adotante',
+                'id' => (int)$adotante['id'],
+                'nome' => $adotante['nome'] ?? 'Adotante',
+                'status' => 'ativo'
+            ];
+        }
+
+        $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+        if ($protetor && strtolower($protetor['status']) === 'ativo') {
+            $perfis[] = [
+                'tipo' => 'protetor',
+                'id' => (int)$protetor['id'],
+                'nome' => $protetor['nome'] ?? 'Protetor',
+                'status' => 'ativo'
+            ];
+        }
+
+        return $perfis;
+    }
+
+    public function trocarPerfil(int $usuarioId, string $tipo, int $perfilId): bool
+    {
+        $perfisValidos = $this->obterPerfisAtivos($usuarioId);
+
+        foreach ($perfisValidos as $perfil) {
+            if ($perfil['tipo'] === $tipo && (int)$perfil['id'] === $perfilId) {
+                $_SESSION['perfil_ativo'] = $perfil;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

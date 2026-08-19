@@ -3,6 +3,7 @@ namespace app\services;
 
 use app\models\Usuario;
 use app\repositories\UsuarioRepository;
+use app\repositories\ProtetorRepository;
 use Exception;
 
 class AuthService
@@ -23,9 +24,12 @@ class AuthService
         }
 
         $statusConta = strtolower((string)$usuario->getStatusConta());
+        if (in_array($statusConta, ['inativo', 'bloqueado', 'rejeitado', 'bloqueada', 'desativado'], true)) {
+            throw new Exception("Esta conta foi desativada pelo administrador. Entre em contato com o suporte.");
+        }
 
-        if (in_array($statusConta, ['bloqueado', 'inativo', 'rejeitado', 'bloqueada'], true)) {
-            throw new Exception("Sua conta está inativa ou bloqueada. Entre em contato com o suporte.");
+        if ($usuario->getDeletadoEm() !== null) {
+            throw new Exception("Esta conta foi excluída e não pode ser acessada.");
         }
 
         return $usuario;
@@ -42,6 +46,7 @@ class AuthService
         $usuario->setSenha(password_hash($senha, PASSWORD_BCRYPT));
         $usuario->setTipoAtual($tipoPerfil);
         $usuario->setPerfisAtivos($tipoPerfil);
+        $usuario->setStatusConta('ativo');
 
         return $this->usuarioRepo->salvarNovoUsuario($usuario);
     }
@@ -56,7 +61,6 @@ class AuthService
 
             $this->usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
 
-            // CORREÇÃO: Captura o resultado do envio de e-mail e lança exceção se falhar
             $enviado = MailService::enviarCodigoVerificacao($usuario->getEmail(), $usuario->getNome(), $codigo, 'redefinir_senha');
             if (!$enviado) {
                 throw new Exception("Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.");
@@ -114,43 +118,82 @@ class AuthService
 
     public function iniciarSessao(Usuario $usuario): void
     {
-       if (in_array($usuario->getTipoAtual(), ['ong', 'protetor'])) {
-            $protetorRepo = new \app\repositories\ProtetorRepository();
-            $protetor = $protetorRepo->buscarPorUsuarioId($usuario->getUsuarioId());
-            
-            if ($protetor) {
-                // Suporta array associativo ou objeto
-                $isValid = is_array($protetor) 
-                    ? ($protetor['validado'] ?? false) 
-                    : (method_exists($protetor, 'getValidado') ? $protetor->getValidado() : false);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
-                $_SESSION['validado'] = (bool)$isValid;
-            } else {
-                $_SESSION['validado'] = false;
-            }
+        $protetorRepo = new ProtetorRepository();
+        $protetor = $protetorRepo->buscarPorUsuarioId($usuario->getUsuarioId());
+
+        if ($protetor) {
+            $isValid = is_array($protetor) 
+                ? ($protetor['validado'] ?? false) 
+                : (method_exists($protetor, 'getValidado') ? $protetor->getValidado() : false);
+
+            $_SESSION['validado'] = (bool)$isValid;
+            $_SESSION['protetor_id'] = is_array($protetor) ? (int)$protetor['protetor_id'] : $protetor->getProtetorId();
         } else {
-            $_SESSION['validado'] = true;
+            $_SESSION['validado'] = ($usuario->getTipoAtual() === 'administrador');
+            $_SESSION['protetor_id'] = null;
         }
 
         session_regenerate_id(true);
 
         $tipoAtual = strtolower((string)($usuario->getTipoAtual() ?? 'usuario'));
         $perfisAtivosStr = strtolower((string)($usuario->getPerfisAtivos() ?? 'usuario'));
-        $statusConta = strtolower((string)($usuario->getStatusConta() ?? 'pendente'));
+        $statusConta = strtolower((string)($usuario->getStatusConta() ?? 'ativo'));
         $nomeUsuario = $usuario->getNome() ?? explode('@', $usuario->getEmail())[0];
+        $perfisLista = array_filter(array_map('trim', explode(',', $perfisAtivosStr)));
 
         $_SESSION['usuario_id']    = $usuario->getUsuarioId();
         $_SESSION['usuario_email'] = $usuario->getEmail();
         $_SESSION['usuario_nome']  = $nomeUsuario;
-
-        // Mantemos 'tipo_perfil' por compatibilidade com suas views antigas (header/menu)
         $_SESSION['tipo_perfil']   = $tipoAtual;
-
-        // Nova variável contendo um ARRAY com todos os papéis que o usuário já assumiu (Ex: ['usuario', 'adotante', 'protetor'])
-        $_SESSION['perfis_ativos'] = array_map('trim', explode(',', $perfisAtivosStr));
-
+        $_SESSION['perfis_ativos'] = $perfisLista;
         $_SESSION['status_conta']  = $statusConta;
+
+        $_SESSION['usuario'] = [
+            'id'       => $usuario->getUsuarioId(),
+            'nome'     => $nomeUsuario,
+            'email'    => $usuario->getEmail(),
+            'is_admin' => ($tipoAtual === 'administrador')
+        ];
+
+        $perfisFormatados = [];
+        foreach ($perfisLista as $papel) {
+            if (!empty($papel)) {
+                $perfisFormatados[] = [
+                    'id'   => $usuario->getUsuarioId(),
+                    'tipo' => $papel
+                ];
+            }
+        }
+
+        $_SESSION['perfis'] = $perfisFormatados;
+        $_SESSION['perfil_ativo'] = [
+            'id'   => $usuario->getUsuarioId(),
+            'tipo' => $tipoAtual
+        ];
+    }
+
+    public function logout(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        unset(
+            $_SESSION['usuario'], 
+            $_SESSION['perfis'], 
+            $_SESSION['perfil_ativo'],
+            $_SESSION['usuario_id'],
+            $_SESSION['usuario_email'],
+            $_SESSION['usuario_nome'],
+            $_SESSION['tipo_perfil'],
+            $_SESSION['perfis_ativos'],
+            $_SESSION['status_conta'],
+            $_SESSION['validado'],
+            $_SESSION['protetor_id']
+        );
+        session_destroy();
     }
 }
-
-
