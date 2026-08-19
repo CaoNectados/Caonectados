@@ -1,43 +1,43 @@
 <?php 
 require_once __DIR__ . '/../templates/header.php'; 
 ?>
-    <header class="text-center my-6">
-        <h1 class="text-2xl font-bold font-shantell text-primary">Cadastre-se</h1>
-    </header>
+<header class="text-center my-6">
+    <h1 class="text-2xl font-bold font-shantell text-primary">Cadastre-se</h1>
+</header>
 
-    <form action="<?= URL_BASE ?>/cadastro" method="POST" class="max-w-md mx-auto p-4 space-y-4">
+<form action="<?= URL_BASE ?>/cadastro" method="POST" class="max-w-md mx-auto p-4 space-y-4">
 
-        <div>
-            <label for="email" class="label-padrao">E-mail</label>
-            <input type="email" name="email" id="email" required placeholder="Digite seu e-mail" class="input-padrao">
-        </div>
-
-        <div>
-            <label for="senha" class="label-padrao">Crie uma senha</label>
-            <div class="relative">
-                <input type="password" name="senha" id="senha" required placeholder="Crie uma senha" class="input-padrao pr-10">
-                <button type="button" onclick="toggleSenha('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
-                    👁️
-                </button>
-            </div>
-        </div>
-
-        <div>
-            <label for="senha_confirmacao" class="label-padrao">Confirme sua senha</label>
-            <div class="relative">
-                <input type="password" name="senha_confirmacao" id="senha_confirmacao" required placeholder="Confirme sua senha" class="input-padrao pr-10">
-                <button type="button" onclick="toggleSenha('senha_confirmacao', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none">
-                    👁️
-                </button>
-            </div>
-        </div>
-
-        <button type="submit" class="btn-primario w-full mt-2">Cadastrar</button>
-    </form>
-
-    <div class="text-center mt-4">
-        <p class="text-sm text-text-muted">Já tem uma conta? <a href="<?= URL_BASE ?>/login" class="text-primary font-bold hover:underline">Faça Login Aqui!</a></p>
+    <div>
+        <label for="email" class="label-padrao">E-mail</label>
+        <input type="email" name="email" id="email" required placeholder="Digite seu e-mail" class="input-padrao">
     </div>
+
+    <div>
+        <label for="senha" class="label-padrao">Crie uma senha</label>
+        <div class="relative">
+            <input type="password" name="senha" id="senha" required placeholder="Crie uma senha" class="input-padrao pr-10">
+            <button type="button" onclick="toggleSenha('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary focus:outline-none" aria-label="Mostrar senha">
+                👁️
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <label for="senha_confirmacao" class="label-padrao">Confirme sua senha</label>
+        <div class="relative">
+            <input type="password" name="senha_confirmacao" id="senha_confirmacao" required placeholder="Confirme sua senha" class="input-padrao pr-10">
+            <button type="button" onclick="toggleSenha('senha_confirmacao', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary focus:outline-none" aria-label="Mostrar senha">
+                👁️
+            </button>
+        </div>
+    </div>
+
+    <button type="submit" class="btn-primario w-full mt-2">Cadastrar</button>
+</form>
+
+<div class="text-center mt-4">
+    <p class="text-sm text-text-muted">Já tem uma conta? <a href="<?= URL_BASE ?>/login" class="text-primary font-bold hover:underline">Faça Login Aqui!</a></p>
+</div>
 
 <script>
 function toggleSenha(inputId, btn) {
@@ -81,7 +81,7 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     }
 });
 </script>
-    <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
+<script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
 
 <?php 
 require_once __DIR__ . '/../templates/footer.php'; 

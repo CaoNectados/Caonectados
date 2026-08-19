@@ -62,6 +62,6 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     }
 });
 </script>
-    <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
+<script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
