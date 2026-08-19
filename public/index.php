@@ -44,7 +44,6 @@ $router->get('/onboarding/protetor', 'onboarding/OnBoardingController@protetor')
 $router->get('/onboarding/especies-ativas', 'onboarding/OnBoardingController@especiesAtivasJson');// Rotas de submissão do formulário dados
 $router->post('/onboarding/salvar-adotante', 'onboarding/OnBoardingController@salvarAdotante');
 $router->post('/onboarding/salvar-protetor', 'onboarding/OnBoardingController@salvarProtetor');
-$router->get('/onboarding/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');
 $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardandoAprovacao');// ==========================================
 // ROTAS PROTETOR, ONG, ADOTANTE E ADMIN
 // ==========================================

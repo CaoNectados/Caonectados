@@ -35,11 +35,28 @@ class Controller
         exit();
     }
 
-    /**
-     * Exige autenticação e, opcionalmente, tipos específicos de perfil.
-     * 
-     * @param array $perfisPermitidos Ex: ['ong', 'protetor'] ou [] para qualquer usuário logado
-     */
+    protected function getUriLimpa(): string
+    {
+        $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+        $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+
+        if ($basePath === '/') {
+            $basePath = '';
+        }
+
+        if (!empty($basePath) && strpos($uri, $basePath) === 0) {
+            $uri = substr($uri, strlen($basePath));
+        }
+
+        $uri = preg_replace('#/+#', '/', $uri);
+
+        if (empty($uri) || $uri === '/') {
+            return '/';
+        }
+
+        return '/' . ltrim(rtrim($uri, '/'), '/');
+    }
+
     protected function autenticacaoRequired(array $perfisPermitidos = []): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -51,6 +68,8 @@ class Controller
         }
 
         $tipoUsuario = $_SESSION['tipo_perfil'] ?? 'usuario';
+        $validado = $_SESSION['validado'] ?? false;
+        $uriAtual = $this->getUriLimpa();
 
         if (!empty($perfisPermitidos)) {
             if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
@@ -58,31 +77,24 @@ class Controller
             }
         }
 
-        // NOVA TRAVA: Se for ONG/Protetor e não estiver validado, prende na tela de aguardando aprovação
-        if (in_array($tipoUsuario, ['ong', 'protetor'])) {
-            $validado = $_SESSION['validado'] ?? false;
+        // Se for ONG/Protetor e não estiver validado (0)
+        if (in_array($tipoUsuario, ['ong', 'protetor'], true) && ($validado === false || $validado === 0 || $validado === '0')) {
             
-            $uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-            
-            // Permite acessar apenas a página de aguardando aprovação e logout
-            $rotasLivres = ['/aguardando-aprovacao', '/onboarding/aguardando-aprovacao', '/logout'];
-            $isLivre = false;
+            // As únicas rotas que um protetor PENDENTE pode acessar quando está logado:
+            $rotasLivres = [
+                '/', 
+                '/home', 
+                '/aguardando-aprovacao', 
+                '/onboarding/aguardando-aprovacao', 
+                '/logout'
+            ];
 
-            foreach ($rotasLivres as $rota) {
-                if (substr($uriAtual, -strlen($rota)) === $rota) {
-                    $isLivre = true;
-                    break;
-                }
-            }
-
-            if (!$validado && !$isLivre) {
+            if (!in_array($uriAtual, $rotasLivres, true)) {
                 $this->redirect('/aguardando-aprovacao');
             }
         }
     }
-    /**
-     * Redireciona para uma rota salvando o tipo de feedback e a mensagem na sessão.
-     */
+
     protected function redirecionarComMensagem(string $tipo, string $mensagem, string $rota, ?string $erroDetalhado = null): void
     {
         if (session_status() === PHP_SESSION_NONE) {

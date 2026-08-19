@@ -37,16 +37,30 @@ class OnboardingService
 
     public function usuarioJaPossuiPerfil(int $usuarioId): bool
     {
-        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
-        $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
+        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
         if ($adotante !== null) {
             $_SESSION['tipo_perfil'] = 'adotante';
+            // Correção: Acessando como Array Associativo
+            $_SESSION['adotante_id'] = $adotante['adotante_id'] ?? null;
+            $_SESSION['validado']    = true;
             return true;
         }
 
+        $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
         if ($protetor !== null) {
-            $_SESSION['tipo_perfil'] = 'protetor';
+            // Correção: Acessando como Array Associativo
+            $tipoDoc = strtolower($protetor['tipo_documento'] ?? 'cpf');
+            $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
+            
+            $isValidado = (bool)($protetor['validado'] ?? false);
+
+            $_SESSION['tipo_perfil']  = $tipoPerfil;
+            $_SESSION['protetor_id']  = $protetor['protetor_id'] ?? null;
+            $_SESSION['validado']     = $isValidado;
             return true;
         }
 
@@ -86,7 +100,7 @@ class OnboardingService
 
             $this->usuarioRepo->atualizarOnboarding($usuario, 'adotante');
 
-            // 3. Upload da Foto de Perfil via método unificado salvar($dado, 'foto_perfil')
+            // 3. Upload da Foto de Perfil
             $caminhoFoto = null;
             if (!empty($dados['foto_perfil_cortada'])) {
                 $caminhoFoto = $this->uploadService->salvar($dados['foto_perfil_cortada'], 'foto_perfil');
@@ -126,6 +140,7 @@ class OnboardingService
             $_SESSION['status_conta'] = $statusAtual; 
             $_SESSION['adotante_id']  = $adotanteId;
             $_SESSION['usuario_nome'] = trim($dados['nome_usuario']);
+            $_SESSION['validado']     = true;
             
             if (!in_array('adotante', $_SESSION['perfis_ativos'] ?? [])) {
                 $_SESSION['perfis_ativos'][] = 'adotante';
@@ -205,7 +220,7 @@ class OnboardingService
 
             $this->usuarioRepo->atualizarOnboarding($usuario, $tipoPerfil);
 
-            // 4. Upload do Comprovante via método unificado salvar($dado, 'comprovante')
+            // 4. Upload do Comprovante
             $caminhoDocumento = $this->uploadService->salvar($arquivos['comprovante_documento'], 'comprovante');
 
             // 5. Monta o objeto Protetor
@@ -219,7 +234,7 @@ class OnboardingService
 
             $protetorId = $this->protetorRepo->salvar($protetor);
 
-            // 6. Upload das Fotos da Página via método unificado salvar($dado, 'foto_pagina')
+            // 6. Upload das Fotos da Página
             $caminhoFotoPerfil = null;
             if (!empty($dados['foto_perfil_cortada'])) {
                 $caminhoFotoPerfil = $this->uploadService->salvar($dados['foto_perfil_cortada'], 'foto_pagina');

@@ -33,26 +33,53 @@ class OnboardingController extends Controller
         ]);
     }
 
-    private function verificarSeJaPossuiPerfil()
+    private function verificarSeJaPossuiPerfil(): void
     {
         $usuarioId = $_SESSION['usuario_id'] ?? null;
-        if ($usuarioId) {
-            if ($this->onboardingService->usuarioJaPossuiPerfil($usuarioId)) {
-                if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
-                    $this->redirect('/feed');
-                    exit;
-                }
-            }
-        } else {
+
+        if (!$usuarioId) {
             $this->redirect('/login');
             exit;
         }
+
+        $uriAtual = $this->getUriLimpa();
+
+        // Se o usuário estiver tentando salvar algo ou já estiver na tela de aguardando, NÃO VERIFICA
+        $rotasPermitidas = [
+            '/aguardando-aprovacao',
+            '/onboarding/aguardando-aprovacao',
+            '/onboarding/salvar-adotante',
+            '/onboarding/salvar-protetor',
+            '/onboarding/especies-ativas'
+        ];
+
+        if (in_array($uriAtual, $rotasPermitidas, true)) {
+            return;
+        }
+
+        // Se o usuário já preencheu o formulário (tem registro nas tabelas)
+        if ($this->onboardingService->usuarioJaPossuiPerfil((int)$usuarioId)) {
+            $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+            $validado = $_SESSION['validado'] ?? false;
+
+            // 1. É protetor e está pendente? Manda pra tela de espera (se já não estiver lá)
+            if (in_array($tipoPerfil, ['protetor', 'ong'], true) && ($validado === false || $validado === 0 || $validado === '0')) {
+                if ($uriAtual !== '/aguardando-aprovacao' && $uriAtual !== '/onboarding/aguardando-aprovacao') {
+                    $this->redirect('/aguardando-aprovacao');
+                    exit;
+                }
+                return;
+            }
+
+            // 2. É adotante ou protetor aprovado? Manda pro feed (se já não estiver lá)
+            if ($uriAtual !== '/feed' && $uriAtual !== '/') {
+                $this->redirect('/feed');
+                exit;
+            }
+        }
     }
 
-    /**
-     * Endpoint chamado via AJAX para validar e renderizar espécies ativas
-     */
-    public function especiesAtivasJson()
+    public function especiesAtivasJson(): void
     {
         $especies = $this->especieRepo->buscarAtivas();
         $this->json(200, [
@@ -61,7 +88,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function adotante()
+    public function adotante(): void
     {
         $regioes = $this->regiaoRepo->buscarTodas();
         $especies = $this->especieRepo->buscarAtivas();
@@ -73,7 +100,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function ong()
+    public function ong(): void
     {
         $regioes = $this->regiaoRepo->buscarTodas();
 
@@ -84,7 +111,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function protetor()
+    public function protetor(): void
     {
         $regioes = $this->regiaoRepo->buscarTodas();
 
@@ -95,7 +122,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function salvarAdotante()
+    public function salvarAdotante(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -108,7 +135,6 @@ class OnboardingController extends Controller
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 ValidationService::validarCamposObrigatorios($dadosLimpos, ['regiao_id', 'nome_usuario']);
 
-                // Validação de segurança no backend
                 $especiesSelecionadas = $_POST['preferencias_especie'] ?? [];
                 if (!empty($especiesSelecionadas)) {
                     $especiesAtivas = $this->especieRepo->buscarAtivas();
@@ -121,7 +147,7 @@ class OnboardingController extends Controller
                     }
                 }
 
-                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, $usuarioId);
+                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, (int)$usuarioId);
 
                 $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
                 $_SESSION['boas_vindas_tipo'] = 'adotante';
@@ -140,7 +166,7 @@ class OnboardingController extends Controller
         }
     }
 
-    public function salvarProtetor()
+    public function salvarProtetor(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -154,7 +180,7 @@ class OnboardingController extends Controller
 
                 $tipoDoc = $_POST['tipo_documento'] ?? 'cpf';
                 $documentoBruto = $_POST['cnpj_cpf'];
-                $documentoLimpo = preg_replace('/[^0-9]/', '', $documentoBruto);
+                $documentoLimpo = preg_replace('/[^0-9]/', '', (string)$documentoBruto);
 
                 if ($tipoDoc === 'cnpj') {
                     if (strlen($documentoLimpo) !== 14 || !ValidationService::validarCnpj($documentoLimpo)) {
@@ -182,7 +208,7 @@ class OnboardingController extends Controller
                 }
 
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
-                $this->onboardingService->processarOng($dadosLimpos, $_FILES, $usuarioId);
+                $this->onboardingService->processarOng($dadosLimpos, $_FILES, (int)$usuarioId);
 
                 $this->json(200, [
                     'status'       => 'sucesso',
@@ -198,15 +224,28 @@ class OnboardingController extends Controller
         }
     }
 
-    public function aguardandoAprovacao()
+    public function aguardandoAprovacao(): void
     {
+        $usuarioId = $_SESSION['usuario_id'] ?? null;
+
+        if (!$usuarioId) {
+            $this->redirect('/login');
+            exit;
+        }
+
+        // Garante que o status na sessão é o mesmo do banco de dados (recarrega os dados do Protetor)
+        $this->onboardingService->usuarioJaPossuiPerfil((int)$usuarioId);
+
         $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
         $validado = $_SESSION['validado'] ?? false;
 
-        if ($tipoPerfil === 'adotante' || $validado === true || $validado === 1) {
+        // Se for adotante ou se o protetor/ONG JÁ FOI aprovado (1/true), manda direto para o feed
+        if ($tipoPerfil === 'adotante' || $validado === true || $validado === 1 || $validado === '1') {
             $this->redirect('/feed');
+            exit;
         }
 
+        // Caso contrário, renderiza a tela de espera normalmente SEM REDIRECIONAR MAIS NADA
         $this->view('onboarding/aguardando_aprovacao', [
             'titulo' => 'Aguardando Aprovação'
         ]);

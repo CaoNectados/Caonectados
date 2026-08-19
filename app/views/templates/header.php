@@ -6,28 +6,17 @@ require_once __DIR__ . '/../../helpers/ViewHelper.php';
 // ------------------------------------------------------------------
 $titulo = $titulo ?? 'CãoNectados';
 $tipoPerfil = $_SESSION['tipo_perfil'] ?? null;
+$validado = $_SESSION['validado'] ?? false;
 $statusConta = $_SESSION['status_conta'] ?? 'ativo';
 
-$uriAtual = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uriAtual = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $menuItens = [];
 
-$isPendente = (($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') && $statusConta === 'pendente');
-
-if ($isPendente) {
-    $rotaAguardando = '/aguardando-aprovacao';
-    $rotaLogout = '/logout';
-
-    if (strpos($uriAtual, $rotaAguardando) === false && strpos($uriAtual, $rotaLogout) === false) {
-        header("Location: " . URL_BASE . $rotaAguardando);
-        exit;
-    }
-}
+// ==================================================================
+// ITENS DO MENU
 // ==================================================================
 
-
-
 $menuItens[] = ['url' => URL_BASE . '/', 'label' => 'Home', 'icone' => 'home.svg'];
-
 
 if ($tipoPerfil === null) {
     $menuItens[] = ['url' => URL_BASE . '/cadastro', 'label' => 'Cadastre-se', 'icone' => 'cadastro.svg'];
@@ -35,7 +24,7 @@ if ($tipoPerfil === null) {
 
 // ---------------- PERFIL: ADMINISTRADOR ----------------
 if ($tipoPerfil === 'administrador') {
-     $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/admin/dashboard', 'label' => 'Dashboard', 'icone' => 'dashboard.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/solicitacoes', 'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários', 'icone' => 'usuarios.svg'];
@@ -43,38 +32,35 @@ if ($tipoPerfil === 'administrador') {
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/denuncias', 'label' => 'Denúncias', 'icone' => 'denuncia.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/auditoria-logs', 'label' => 'Auditoria e Logs', 'icone' => 'auditoria.svg'];
-        $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Perfil',    'icone' => 'perfil.svg',    'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil', 'label' => 'Perfil', 'icone' => 'perfil.svg', 'apenas_desktop' => true];
 
-
-    // ---------------- PERFIL: PROTETOR OU ONG ----------------
+// ---------------- PERFIL: PROTETOR OU ONG ----------------
 } elseif ($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') {
 
-    // Se estiver ATIVO ou APROVADO, vê o sistema normal
-    if ($statusConta === 'ativo' || $statusConta === 'aprovado') {
+    // Se estiver validado (1/true), exibe todas as opções do painel
+    if ($validado === true || $validado === 1 || $validado === '1') {
         $menuItens[] = ['url' => URL_BASE . '/feed',                 'label' => 'Feed',                   'icone' => 'dashboard.svg',        'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
-
         $menuItens[] = ['url' => URL_BASE . '/gerenciar-animais',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
         $menuItens[] = ['url' => URL_BASE . '/solicitacoes',         'label' => 'Solicitações Recebidas', 'icone' => 'solicitacoes.png'];
         $menuItens[] = ['url' => URL_BASE . '/pagina-protetor',      'label' => 'Página',                 'icone' => 'pagina.svg'];
     } else {
-        // SE ESTIVER PENDENTE: 
-        $menuItens[] = ['url' => URL_BASE . '/onboarding/aguardando-aprovacao', 'label' => 'Aguardando Aprovação',   'icone' => 'auditoria.svg'];
+        // Se estiver aguardando aprovação, mantém apenas a Home e a tela de status no menu
+        $menuItens[] = ['url' => URL_BASE . '/aguardando-aprovacao', 'label' => 'Aguardando Aprovação',   'icone' => 'auditoria.svg'];
     }
 
-    // ---------------- PERFIL: ADOTANTE ----------------
+// ---------------- PERFIL: ADOTANTE ----------------
 } elseif ($tipoPerfil === 'adotante') {
-    $menuItens[] = ['url' =>  URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' =>  URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
-    $menuItens[] = ['url' =>  URL_BASE .'/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' =>  URL_BASE .'/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
-}
+    $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
 
 // ---------------- PERFIL: USUÁRIO GENÉRICO ----------------
-elseif ($tipoPerfil === 'usuario') {
-    $menuItens[] = ['url' => URL_BASE . '/onboarding',    'label' => 'Completar Perfil',       'icone' => 'perfil.svg'];
+} elseif ($tipoPerfil === 'usuario') {
+    $menuItens[] = ['url' => URL_BASE . '/onboarding', 'label' => 'Completar Perfil', 'icone' => 'perfil.svg'];
 }
 
 $estaLogado = $tipoPerfil !== null;
@@ -169,7 +155,6 @@ $itemAuth   = $estaLogado
                     <?php
                     if (!empty($item['apenas_desktop'])) continue;
 
-                    // LÓGICA DE ITEM ATIVO
                     $ehAtivo = false;
                     if ($item['url'] === URL_BASE . '/') {
                         $ehAtivo = ($uriAtual === '/' || preg_match('/public\/?(?:index\.php)?$/', $uriAtual));
@@ -235,7 +220,6 @@ $itemAuth   = $estaLogado
         <nav class="flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-3 scrollbar-hide">
             <?php foreach ($menuItens as $item): ?>
                 <?php
-                // LÓGICA DE ITEM ATIVO
                 $ehAtivo = false;
                 $itemPath = parse_url($item['url'], PHP_URL_PATH);
                 if ($item['url'] === URL_BASE . '/') {
@@ -324,4 +308,3 @@ $itemAuth   = $estaLogado
 
     <div id="area-conteudo" class="flex flex-1 flex-col overflow-y-auto transition-[margin] duration-300 lg:ml-60">
         <main id="conteudo-dinamico" class="mx-auto w-full max-w-figma flex-1 px-4 sm:px-6">
-

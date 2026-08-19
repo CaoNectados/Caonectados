@@ -67,17 +67,20 @@ class AuthController extends Controller
             }
 
             // SE NÃO FOR ADMIN: Inicia a sessão normalmente
+           // SE NÃO FOR ADMIN: Inicia a sessão normalmente
             $this->authService->iniciarSessao($usuario);
 
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
-            $statusConta = $_SESSION['status_conta'] ?? 'pendente';
+            $validado = $_SESSION['validado'] ?? false; // Puxou da tabela protetor via AuthService
 
             $urlRedirect = '/home';
             if ($tipoPerfil === 'usuario') {
                 $urlRedirect = '/onboarding';
-            } elseif ($statusConta === 'pendente') {
+            } elseif (in_array($tipoPerfil, ['ong', 'protetor']) && $validado === false) {
+                // Se é ONG/Protetor e ainda não foi validado (0) pelo admin, vai para a espera
                 $urlRedirect = '/aguardando-aprovacao';
             } else {
+                // Adotantes e Protetores validados (1) vão direto para o feed
                 $urlRedirect = '/feed';
             }
 
