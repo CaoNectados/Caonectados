@@ -27,7 +27,7 @@
 
     <!-- Modal Unificado de Feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
-        <div class="bg-white rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">
+        <div class="bg-surface rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">
             <h2 id="titulo-modal-feedback" class="text-xl font-bold mb-3 font-shantell"></h2>
             <p id="texto-modal-feedback" class="text-text-dark mb-6 text-sm sm:text-base leading-relaxed font-poppins"></p>
             <button id="btn-modal-feedback" onclick="fecharModalFeedback()" class="w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins">

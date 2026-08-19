@@ -50,31 +50,12 @@
                     salmao:       'var(--color-salmao)',
                     rosaAlerta:   'var(--color-rosaAlerta)',
 
-                    // Variações de claro/escuro
-                    corFundo: {
-                        claro: 'var(--color-corFundo-claro)',
-                        escuro: 'var(--color-corFundo-escuro)',
-                    },
-                    fundoChat: {
-                        claro: 'var(--color-fundoChat-claro)',
-                        escuro: 'var(--color-fundoChat-escuro)',
-                    },
-                    notificacao: {
-                        claro: 'var(--color-notificacao-claro)',
-                        escuro: 'var(--color-notificacao-escuro)',
-                    },
-                    msgEnvia: {
-                        claro: 'var(--color-msgEnvia-claro)',
-                        escuro: 'var(--color-msgEnvia-escuro)',
-                    },
-                    msgRespondida: {
-                        claro: 'var(--color-msgRespondida-claro)',
-                        escuro: 'var(--color-msgRespondida-escuro)',
-                    },
-                    perfilChats: {
-                        claro: 'var(--color-perfilChats-claro)',
-                        escuro: 'var(--color-perfilChats-escuro)',
-                    },
+                    corFundo: 'var(--color-corFundo)',
+                    fundoChat: 'var(--color-fundoChat)',
+                    notificacao: 'var(--color-notificacao)',
+                    msgEnvia:  'var(--color-msgEnvia)',
+                    msgRespondida: 'var(--color-msgRespondida)',
+                    perfilChats: 'var(--color-perfilChats)',
 
                     // Cores claras
                     branco:       'var(--color-branco)',
@@ -300,18 +281,13 @@
         --color-laranja-3: #E6A178;
         --color-salmao: #EAA48F;
         --color-rosaAlerta: #FA5672;
-        --color-corFundo-claro: #F9F9F9;
-        --color-corFundo-escuro: #0C0B28;
-        --color-fundoChat-claro: #FEF8FB;
-        --color-fundoChat-escuro: #150D37;
-        --color-notificacao-claro: #2C2C2C;
-        --color-notificacao-escuro: #470092;
-        --color-msgEnvia-claro: #111042;
-        --color-msgEnvia-escuro: #575679;
-        --color-msgRespondida-claro: #E9EBEE;
-        --color-msgRespondida-escuro: #1D1D1D;
-        --color-perfilChats-claro: #21262E;
-        --color-perfilChats-escuro: #FFFFFF;
+
+        --color-corFundo: #F9F9F9;
+        --color-fundoChat: #FEF8FB;
+        --color-notificacao: #2C2C2C;
+        --color-msgEnvia: #111042;
+        --color-msgRespondida: #E9EBEE;
+        --color-perfilChats: #21262E;
 
         /* Cores claras */
         --color-branco: #FFFFFF;
@@ -357,12 +333,69 @@
     }
 
     .dark {
-        /* Sobrescreve apenas as cores que mudam no modo escuro */
-        --color-background: #0C0B28;
+        --color-primary: #716C93;
+        --color-secondary: #4F4873;
+        --color-background: #19183e;
         --color-surface: #150D37;
         --color-text-dark: #FFFFFF;
-        --color-text-muted: #CDB3C0;
-        /* As demais cores permanecem as mesmas do :root */
+        --color-text-muted: #d4d4d4;
+
+        /* Cores destaque */
+        --color-rosa-1: #d18cae;
+        --color-rosa-2: #ce687e;
+        --color-rosa-3: #d38399;
+        --color-rosa-4: #bb697e;
+        --color-rosa-5: #c76e6b;
+        --color-rosa-6: #c27d94;
+        --color-rosa-7: #d08da7;
+        --color-laranja-1: #b97629;
+        --color-laranja-2: #bd7739;
+        --color-laranja-3: #bf754b;
+        --color-salmao: #EAA48F;
+        --color-rosaAlerta: #d2324d;
+
+        --color-corFundo: #0C0B28;
+        --color-fundoChat: #150D37;
+        --color-notificacao: #470092;
+        --color-msgEnvia: #575679;
+        --color-msgRespondida: #1D1D1D;
+        --color-perfilChats: #FFFFFF;
+
+        /* Cores claras */
+        --color-branco: #6c6c6c;
+        --color-brancoRosado: #fda7d2;
+        --color-rosaClaro: #eb7eb4;
+        --color-rosaClaro2: #ec5fa6;
+        --color-roxinhoFofo: #a282e1;
+
+        /* Cores suaves */
+        --color-roxo: #bd8dac;
+        --color-cinzaMarrom: #b08484;
+        --color-roxo1: #8b82b8;
+        --color-roxo2: #8d87b8;
+
+        /* Cores escuras */
+        --color-preto: #000000;
+        --color-preto1: #171415;
+        --color-preto2: #2E282B;
+        --color-preto3: #443C40;
+        --color-marrom: #897780;
+        --color-marrom1: #B79FAB;
+        --color-roxoApagado: #CDB3C0;
+        --color-rosaEscura: #E4C7D6;
+
+        /* Cores inversas */
+        --color-verdeEscuro: #042414;
+        --color-azul: #4DA3BA;
+        --color-amarelo: #EEEFBD;
+        --color-verdeMusgo: #4C5942;
+        --color-azulEscuro: #111042;
+        --color-laranjaEscuro: #B25C45;
+
+        --color-erro: #ff6b6b;
+        --color-sucesso: #69db7c;
+        --color-aviso: #fcc419;
+        --color-informativo: #74c0fc;
     }
 </style>
 
