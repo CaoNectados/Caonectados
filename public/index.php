@@ -43,7 +43,7 @@ $router->get('/onboarding/ong', 'onboarding/OnBoardingController@ong');
 $router->get('/onboarding/protetor', 'onboarding/OnBoardingController@protetor');
 
 // Requisição AJAX para espécies ativas
-$router->get('/onboarding/especies-ativas', 'onboarding/OnBoardingController@especiesAtivasJson');
+$router->get('/onboarding/especies-ativas', 'onboarding/OnBoardingController@especiesAtivas');
 
 // Submissão de formulários do onboarding
 $router->post('/onboarding/salvar-adotante', 'onboarding/OnBoardingController@salvarAdotante');
@@ -62,7 +62,6 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 $router->get('/perfil', 'geral/PerfilController@index');
 $router->get('/perfil/editar', 'geral/PerfilController@editar');
 $router->post('/perfil/atualizar', 'geral/PerfilController@atualizar');
-$router->get('/perfil/editar-foto', 'geral/PerfilController@editarFoto');
 $router->post('/perfil/atualizar-foto', 'geral/PerfilController@atualizarFoto');
 
 // Redefinição de Senha do Perfil (Logado)
@@ -115,9 +114,6 @@ $router->post('/admin/solicitacoes/rejeitar', 'admin\SolicitacaoProtetorControll
 
 // Gerenciamento de Usuários (Admin)
 $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
-$router->get('/admin/gerenciar-usuarios/editar', 'admin/UsuarioController@edit');
-$router->post('/admin/gerenciar-usuarios/atualizar', 'admin/UsuarioController@update');
-$router->post('/admin/gerenciar-usuarios/deletar', 'admin/UsuarioController@destroy');
 $router->get('/admin/usuarios/detalhes', 'admin/UsuarioController@detalhes');
 $router->post('/admin/usuarios/alterar-status', 'admin/UsuarioController@alterarStatusUsuario');
 $router->post('/admin/usuarios/alterar-status-perfil', 'admin/UsuarioController@alterarStatusPerfil');
