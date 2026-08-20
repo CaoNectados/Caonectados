@@ -41,16 +41,36 @@ class OnboardingService
             session_start();
         }
 
-        $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
-        if ($adotante !== null) {
+        // A checagem é feita pelo tipo_atual em USUARIO, não só pela existência da linha em
+        // ADOTANTE/PROTETOR: o admin pode desativar o último perfil ativo de alguém (o que
+        // zera tipo_atual de volta pra 'usuario'), e a linha antiga continua no banco. Se essa
+        // função ignorasse tipo_atual e só olhasse a existência da linha, uma pessoa nesse
+        // estado nunca conseguiria voltar a acessar o onboarding (loop entre /onboarding e /perfil).
+        $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
+        $tipoAtual = strtolower((string)($usuario['tipo_atual'] ?? 'usuario'));
+
+        if ($usuario === null || $tipoAtual === 'usuario') {
+            return false;
+        }
+
+        if ($tipoAtual === 'adotante') {
+            $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+            if ($adotante === null) {
+                return false;
+            }
+
             $_SESSION['tipo_perfil']  = 'adotante';
             $_SESSION['adotante_id']  = $adotante['adotante_id'] ?? null;
             $_SESSION['validado']     = true;
             return true;
         }
 
-        $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
-        if ($protetor !== null) {
+        if (in_array($tipoAtual, ['protetor', 'ong'], true)) {
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            if ($protetor === null) {
+                return false;
+            }
+
             $tipoDoc = strtolower($protetor['tipo_documento'] ?? 'cpf');
             $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
             $isValidado = (bool)($protetor['validado'] ?? false);
