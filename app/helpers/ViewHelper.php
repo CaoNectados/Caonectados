@@ -1,6 +1,7 @@
 <?php
 // app/helpers/ViewHelper.php
 
+// Usado por: dezenas de trechos em app/views/templates/header.php, footer.php, modal_boas_vindas.php, home/index.php e onboarding/adotante_onboarding.php (escape de saída HTML)
 if (!function_exists('e')) {
     function e(?string $valor): string
     {
@@ -8,14 +9,15 @@ if (!function_exists('e')) {
     }
 }
 
+// Usado por: app/views/templates/header.php (itens do menu de navegação)
 function renderIconeMenu(
     string $nomeArquivo,
     string $descricao,
     string $classesCor = 'h-6 w-6 shrink-0 text-white'
 ): string {
     $caminhoFisico  = __DIR__ . '/../../public/assets/icons/navbar/' . $nomeArquivo;
-    
-    // CORREÇÃO: Adicionamos a URL_BASE aqui para garantir que o navegador encontre o PNG!
+
+    // Precisa do prefixo URL_BASE para o navegador resolver o caminho público do ícone
     $baseUrl = defined('URL_BASE') ? URL_BASE : '';
     $caminhoPublico = $baseUrl . '/assets/icons/navbar/' . $nomeArquivo;
     
@@ -42,8 +44,7 @@ function renderIconeMenu(
         return $conteudoSvg;
     }
 
-   // EXCEÇÃO PARA O SEU PNG: 
-   // Inverte a cor no modo escuro e dá um zoom (scale-150) para compensar a margem transparente
+   // PNG: soma a classe 'transform' às classes de cor recebidas (necessária para o CSS de ajuste do ícone)
    $classesFinais = $classesCor;
    if ($extensao === 'png') {
        $classesFinais .= '  transform'; 

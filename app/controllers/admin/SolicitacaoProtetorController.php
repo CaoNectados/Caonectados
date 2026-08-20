@@ -14,6 +14,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         $this->solicitacaoService = new SolicitacaoService();
     }
 
+    // Usado por: rota GET /admin/solicitacoes
     public function index(): void
     {
         $status = $_GET['status'] ?? 'pendentes';
@@ -29,6 +30,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         ]);
     }
 
+    // Usado por: rota GET /admin/solicitacoes/detalhes
     public function detalhes(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -47,6 +49,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         ]);
     }
 
+    // Usado por: rota POST /admin/solicitacoes/aprovar
     public function aprovar(): void
     {
         $id = (int)($_POST['protetor_id'] ?? 0);
@@ -61,6 +64,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         $this->redirecionarComMensagem('erro', 'Ocorreu um erro ao aprovar o cadastro.', '/admin/solicitacoes');
     }
 
+    // Usado por: rota POST /admin/solicitacoes/rejeitar
     public function rejeitar(): void
     {
         $id = (int)($_POST['protetor_id'] ?? 0);

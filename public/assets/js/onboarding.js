@@ -1,11 +1,13 @@
 /**
  * Gerenciador de Onboarding Compartilhado
+ * Usado por: telas de onboarding (adotante_onboarding.php e protetor_onboarding.php) via OnboardingManager.init()
  */
 const OnboardingManager = {
     etapaAtual: 1,
     totalEtapas: 5,
     urlSelecionarPerfil: '',
 
+    // Usado por: script inline de adotante_onboarding.php e protetor_onboarding.php
     init: function(config) {
         this.totalEtapas = config.totalEtapas || 5;
         this.urlSelecionarPerfil = config.urlSelecionarPerfil || '';
@@ -13,16 +15,19 @@ const OnboardingManager = {
         this.registrarEventos(config.validacoesPorEtapa, config.validarEnvioFinal);
     },
 
+    // Usado por: atualizarVisualEtapas()
     salvarEtapaSessao: function() {
         const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search + '_etapa';
         sessionStorage.setItem(storageKey, this.etapaAtual);
     },
 
+    // Usado por: autosave.js (restauração da etapa salva ao recarregar o formulário)
     mostrarEtapa: function(etapa) {
         this.etapaAtual = parseInt(etapa, 10);
         this.atualizarVisualEtapas();
     },
 
+    // Usado por: init(), avancarEtapa(), voltarEtapa() e mostrarEtapa()
     atualizarVisualEtapas: function() {
         for (let i = 1; i <= this.totalEtapas; i++) {
             const elEtapa = document.getElementById(`etapa-${i}`);
@@ -46,10 +51,10 @@ const OnboardingManager = {
                 }
             }
         }
-        // Salva a etapa atual no SessionStorage toda vez que a tela atualiza
         this.salvarEtapaSessao();
     },
 
+    // Usado por: atributo oninput do campo de bairro (adotante_onboarding.php e protetor_onboarding.php) e autosave.js
     sincronizarRegiaoId: function() {
         const inputTexto = document.getElementById('input-busca-bairro');
         const inputHidden = document.getElementById('regiao_id_hidden');
@@ -77,6 +82,7 @@ const OnboardingManager = {
         }
     },
 
+    // Usado por: função proximaEtapa() das telas de onboarding
     avancarEtapa: function(validacaoCallback) {
         if (typeof validacaoCallback === 'function') {
             const ehValido = validacaoCallback(this.etapaAtual);
@@ -89,6 +95,7 @@ const OnboardingManager = {
         }
     },
 
+    // Usado por: botão "Voltar" das telas de onboarding (atributo onclick)
     voltarEtapa: function() {
         if (this.etapaAtual > 1) {
             this.etapaAtual--;
@@ -98,6 +105,7 @@ const OnboardingManager = {
         }
     },
 
+    // Usado por: init() — envia o formulário via fetch e trata o retorno padrão {status, mensagem, redirect_url}
     registrarEventos: function(validacoesPorEtapa, validarEnvioFinal) {
         const form = document.querySelector('form');
         if (form) {
@@ -150,6 +158,7 @@ const OnboardingManager = {
     }
 };
 
+// Usado por: (não referenciado atualmente)
 function exibirPreviewFoto(input, idPreview, idPlaceholder) {
     const imgPreview = document.getElementById(idPreview);
     const placeholder = document.getElementById(idPlaceholder);
@@ -169,6 +178,7 @@ function exibirPreviewFoto(input, idPreview, idPlaceholder) {
     }
 }
 
+// Usado por: atributo onchange do input de comprovante em protetor_onboarding.php
 function exibirNomeArquivo(input, idLabel) {
     const pNome = document.getElementById(idLabel);
     if (pNome) {
@@ -178,23 +188,4 @@ function exibirNomeArquivo(input, idLabel) {
             pNome.innerText = "";
         }
     }
-}
-
-function validarDataNaoFutura(dataStr) {
-    if (!dataStr || typeof dataStr !== 'string') return false;
-
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dataStr)) return false;
-
-    const dataEntrada = new Date(dataStr + 'T00:00:00');
-    if (isNaN(dataEntrada.getTime())) return false;
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    return dataEntrada <= hoje;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { validarDataNaoFutura };
 }

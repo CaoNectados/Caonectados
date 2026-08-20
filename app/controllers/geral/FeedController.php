@@ -10,6 +10,7 @@ class FeedController extends Controller
 {
     private FeedRepository $feedRepo;
 
+    // Usado por: instanciado ao acessar a rota /feed
     public function __construct()
     {
         // Exige que o usuário esteja logado para acessar o Feed
@@ -17,6 +18,7 @@ class FeedController extends Controller
         $this->feedRepo = new FeedRepository();
     }
 
+    // Usado por: rota GET /feed (atualmente comentada em public/index.php, mantida para reativação futura)
     public function feed(): void
     {
         try {

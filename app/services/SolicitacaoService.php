@@ -14,6 +14,7 @@ class SolicitacaoService
         $this->protetorRepository = $protetorRepository ?? new ProtetorRepository();
     }
 
+    // Usado por: SolicitacaoProtetorController::index (listagem de solicitações de protetor)
     public function listarSolicitacoes(string $status = 'pendentes', string $busca = ''): array
     {
         $statusPermitidos = ['pendentes', 'aprovados', 'recusados'];
@@ -25,6 +26,7 @@ class SolicitacaoService
         return array_map([$this, 'adicionarStatusFormatado'], $lista);
     }
 
+    // Usado por: SolicitacaoProtetorController (detalhes da solicitação)
     public function obterDetalhesSolicitacao(int $protetorId): ?array
     {
         if ($protetorId <= 0) {
@@ -39,6 +41,7 @@ class SolicitacaoService
         return $this->adicionarStatusFormatado($detalhes);
     }
 
+    // Usado por: SolicitacaoProtetorController::aprovar
     public function aprovarSolicitacao(int $protetorId): bool
     {
         if ($protetorId <= 0) {
@@ -66,6 +69,7 @@ class SolicitacaoService
         return $sucesso;
     }
 
+    // Usado por: SolicitacaoProtetorController::recusar
     public function recusarSolicitacao(int $protetorId, string $motivo = ''): bool
     {
         if ($protetorId <= 0) {
@@ -95,6 +99,7 @@ class SolicitacaoService
         return $sucesso;
     }
 
+    // Usado por: listarSolicitacoes(), obterDetalhesSolicitacao() (formatação do status exibido)
     private function adicionarStatusFormatado(array $registro): array
     {
         if (!empty($registro['deletado_em'])) {

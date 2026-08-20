@@ -9,45 +9,7 @@ use PDOStatement;
 
 class AnimalRepository extends BaseRepository
 {
-    public function cadastrarAnimal(Animal $animal): int
-    {
-        $sql = "INSERT INTO ANIMAL (
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            atualizado_em
-        ) VALUES (
-            :protetor_id,
-            :raca_id,
-            :nome,
-            :dt_nasc,
-            :sexo,
-            :porte,
-            :status,
-            :descricao,
-            :vacinado,
-            :castrado,
-            :comportamento,
-            :historico_saude,
-            CURRENT_TIMESTAMP
-        )";
-
-        $stmt = $this->db->prepare($sql);
-        $this->bindAnimalValues($stmt, $animal);
-        $stmt->execute();
-
-        return (int) $this->db->lastInsertId();
-    }
-
+    // Usado por: AnimalService::buscarPorId() e AnimalController (detalhes/edição)
     public function buscarPorId(int $id): ?Animal
     {
         $sql = "SELECT
@@ -83,6 +45,7 @@ class AnimalRepository extends BaseRepository
         return $row === false ? null : $this->mapAnimal($row);
     }
 
+    // Usado por: AnimalService::listarComFiltros() e AnimalController::index()
     public function listarComFiltros(string $tipoPerfil, int $protetorId, string $status = 'todos'): array
     {
         $sql = "SELECT
@@ -133,65 +96,7 @@ class AnimalRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
-    public function editarAnimal(Animal $animal): bool
-    {
-        $sql = "UPDATE ANIMAL SET
-            protetor_id = :protetor_id,
-            raca_id = :raca_id,
-            nome = :nome,
-            dt_nasc = :dt_nasc,
-            sexo = :sexo,
-            porte = :porte,
-            status = :status,
-            descricao = :descricao,
-            vacinado = :vacinado,
-            castrado = :castrado,
-            comportamento = :comportamento,
-            historico_saude = :historico_saude,
-            atualizado_em = CURRENT_TIMESTAMP
-        WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $this->bindAnimalValues($stmt, $animal);
-        $stmt->bindValue(':animal_id', $animal->getAnimalId(), PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
-
-    public function alterarStatus(int $id, string $status): bool
-    {
-        $sql = "UPDATE ANIMAL SET status = :status, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->rowCount() > 0;
-    }
-
-    public function excluirLogico(int $id): bool
-    {
-        $sql = "UPDATE ANIMAL SET status = 'desativado', deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->rowCount() > 0;
-    }
-
-    public function reativarAnimal(int $id): bool
-    {
-        $sql = "UPDATE ANIMAL SET status = 'disponivel', deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->rowCount() > 0;
-    }
-
+    // Usado por: (não referenciado atualmente)
     public function buscarPorProtetor(int $protetorId): array
     {
         $sql = "SELECT
@@ -226,6 +131,128 @@ class AnimalRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
+    // Usado por: AnimalService::cadastrarAnimal() e AnimalController::cadastrar()
+    public function cadastrarAnimal(Animal $animal): int
+    {
+        $sql = "INSERT INTO ANIMAL (
+            protetor_id,
+            raca_id,
+            nome,
+            dt_nasc,
+            sexo,
+            porte,
+            status,
+            descricao,
+            vacinado,
+            castrado,
+            comportamento,
+            historico_saude,
+            atualizado_em
+        ) VALUES (
+            :protetor_id,
+            :raca_id,
+            :nome,
+            :dt_nasc,
+            :sexo,
+            :porte,
+            :status,
+            :descricao,
+            :vacinado,
+            :castrado,
+            :comportamento,
+            :historico_saude,
+            CURRENT_TIMESTAMP
+        )";
+
+        $stmt = $this->db->prepare($sql);
+        $this->bindAnimalValues($stmt, $animal);
+        $stmt->execute();
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    // Usado por: AnimalService::editarAnimal() e AnimalController::editar()
+    public function editarAnimal(Animal $animal): bool
+    {
+        $sql = "UPDATE ANIMAL SET
+            protetor_id = :protetor_id,
+            raca_id = :raca_id,
+            nome = :nome,
+            dt_nasc = :dt_nasc,
+            sexo = :sexo,
+            porte = :porte,
+            status = :status,
+            descricao = :descricao,
+            vacinado = :vacinado,
+            castrado = :castrado,
+            comportamento = :comportamento,
+            historico_saude = :historico_saude,
+            atualizado_em = CURRENT_TIMESTAMP
+        WHERE animal_id = :animal_id";
+
+        $stmt = $this->db->prepare($sql);
+        $this->bindAnimalValues($stmt, $animal);
+        $stmt->bindValue(':animal_id', $animal->getAnimalId(), PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+    // Usado por: AnimalService::atualizarStatus() e AnimalController
+    public function alterarStatus(int $id, string $status): bool
+    {
+        $sql = "UPDATE ANIMAL SET status = :status, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
+        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    // Usado por: AnimalService::desativarAnimal() e AnimalController
+    public function excluirLogico(int $id): bool
+    {
+        $sql = "UPDATE ANIMAL SET status = 'desativado', deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    // Usado por: AnimalService::reativarAnimal() e AnimalController::reativar()
+    public function reativarAnimal(int $id): bool
+    {
+        $sql = "UPDATE ANIMAL SET status = 'disponivel', deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Substitui a foto principal do animal (modelo de foto única).
+     */
+    // Usado por: AnimalService::salvarFoto()
+    public function salvarFotoPrincipal(int $animalId, string $caminhoFoto): void
+    {
+        $stmtDelete = $this->db->prepare("DELETE FROM FOTO_ANIMAL WHERE animal_id = :animal_id AND foto_principal = 1");
+        $stmtDelete->bindValue(':animal_id', $animalId, PDO::PARAM_INT);
+        $stmtDelete->execute();
+
+        $stmtInsert = $this->db->prepare(
+            "INSERT INTO FOTO_ANIMAL (animal_id, caminho_foto, foto_principal) VALUES (:animal_id, :caminho_foto, 1)"
+        );
+        $stmtInsert->bindValue(':animal_id', $animalId, PDO::PARAM_INT);
+        $stmtInsert->bindValue(':caminho_foto', $caminhoFoto, PDO::PARAM_STR);
+        $stmtInsert->execute();
+    }
+
+    // Usado por: AnimalRepository::cadastrarAnimal() e editarAnimal() (uso interno)
     private function bindAnimalValues(PDOStatement $stmt, Animal $animal): void
     {
         $stmt->bindValue(':protetor_id', $animal->getProtetorId(), PDO::PARAM_INT);
@@ -242,23 +269,7 @@ class AnimalRepository extends BaseRepository
         $stmt->bindValue(':historico_saude', $animal->getHistoricoSaude(), $animal->getHistoricoSaude() === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
     }
 
-    /**
-     * Substitui a foto principal do animal (modelo de foto única).
-     */
-    public function salvarFotoPrincipal(int $animalId, string $caminhoFoto): void
-    {
-        $stmtDelete = $this->db->prepare("DELETE FROM FOTO_ANIMAL WHERE animal_id = :animal_id AND foto_principal = 1");
-        $stmtDelete->bindValue(':animal_id', $animalId, PDO::PARAM_INT);
-        $stmtDelete->execute();
-
-        $stmtInsert = $this->db->prepare(
-            "INSERT INTO FOTO_ANIMAL (animal_id, caminho_foto, foto_principal) VALUES (:animal_id, :caminho_foto, 1)"
-        );
-        $stmtInsert->bindValue(':animal_id', $animalId, PDO::PARAM_INT);
-        $stmtInsert->bindValue(':caminho_foto', $caminhoFoto, PDO::PARAM_STR);
-        $stmtInsert->execute();
-    }
-
+    // Usado por: AnimalRepository::buscarPorId(), listarComFiltros() e buscarPorProtetor() (uso interno)
     private function mapAnimal(array $row): Animal
     {
         $animal = new Animal();

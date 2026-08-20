@@ -18,6 +18,7 @@ class RacaController extends Controller
     private RacaRepository $racaRepo;
     private EspecieRepository $especieRepository;
 
+    // Usado por: instanciado pelo Router para todas as rotas /admin/raca/* e /raca/json
     public function __construct()
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -39,6 +40,7 @@ class RacaController extends Controller
         $this->especieService = new EspecieService($this->especieRepository);
     }
 
+    // Usado por: rota GET /admin/raca
     public function index(): void
     {
         $status = $_GET['status'] ?? 'todos';
@@ -51,6 +53,7 @@ class RacaController extends Controller
         ]);
     }
 
+    // Usado por: rota GET /admin/raca/cadastrar
     public function create(): void
     {
         $especies = $this->especieService->listarTodas();
@@ -61,6 +64,7 @@ class RacaController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/raca/salvar
     public function store(): void
     {
         try {
@@ -79,6 +83,7 @@ class RacaController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/raca/editar
     public function edit(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -97,6 +102,7 @@ class RacaController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/raca/atualizar
     public function update(): void
     {
         try {
@@ -117,6 +123,7 @@ class RacaController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/raca/excluir
     public function deleteView(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -132,6 +139,7 @@ class RacaController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/raca/deletar
     public function destroy(): void
     {
         try {
@@ -147,6 +155,7 @@ class RacaController extends Controller
         }
     }
 
+    // Usado por: rota POST /admin/raca/importar
 public function importar(): void
     {
         try {
@@ -166,6 +175,7 @@ public function importar(): void
         $this->redirect('/admin/gerenciar-especies-racas?aba=sugestoes');
     }
 
+    // Usado por: rota GET /admin/raca/reativar
     public function reativar(): void
     {
         try {
@@ -181,6 +191,7 @@ public function importar(): void
         }
     }
 
+    // Usado por: rotas GET /admin/raca/json e /raca/json (chamada por outros perfis)
     public function buscarJson()
     {
         try {
@@ -201,6 +212,7 @@ public function importar(): void
         exit;
     }
 
+    // Usado por: rota GET /admin/gerenciar-especies-racas
     public function gerenciarEspeciesRacas(): void
     {
         // Carrega SOMENTE dados locais do banco — nenhuma chamada às APIs externas
@@ -234,6 +246,7 @@ public function importar(): void
      * Endpoint AJAX: busca sugestões de raças nas APIs externas (TheDogAPI/TheCatAPI)
      * SOB DEMANDA, disparado apenas pelo clique no botão "Sugestões da API" da view.
      */
+    // Usado por: rota GET /admin/raca/sugestoes-json
     public function sugestoesJson(): void
     {
         try {

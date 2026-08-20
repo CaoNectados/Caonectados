@@ -18,16 +18,19 @@ class RacaService
         $this->repository = $repository;
     }
 
+    // Usado por: RacaController (listagem/filtro de raças)
     public function listarTodas(string $status = 'todos'): array
     {
         return $this->repository->listarTodas($status);
     }
 
+    // Usado por: RacaController (edição/exclusão de raça)
     public function buscarPorId(int $id): ?Raca
     {
         return $this->repository->buscarPorId($id);
     }
 
+    // Usado por: RacaController::store
     public function cadastrar(Raca $raca): bool
     {
         if (trim($raca->getNome()) === '' || $raca->getEspecieId() <= 0) {
@@ -36,6 +39,7 @@ class RacaService
         return $this->repository->cadastrar($raca);
     }
 
+    // Usado por: RacaController::update
     public function atualizar(Raca $raca): bool
     {
         if ($raca->getId() <= 0 || trim($raca->getNome()) === '' || $raca->getEspecieId() <= 0) {
@@ -44,48 +48,22 @@ class RacaService
         return $this->repository->atualizar($raca);
     }
 
+    // Usado por: RacaController::destroy
     public function excluir(int $id): bool
     {
         return $this->repository->excluir($id);
     }
 
+    // Usado por: RacaController (reativar raça desativada)
     public function reativar(int $id): bool
     {
         return $this->repository->reativar($id);
     }
 
     /**
-     * Método unificado e privado para consumir qualquer API externa de raças.
-     */
-    private function buscarDaApi(string $url, string $apiKey): array
-    {
-        $headers = [
-            "User-Agent: Mozilla/5.0",
-            "x-api-key: " . $apiKey
-        ];
-        
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => implode("\r\n", $headers),
-                'timeout' => 15
-            ]
-        ]);
-
-        $json = @file_get_contents($url, false, $context);
-        if ($json !== false) {
-            $data = json_decode($json, true);
-            if (is_array($data)) {
-                return array_column($data, 'name');
-            }
-        }
-
-        return [];
-    }
-
-    /**
      * Retorna sugestões brutas de cães e gatos utilizando o método unificado.
      */
+    // Usado por: RacaController (busca de sugestões de raças via API externa)
     public function buscarSugestoesExternas(): array
     {
         return [
@@ -97,6 +75,7 @@ class RacaService
     /**
      * Cadastra em lote as raças selecionadas pelo administrador.
      */
+    // Usado por: RacaController::importar
     public function importarSelecionadas(EspecieRepository $especieRepo, string $especieNome, array $racasAceitas): int
     {
         if (empty($racasAceitas)) {
@@ -120,6 +99,7 @@ class RacaService
         return $cadastros;
     }
 
+    // Usado por: (não referenciado atualmente)
     public function importarDeApisExternas(EspecieRepository $especieRepo): array
     {
         $sugestoes = $this->buscarSugestoesExternas();
@@ -127,5 +107,35 @@ class RacaService
         $totalGatos = $this->importarSelecionadas($especieRepo, 'Gato', $sugestoes['gatos']);
 
         return ['sucesso' => true, 'total' => ($totalCaes + $totalGatos)];
+    }
+
+    /**
+     * Método unificado e privado para consumir qualquer API externa de raças.
+     */
+    // Usado por: buscarSugestoesExternas()
+    private function buscarDaApi(string $url, string $apiKey): array
+    {
+        $headers = [
+            "User-Agent: Mozilla/5.0",
+            "x-api-key: " . $apiKey
+        ];
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => implode("\r\n", $headers),
+                'timeout' => 15
+            ]
+        ]);
+
+        $json = @file_get_contents($url, false, $context);
+        if ($json !== false) {
+            $data = json_decode($json, true);
+            if (is_array($data)) {
+                return array_column($data, 'name');
+            }
+        }
+
+        return [];
     }
 }

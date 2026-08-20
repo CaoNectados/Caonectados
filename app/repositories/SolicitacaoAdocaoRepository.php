@@ -8,21 +8,7 @@ use PDO;
 
 class SolicitacoesAdocaoRepository extends BaseRepository
 {
-    public function salvar(SolicitacoesAdocao $solicitacao): int
-    {
-        $sql = "INSERT INTO SOLICITACAO_ADOCAO (adotante_id, animal_id, status_solicitacao, justificativa_recusa) 
-                VALUES (:adotante_id, :animal_id, :status_solicitacao, :justificativa_recusa)";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':adotante_id', $solicitacao->getAdotanteId(), PDO::PARAM_INT);
-        $stmt->bindValue(':animal_id', $solicitacao->getAnimalId(), PDO::PARAM_INT);
-        $stmt->bindValue(':status_solicitacao', $solicitacao->getStatusSolicitacao() ?? 'pendente', PDO::PARAM_STR);
-        $stmt->bindValue(':justificativa_recusa', $solicitacao->getJustificativaRecusa(), PDO::PARAM_STR);
-        $stmt->execute();
-
-        return (int) $this->db->lastInsertId();
-    }
-
+    // Usado por: (não referenciado atualmente)
     public function buscarPorId(int $id): ?SolicitacoesAdocao
     {
         $sql = "SELECT * FROM SOLICITACAO_ADOCAO WHERE solicitacao_id = :id";
@@ -35,6 +21,7 @@ class SolicitacoesAdocaoRepository extends BaseRepository
         return $row === false ? null : $this->mapSolicitacao($row);
     }
 
+    // Usado por: (não referenciado atualmente)
     public function listarTodos(): array
     {
         $sql = "SELECT * FROM SOLICITACAO_ADOCAO ORDER BY data_solicitacao DESC";
@@ -44,10 +31,27 @@ class SolicitacoesAdocaoRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapSolicitacao($row), $rows);
     }
 
+    // Usado por: (não referenciado atualmente)
+    public function salvar(SolicitacoesAdocao $solicitacao): int
+    {
+        $sql = "INSERT INTO SOLICITACAO_ADOCAO (adotante_id, animal_id, status_solicitacao, justificativa_recusa)
+                VALUES (:adotante_id, :animal_id, :status_solicitacao, :justificativa_recusa)";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':adotante_id', $solicitacao->getAdotanteId(), PDO::PARAM_INT);
+        $stmt->bindValue(':animal_id', $solicitacao->getAnimalId(), PDO::PARAM_INT);
+        $stmt->bindValue(':status_solicitacao', $solicitacao->getStatusSolicitacao() ?? 'pendente', PDO::PARAM_STR);
+        $stmt->bindValue(':justificativa_recusa', $solicitacao->getJustificativaRecusa(), PDO::PARAM_STR);
+        $stmt->execute();
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    // Usado por: (não referenciado atualmente)
     public function atualizar(SolicitacoesAdocao $solicitacao): bool
     {
-        $sql = "UPDATE SOLICITACAO_ADOCAO 
-                SET status_solicitacao = :status_solicitacao, 
+        $sql = "UPDATE SOLICITACAO_ADOCAO
+                SET status_solicitacao = :status_solicitacao,
                     justificativa_recusa = :justificativa_recusa,
                     data_finalizacao = :data_finalizacao
                 WHERE solicitacao_id = :id";
@@ -61,6 +65,7 @@ class SolicitacoesAdocaoRepository extends BaseRepository
         return $stmt->execute();
     }
 
+    // Usado por: (não referenciado atualmente)
     public function deletar(int $id): bool
     {
         $sql = "DELETE FROM SOLICITACAO_ADOCAO WHERE solicitacao_id = :id";
@@ -70,6 +75,7 @@ class SolicitacoesAdocaoRepository extends BaseRepository
         return $stmt->execute();
     }
 
+    // Usado por: SolicitacoesAdocaoRepository::buscarPorId() e listarTodos() (uso interno)
     private function mapSolicitacao(array $row): SolicitacoesAdocao
     {
         $solicitacao = new SolicitacoesAdocao();

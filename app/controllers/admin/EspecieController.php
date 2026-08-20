@@ -14,6 +14,7 @@ class EspecieController extends Controller
     private EspecieService $service;
     private EspecieRepository $especieRepo;
 
+    // Usado por: instanciado pelo Router para todas as rotas /admin/especie/*
     public function __construct()
     {
         // Trava nativa do Controller base restrita a administradores
@@ -24,6 +25,7 @@ class EspecieController extends Controller
         $this->service = new EspecieService($this->especieRepo);
     }
 
+    // Usado por: rota GET /admin/especie
     public function index(): void
     {
         $status = $_GET['status'] ?? 'todos';
@@ -36,6 +38,7 @@ class EspecieController extends Controller
         ]);
     }
 
+    // Usado por: rota GET /admin/especie/cadastrar
     public function create(): void
     {
         $this->view('especie/cadastrar', [
@@ -43,6 +46,7 @@ class EspecieController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/especie/salvar
     public function store(): void
     {
         try {
@@ -57,6 +61,7 @@ class EspecieController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/especie/editar
     public function edit(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -72,6 +77,7 @@ class EspecieController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/especie/atualizar
     public function update(): void
     {
         try {
@@ -90,6 +96,7 @@ class EspecieController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/especie/excluir
     public function deleteView(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -105,6 +112,7 @@ class EspecieController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/especie/deletar
     public function destroy(): void
     {
         try {
@@ -119,6 +127,7 @@ class EspecieController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/especie/reativar
     public function reativar(): void
     {
         try {
@@ -136,6 +145,7 @@ class EspecieController extends Controller
     /**
      * Endpoint para requisições AJAX/Fetch do JavaScript
      */
+    // Usado por: rota GET /admin/especie/json
     public function buscarJson(): void
     {
         try {

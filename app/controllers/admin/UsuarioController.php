@@ -16,6 +16,7 @@ class UsuarioController extends Controller
         $this->adminService = new UsuarioAdminService();
     }
 
+    // Usado por: rota GET /admin/gerenciar-usuarios
     public function index(): void
     {
         $filtros = [
@@ -33,6 +34,7 @@ class UsuarioController extends Controller
         ]));
     }
 
+    // Usado por: rota GET /admin/usuarios/detalhes
     public function detalhes(): void
     {
         try {
@@ -48,6 +50,7 @@ class UsuarioController extends Controller
         }
     }
 
+    // Usado por: rota POST /admin/usuarios/alterar-status
     public function alterarStatusUsuario(): void
     {
         try {
@@ -66,6 +69,7 @@ class UsuarioController extends Controller
         }
     }
 
+    // Usado por: rota POST /admin/usuarios/alterar-status-perfil
     public function alterarStatusPerfil(): void
     {
         try {

@@ -1,6 +1,7 @@
 /**
  * Controle unificado de menus.
  * Gerencia a sidebar desktop, o menu mobile, o backdrop e os ícones do botão.
+ * Usado por: templates/footer.php, incluído em todas as páginas autenticadas.
  */
 (function () {
     'use strict';

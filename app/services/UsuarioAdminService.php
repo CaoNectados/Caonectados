@@ -21,6 +21,7 @@ class UsuarioAdminService
         $this->protetorRepo = new ProtetorRepository();
     }
 
+    // Usado por: UsuarioController::index
     public function listarUsuarios(array $filtros): array
     {
         $busca = trim($filtros['busca'] ?? '');
@@ -40,6 +41,7 @@ class UsuarioAdminService
         ];
     }
 
+    // Usado por: UsuarioController (detalhes do usuário)
     public function obterDetalhesUsuario(int $usuarioId): array
     {
         $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
@@ -89,6 +91,7 @@ class UsuarioAdminService
         ];
     }
 
+    // Usado por: UsuarioController (ativar/desativar conta de usuário)
     public function alterarStatusUsuario(int $usuarioId, string $acao, int $adminLogadoId): string
     {
         if ($usuarioId === $adminLogadoId && $acao === 'desativar') {
@@ -120,6 +123,7 @@ class UsuarioAdminService
             : "Usuário desativado com sucesso! O acesso global à plataforma foi bloqueado.";
     }
 
+    // Usado por: UsuarioController (ativar/desativar perfil específico do usuário)
     public function alterarStatusPerfil(int $usuarioId, string $tipoPerfil, string $acao, int $adminLogadoId): string
     {
         $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
@@ -170,4 +174,3 @@ class UsuarioAdminService
         }
     }
 }
-

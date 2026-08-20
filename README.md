@@ -13,61 +13,70 @@ O sistema foi pensado para atender quatro perfis principais de usuários:
 - **ONGs**: organizações que atuam na proteção animal e que precisam gerenciar seus animais, solicitações e páginas institucionais.
 - **Administradores**: usuários com acesso de gestão geral do sistema, responsáveis por cadastros, moderação e manutenção da base de dados.
 
-## Tecnologias Utilizadas
-O projeto utiliza as seguintes tecnologias e ferramentas:
-
-- **PHP** com arquitetura **MVC puro**
-- **MySQL** como SGBD
+## Stack Tecnológica
+- **PHP 8** com arquitetura **MVC própria** (sem framework), autoload via **Composer/PSR-4**
+- **MySQL** como SGBD, acesso via **PDO**
 - **Tailwind CSS** para estilização da interface
+- **PHPMailer** para envio de e-mails transacionais (verificação de conta, 2FA, recuperação de senha)
+- **JavaScript vanilla** no front-end (sem framework de UI)
 - **Figma** para prototipação e design de telas
 
-## Estrutura do Projeto
-A organização do projeto segue uma arquitetura MVC customizada, com separação clara entre responsabilidades:
+## Arquitetura e Padrões do Projeto
+O projeto segue uma arquitetura MVC em camadas, com uma regra central: **regra de negócio e validação nunca ficam na View, e o mínimo possível fica no Controller.**
 
-- **app/core**: classes base do framework, como autoload, router, controller e repositório base.
+```
+Requisição
+   │
+   ▼
+Router (app/core/Router.php)          resolve a rota e instancia o Controller
+   │
+   ▼
+Controller (app/controllers/**)       lê a requisição (GET/POST/$_FILES), chama o Service
+   │                                  correspondente e devolve JSON ou uma View — não
+   │                                  contém regra de negócio nem SQL.
+   ▼
+Service (app/services/**)             orquestra a regra de negócio, valida os dados
+   │                                  (delegando ao ValidationService), controla
+   │                                  transações e chama um ou mais Repositories.
+   ▼
+Repository (app/repositories/**)      única camada que sabe falar com o banco (PDO);
+                                       recebe/retorna Models ou arrays, sem regra de
+                                       negócio.
+```
+
+- **`app/services/ValidationService.php`** é o ponto único de validação do back-end: campos obrigatórios, nome, maioridade, telefone, e-mail, força de senha, CPF/CNPJ, chave PIX, links de rede social e datas. Qualquer Controller ou Service que precise validar um dado de entrada deve reutilizar um método daqui em vez de reescrever `preg_match`/`filter_var` localmente.
+- **`public/assets/js/validacoes.js`** (objeto `CaonectadosValidator`) é o equivalente no front-end: toda validação de formulário (CPF/CNPJ, e-mail, telefone, tamanho de arquivo, links sociais, chave PIX, datas) fica centralizada ali e é reutilizada pelas views via `CaonectadosValidator.<método>`. A validação client-side é só para feedback imediato do usuário — a validação de back-end no `ValidationService` é sempre a autoridade final.
+- **Repositories** encapsulam todo o SQL; Services nunca montam queries diretamente. Um Service pode combinar dados de múltiplos Repositories (ex.: `PerfilService` lê de `UsuarioRepository`, `AdotanteRepository` e `PaginaRepository` para montar a tela de perfil).
+- **Models** (`app/models/**`) são objetos de domínio simples (getters/setters), sem lógica própria.
+- **Helpers** (`app/helpers/ViewHelper.php`) concentram pequenas funções utilitárias usadas diretamente nas views (ex.: escaping de saída).
+
+### Estrutura de Pastas
+- **app/core**: classes base do framework (Router, Controller, BaseRepository).
 - **app/config**: configurações gerais da aplicação e conexão com o ambiente local.
 - **app/controllers**: controladores responsáveis por receber requisições e coordenar o fluxo da aplicação.
 - **app/models**: classes de domínio que representam as entidades do sistema.
 - **app/repositories**: classes responsáveis pelo acesso e persistência dos dados.
-- **app/services**: camada de regra de negócio e coordenação entre controllers e repositories.
+- **app/services**: camada de regra de negócio, validação e coordenação entre controllers e repositories.
 - **app/views**: arquivos de visualização da aplicação.
-- **app/views/templates**: templates reutilizáveis de interface.
+- **app/views/templates**: templates reutilizáveis de interface (header, footer, modais).
 - **app/database**: estrutura do banco de dados, scripts SQL e inicialização.
-- **app/helpers**: utilitários e validações auxiliares.
-- **public**: ponto de entrada da aplicação e recursos públicos.
+- **app/helpers**: utilitários auxiliares usados pelas views.
+- **public**: ponto de entrada da aplicação (`index.php`, com a definição das rotas) e recursos públicos.
 - **public/assets/css**: estilos da interface.
-- **public/assets/js**: scripts do front-end.
+- **public/assets/js**: scripts do front-end (`validacoes.js` centraliza as validações de formulário).
 - **public/assets/img**: imagens e recursos visuais.
 
 ## Como Executar o Projeto Localmente
-1. Clone o repositório para sua máquina local.
-2. Abra o projeto no XAMPP e garanta que o Apache e o MySQL estejam em execução.
-3. Acesse o arquivo [app/config/config.php](app/config/config.php) e ajuste as constantes de conexão, se necessário.
-4. Verifique se o banco está configurado com:
-	- host local do MySQL
-	- banco com o nome `caonectados`
-	- usuário `root`
-	- senha vazia
-	- URL base apontando para a pasta `public` do projeto
-5. No MySQL, importe o arquivo [app/database/scripts/scripts.sql](app/database/scripts/scripts.sql) para criar o banco e as tabelas.
-6. Configure o projeto para ser executado pela pasta `public` como diretório de entrada.
-7. Abra o terminal na pasta raiz do projeto clonado e execute o comando abaixo para baixar as dependências do PHP:
+1. Clone o repositório para a pasta `htdocs` do XAMPP.
+2. Abra o XAMPP Control Panel e garanta que o **Apache** e o **MySQL** estejam em execução.
+3. Acesse o arquivo [app/config/config.php](app/config/config.php) e ajuste as constantes de conexão, se necessário (por padrão usa `localhost`, banco `caonectados`, usuário `root` sem senha, e `URL_BASE` apontando para a pasta `public`).
+4. No phpMyAdmin (ou client MySQL de sua preferência), crie o banco `caonectados` e importe o script [app/database/scripts/scripts.sql](app/database/scripts/scripts.sql) para criar as tabelas.
+5. Instale o [Composer](https://getcomposer.org/) (ele detecta automaticamente o PHP do XAMPP em `C:\xampp\php\php.exe`).
+6. No terminal, na raiz do projeto, rode:
    ```bash
    composer install
-8. Acesse a aplicação pelo navegador usando o endereço local configurado no XAMPP.
-
-## Como Instalar o Composer (Passo a Passo Básico)
-O Composer é o gerenciador de pacotes do PHP, essencial para baixar bibliotecas externas do projeto (como o envio de e-mails).
-
-1. Acesse o site oficial do Composer: [getcomposer.org](https://getcomposer.org/)
-2. Clique em **Download** e baixe o instalador para o seu sistema operacional (`Composer-Setup.exe` para Windows).
-3. Execute o instalador baixado:
-   - Durante a instalação, ele vai procurar o executável do PHP na sua máquina (geralmente localizado em `C:\xampp\php\php.exe`). Confirme o caminho se necessário.
-   - Siga clicando em *Next* até finalizar a instalação.
-4. Para testar se deu certo, abra o seu terminal (Prompt de Comando ou Git Bash) e digite:
-   ```bash
-   composer --version
-
+   ```
+7. Acesse a aplicação pelo navegador em `http://localhost/Caonectados/public` (ou pelo caminho equivalente ao nome da pasta do projeto dentro de `htdocs`).
 
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista
