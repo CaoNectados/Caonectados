@@ -23,15 +23,12 @@ class RacaController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $isJsonRoute = str_contains($uri, '/raca/json') || str_contains($uri, '/admin/raca/json');
 
-        if (!$isJsonRoute && ($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
-            $this->redirect('/login');
+        // /raca/json e /admin/raca/json são compartilhadas com outros perfis (AJAX de raças por espécie).
+        $uriAtual = $this->getUriLimpa();
+        if ($uriAtual !== '/raca/json' && $uriAtual !== '/admin/raca/json') {
+            $this->autenticacaoRequired(['administrador']);
         }
-        // if (($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
-        //     $this->redirect('/login');
-        // }
 
         $pdo = ConnectionFactory::getConnection();
 
@@ -75,11 +72,11 @@ class RacaController extends Controller
             $raca->setEspecieId($especieId);
 
             $this->service->cadastrar($raca);
-        } catch (Exception $e) {
-            // Tratamento de erro silencioso ou log
-        }
 
-        $this->redirect('/admin/raca');
+            $this->redirecionarComMensagem('sucesso', 'Raça cadastrada com sucesso!', '/admin/raca');
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', 'Erro ao cadastrar raça.', '/admin/raca', $e->getMessage());
+        }
     }
 
     public function edit(): void
@@ -97,7 +94,6 @@ class RacaController extends Controller
             'raca' => $raca,
             'especies' => $especies,
             'titulo'   => 'Editar Raça'
-
         ]);
     }
 
@@ -114,11 +110,11 @@ class RacaController extends Controller
             $raca->setEspecieId($especieId);
 
             $this->service->atualizar($raca);
-        } catch (Exception $e) {
-            // Tratamento de erro
-        }
 
-        $this->redirect('/admin/raca');
+            $this->redirecionarComMensagem('sucesso', 'Raça atualizada com sucesso!', '/admin/raca');
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', 'Erro ao atualizar raça.', '/admin/raca', $e->getMessage());
+        }
     }
 
     public function deleteView(): void
@@ -133,47 +129,61 @@ class RacaController extends Controller
         $this->view('raca/excluir', [
             'raca' => $raca,
             'titulo'   => 'Excluir Raça'
-
         ]);
     }
 
     public function destroy(): void
     {
-        $id = (int)($_GET['id'] ?? 0);
-        if ($id > 0) {
+        try {
+            $id = (int)($_GET['id'] ?? 0);
+            if ($id <= 0) {
+                throw new Exception('Raça inválida.');
+            }
             $this->service->excluir($id);
-        }
 
-        $this->redirect('/admin/raca');
+            $this->redirecionarComMensagem('sucesso', 'Raça desativada com sucesso!', '/admin/raca');
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', 'Erro ao desativar raça.', '/admin/raca', $e->getMessage());
+        }
     }
 
-    public function importar(): void
+public function importar(): void
     {
         try {
-            $resultado = $this->service->importarDeApisExternas($this->especieRepository);
+            $especieNome = trim($_POST['especie_nome'] ?? '');
+            $racasAceitas = $_POST['racas_aceitas'] ?? [];
 
-            $_SESSION['mensagem'] = "Sincronização concluída! {$resultado['total']} nova(s) raça(s) adicionada(s).";
+            if ($especieNome !== '' && !empty($racasAceitas)) {
+                $total = $this->service->importarSelecionadas($this->especieRepository, $especieNome, $racasAceitas);
+                $_SESSION['mensagem'] = "Importação realizada com sucesso para {$especieNome}! {$total} raça(s) adicionada(s).";
+            } else {
+                $_SESSION['erro'] = "Nenhuma raça foi selecionada para importação.";
+            }
         } catch (Exception $e) {
             $_SESSION['erro'] = "Erro durante a importação: " . $e->getMessage();
         }
 
-        $this->redirect('/admin/raca');
+        $this->redirect('/admin/gerenciar-especies-racas?aba=sugestoes');
     }
 
     public function reativar(): void
     {
-        $id = (int)($_GET['id'] ?? 0);
-        if ($id > 0) {
+        try {
+            $id = (int)($_GET['id'] ?? 0);
+            if ($id <= 0) {
+                throw new Exception('Raça inválida.');
+            }
             $this->service->reativar($id);
-        }
 
-        $this->redirect('/admin/raca');
+            $this->redirecionarComMensagem('sucesso', 'Raça reativada com sucesso!', '/admin/raca');
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', 'Erro ao reativar raça.', '/admin/raca', $e->getMessage());
+        }
     }
 
     public function buscarJson()
     {
         try {
-            $pdo = ConnectionFactory::getConnection();
             $especieId = filter_input(INPUT_GET, 'especie_id', FILTER_VALIDATE_INT);
 
             if ($especieId) {
@@ -182,23 +192,24 @@ class RacaController extends Controller
                 $racas = $this->racaRepo->buscarTodas();
             }
 
-            header('Content-Type: application/json');
-            echo json_encode(['sucesso' => true, 'dados' => $racas]);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['sucesso' => true, 'dados' => $racas], JSON_UNESCAPED_UNICODE);
         } catch (Exception $e) {
-            header('Content-Type: application/json', true, 500);
-            echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao buscar raças.']);
+            header('Content-Type: application/json; charset=utf-8', true, 500);
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao buscar raças.'], JSON_UNESCAPED_UNICODE);
         }
         exit;
     }
 
     public function gerenciarEspeciesRacas(): void
     {
-        // Busca todas as espécies e raças ativas
+        // Carrega SOMENTE dados locais do banco — nenhuma chamada às APIs externas
+        // (TheDogAPI/TheCatAPI) acontece aqui. Elas só rodam sob demanda em sugestoesJson().
         $especies = $this->especieService->listarTodas('ativos');
         $racas = $this->service->listarTodas('ativos');
 
-        // Cria um array agrupando as raças dentro de suas respectivas espécies
         $especiesComRacas = [];
+
         foreach ($especies as $especie) {
             $especiesComRacas[$especie->getId()] = [
                 'especie' => $especie,
@@ -213,10 +224,43 @@ class RacaController extends Controller
             }
         }
 
-        // Envia para a View
         $this->view('admin/gerenciar_especies_racas', [
-            'titulo' => 'Visão Geral: Espécies e Raças',
-            'especiesComRacas' => $especiesComRacas
+            'titulo' => 'Gerenciar Espécies e Raças',
+            'especiesComRacas' => $especiesComRacas,
         ]);
+    }
+
+    /**
+     * Endpoint AJAX: busca sugestões de raças nas APIs externas (TheDogAPI/TheCatAPI)
+     * SOB DEMANDA, disparado apenas pelo clique no botão "Sugestões da API" da view.
+     */
+    public function sugestoesJson(): void
+    {
+        try {
+            $racas = $this->service->listarTodas('ativos');
+            $nomesRacasNoBanco = [];
+            foreach ($racas as $raca) {
+                $nomesRacasNoBanco[strtolower(trim($raca->getNome()))] = true;
+            }
+
+            $sugestoesBrutas = $this->service->buscarSugestoesExternas();
+
+            $listaCaes = array_values(array_filter($sugestoesBrutas['caes'] ?? [], function ($nome) use ($nomesRacasNoBanco) {
+                return !isset($nomesRacasNoBanco[strtolower(trim($nome))]);
+            }));
+            $listaGatos = array_values(array_filter($sugestoesBrutas['gatos'] ?? [], function ($nome) use ($nomesRacasNoBanco) {
+                return !isset($nomesRacasNoBanco[strtolower(trim($nome))]);
+            }));
+
+            $this->json(200, [
+                'status' => 'sucesso',
+                'sugestoes' => [
+                    ['especie' => 'Cão', 'icon' => '🐶', 'racas' => $listaCaes],
+                    ['especie' => 'Gato', 'icon' => '🐱', 'racas' => $listaGatos],
+                ],
+            ]);
+        } catch (Exception $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => 'Não foi possível buscar sugestões externas no momento.']);
+        }
     }
 }

@@ -11,7 +11,8 @@ class Protetor
     private ?string $codigo_documento = null;
     private ?string $tipo_documento = null;
     private ?string $nome_fantasia = null;
-    private ?string $comprovante_documento = null; // NOVO CAMPO ADICIONADO
+    private ?string $data_abertura_cnpj = null; 
+    private ?string $comprovante_documento = null;
     private ?string $criado_em = null;
     private ?string $deletado_em = null;
 
@@ -36,6 +37,9 @@ class Protetor
 
     public function getNomeFantasia(): ?string { return $this->nome_fantasia; }
     public function setNomeFantasia(?string $nome_fantasia): void { $this->nome_fantasia = $nome_fantasia; }
+
+    public function getDataAberturaCnpj(): ?string { return $this->data_abertura_cnpj; }
+    public function setDataAberturaCnpj(?string $data_abertura_cnpj): void { $this->data_abertura_cnpj = $data_abertura_cnpj; }
 
     public function getComprovanteDocumento(): ?string { return $this->comprovante_documento; }
     public function setComprovanteDocumento(?string $comprovante_documento): void { $this->comprovante_documento = $comprovante_documento; }

@@ -38,132 +38,114 @@ class PerfilService
         $numero = trim($dados['numero'] ?? $dados['num_morada'] ?? 'S/N');
         $regiaoId = !empty($dados['regiao_id']) ? (int)$dados['regiao_id'] : null;
 
+        $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
         $conexao = ConnectionFactory::getConnection();
 
         try {
             $conexao->beginTransaction();
 
-            // 1. Atualiza dados globais na tabela USUARIO
             $this->usuarioRepo->atualizarDadosPerfil($usuarioId, trim($dados['nome']), $telefoneLimpo, $regiaoId, $logradouro, $numero);
 
-            // 2. Processa Imagem de Perfil Recortada (via UploadService adaptado para Base64)
             $caminhoFoto = null;
-            if (!empty($dados['foto_cortada'])) {
-                $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
-                $uploadService = new UploadService($subpastaFoto);
-                $caminhoFoto = $this->salvarBase64ViaUploadService($dados['foto_cortada'], $uploadService);
+            $fotoBase64 = $dados['foto_cortada'] ?? $dados['foto_perfil'] ?? null;
+            
+            if (!empty($fotoBase64)) {
+                $tipoUpload = $isProtetorOng ? 'foto_pagina' : 'foto_perfil';
+
+                $this->removerFotoAntigaDoPerfil($usuarioId, $isProtetorOng);
+
+                $uploadService = new UploadService();
+                $caminhoFoto = $uploadService->salvar($fotoBase64, $tipoUpload);
             }
 
-            $revalidarDocumento = false;
-
-            // 3. Atualização para perfil ADOTANTE / USUÁRIO
-            if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
+            if (!$isProtetorOng) {
                 $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
 
-                if ($caminhoFoto && !empty($adotanteAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($adotanteAtual['foto_perfil']);
+                $especiesLimpos = [];
+                if (!empty($dados['preferencias_especie']) && is_array($dados['preferencias_especie'])) {
+                    foreach ($dados['preferencias_especie'] as $espId) {
+                        if (is_numeric($espId)) {
+                            $especiesLimpos[] = (int)$espId;
+                        }
+                    }
+                }
+
+                $racasLimpos = [];
+                if (!empty($dados['preferencias_raca']) && is_array($dados['preferencias_raca'])) {
+                    foreach ($dados['preferencias_raca'] as $racaId) {
+                        if (is_numeric($racaId)) {
+                            $racasLimpos[] = (int)$racaId;
+                        }
+                    }
                 }
 
                 $detalhesJson = json_encode([
-                    'possui_criancas'      => $dados['possui_criancas'] ?? 'nao',
+                    'possui_criancas'     => $dados['possui_criancas'] ?? 'nao',
                     'possui_outros_pets'   => $dados['possui_outros_pets'] ?? 'nao',
                     'espaco_externo'       => $dados['espaco_externo'] ?? '',
-                    'preferencias_especie' => $dados['preferencias_especie'] ?? [],
+                    'preferencias_especie' => array_values(array_unique($especiesLimpos)),
+                    'preferencias_raca'    => array_values(array_unique($racasLimpos)),
                     'preferencias_porte'   => $dados['preferencias_porte'] ?? [],
                     'preferencias_sexo'    => $dados['preferencias_sexo'] ?? []
                 ]);
 
-                $this->adotanteRepo->atualizarDadosAdotante(
-                    $usuarioId,
-                    $dados['tipo_morada'] ?? 'casa',
-                    $dados['tamanho_interno_morada'] ?? 'medio',
-                    $detalhesJson,
-                    $caminhoFoto ?? ($adotanteAtual['foto_perfil'] ?? null)
-                );
-            }
-            // 4. Atualização para PROTETOR / ONG
-            elseif (in_array($tipoPerfilSessao, ['ong', 'protetor'], true)) {
-                $protetorAtual = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
-                if (!$protetorAtual) {
-                    throw new Exception("Perfil de protetor não encontrado.");
+                $tipoMoradia = $dados['tipo_morada'] ?? ($adotanteAtual['tipo_moradia'] ?? 'casa');
+                $tamanhoInterno = $dados['tamanho_interno_morada'] ?? ($adotanteAtual['tamanho_interno_moradia'] ?? 'medio');
+                $fotoFinal = $caminhoFoto ?? ($adotanteAtual['foto_perfil'] ?? null);
+
+                if ($adotanteAtual) {
+                    $this->adotanteRepo->atualizarDadosAdotante($usuarioId, $tipoMoradia, $tamanhoInterno, $detalhesJson, $fotoFinal);
+                } else {
+                    $adotante = new \app\models\Adotante();
+                    $adotante->setUsuarioId($usuarioId);
+                    $adotante->setTipoMoradia($tipoMoradia);
+                    $adotante->setTamanhoInternoMoradia($tamanhoInterno);
+                    $adotante->setDetalhes($detalhesJson);
+                    $adotante->setFotoPerfil($fotoFinal);
+                    $this->adotanteRepo->salvar($adotante);
                 }
-
-                $protetorId = (int)$protetorAtual['protetor_id'];
-                $nomeFantasia = trim($dados['nome_fantasia'] ?? $dados['nome']);
-
-                $codigoDocAntigo = preg_replace('/[^0-9]/', '', (string)$protetorAtual['codigo_documento']);
-                $codigoDocNovo = preg_replace('/[^0-9]/', '', (string)($dados['codigo_documento'] ?? ''));
-
-                if (empty($codigoDocNovo)) {
-                    $codigoDocNovo = $codigoDocAntigo;
-                }
-
-                if ($tipoPerfilSessao === 'ong') {
-                    if (strlen($codigoDocNovo) !== 14 || !ValidationService::validarCnpj($codigoDocNovo)) {
-                        throw new Exception("ONGs devem informar obrigatoriamente um CNPJ válido com 14 dígitos.");
-                    }
-                } elseif ($tipoPerfilSessao === 'protetor') {
-                    if (strlen($codigoDocNovo) !== 11 || !ValidationService::validarCpf($codigoDocNovo)) {
-                        throw new Exception("Protetores independentes devem informar obrigatoriamente um CPF válido com 11 dígitos.");
-                    }
-                }
-
-                if (!empty($dados['instagram']) && !ValidationService::validarLinkRedeSocial($dados['instagram'], 'instagram')) {
-                    throw new Exception("O link do Instagram informado é inválido.");
-                }
-
-                if (!empty($dados['facebook']) && !ValidationService::validarLinkRedeSocial($dados['facebook'], 'facebook')) {
-                    throw new Exception("O link do Facebook informado é inválido.");
-                }
-
-                if (!empty($dados['chave_pix']) && !ValidationService::validarChavePix($dados['chave_pix'])) {
-                    throw new Exception("A chave PIX informada é inválida.");
-                }
-
-                $comprovanteCaminho = $protetorAtual['comprovante_documento'];
-
-                if ($codigoDocNovo !== $codigoDocAntigo) {
-                    $revalidarDocumento = true;
-                }
-
-                // Utiliza o UploadService para o comprovante
-                if (isset($arquivos['comprovante_documento']) && $arquivos['comprovante_documento']['error'] === UPLOAD_ERR_OK) {
-                    if (!empty($protetorAtual['comprovante_documento'])) {
-                        $this->removerArquivoAntigo($protetorAtual['comprovante_documento']);
+            } else {
+                $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+                if ($protetor) {
+                    $protetorId = (int)$protetor['protetor_id'];
+                    $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
+                    
+                    if ($paginaAtual) {
+                        $this->paginaRepo->atualizarPagina(
+                            $protetorId, 
+                            $dados['descricao'] ?? ($paginaAtual['descricao'] ?? null), 
+                            $dados['chave_pix'] ?? ($paginaAtual['chave_pix'] ?? null), 
+                            $caminhoFoto ?? ($paginaAtual['foto_perfil'] ?? null)
+                        );
+                    } else {
+                        $pagina = new \app\models\Pagina();
+                        $pagina->setProtetorId($protetorId);
+                        $pagina->setDescricao($dados['descricao'] ?? null);
+                        $pagina->setChavePix($dados['chave_pix'] ?? null);
+                        $pagina->setFotoPerfil($caminhoFoto);
+                        $this->paginaRepo->salvar($pagina);
                     }
 
-                    $uploadService = new UploadService('uploads/comprovantes');
-                    $comprovanteCaminho = $uploadService->salvar($arquivos['comprovante_documento']);
-                    $revalidarDocumento = true;
+                    $instagram = trim($dados['instagram'] ?? '');
+                    $facebook = trim($dados['facebook'] ?? '');
+
+                    if ($instagram !== '' && !ValidationService::validarLinkRedeSocial($instagram, 'instagram')) {
+                        throw new Exception('O link do Instagram informado é inválido.');
+                    }
+
+                    if ($facebook !== '' && !ValidationService::validarLinkRedeSocial($facebook, 'facebook')) {
+                        throw new Exception('O link do Facebook informado é inválido.');
+                    }
+
+                    $this->redeRepo->sincronizarRedes($protetorId, $instagram ?: null, $facebook ?: null);
                 }
-
-                $this->protetorRepo->atualizarDadosProtetor($protetorId, $nomeFantasia, $codigoDocNovo, $comprovanteCaminho, $revalidarDocumento);
-
-                $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
-
-                if ($caminhoFoto && !empty($paginaAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($paginaAtual['foto_perfil']);
-                }
-
-                $this->paginaRepo->atualizarPagina(
-                    $protetorId,
-                    $dados['descricao'] ?? ($paginaAtual['descricao'] ?? null),
-                    $dados['chave_pix'] ?? null,
-                    $caminhoFoto ?? ($paginaAtual['foto_perfil'] ?? null)
-                );
-
-                $this->redeRepo->sincronizarRedes($protetorId, $dados['instagram'] ?? null, $dados['facebook'] ?? null);
             }
 
             $conexao->commit();
-
-            if ($revalidarDocumento) {
-                $_SESSION['validado'] = false;
-                return 'Perfil atualizado! Como houve alteração de documento/comprovante, seu perfil passará por uma nova aprovação.';
+            if ($caminhoFoto) {
+                $_SESSION['foto_perfil'] = $caminhoFoto;
             }
-
             return 'Perfil atualizado com sucesso!';
-
         } catch (Exception $e) {
             $conexao->rollBack();
             throw $e;
@@ -172,80 +154,70 @@ class PerfilService
 
     public function atualizarApenasFoto(string $base64Data, int $usuarioId, string $tipoPerfilSessao): void
     {
-        $subpastaFoto = ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') ? 'uploads/foto_perfil' : 'uploads/foto_pagina';
-        $uploadService = new UploadService($subpastaFoto);
-        $caminhoFoto = $this->salvarBase64ViaUploadService($base64Data, $uploadService);
+        $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
+        $tipoUpload = $isProtetorOng ? 'foto_pagina' : 'foto_perfil';
 
-        if ($tipoPerfilSessao === 'adotante' || $tipoPerfilSessao === 'usuario') {
+        $this->removerFotoAntigaDoPerfil($usuarioId, $isProtetorOng);
+
+        $uploadService = new UploadService();
+        $caminhoFoto = $uploadService->salvar($base64Data, $tipoUpload);
+
+        if (!$caminhoFoto) {
+            throw new Exception("Falha ao salvar a imagem no servidor.");
+        }
+
+        if (!$isProtetorOng) {
             $adotanteAtual = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
             if ($adotanteAtual) {
-                if (!empty($adotanteAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($adotanteAtual['foto_perfil']);
-                }
-                $this->adotanteRepo->atualizarDadosAdotante($usuarioId, $adotanteAtual['tipo_morada'], $adotanteAtual['tamanho_interno_morada'], $adotanteAtual['detalhes'], $caminhoFoto);
+                $this->adotanteRepo->atualizarDadosAdotante(
+                    $usuarioId,
+                    $adotanteAtual['tipo_moradia'] ?? 'casa',
+                    $adotanteAtual['tamanho_interno_moradia'] ?? null,
+                    $adotanteAtual['detalhes'] ?? '{}',
+                    $caminhoFoto
+                );
+            } else {
+                $adotante = new \app\models\Adotante();
+                $adotante->setUsuarioId($usuarioId);
+                $adotante->setTipoMoradia('casa');
+                $adotante->setFotoPerfil($caminhoFoto);
+                $this->adotanteRepo->salvar($adotante);
             }
-        } elseif (in_array($tipoPerfilSessao, ['ong', 'protetor'], true)) {
+        } else {
             $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($protetor) {
                 $protetorId = (int)$protetor['protetor_id'];
                 $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
-                if ($paginaAtual && !empty($paginaAtual['foto_perfil'])) {
-                    $this->removerArquivoAntigo($paginaAtual['foto_perfil']);
+                if ($paginaAtual) {
+                    $this->paginaRepo->atualizarPagina($protetorId, $paginaAtual['descricao'] ?? null, $paginaAtual['chave_pix'] ?? null, $caminhoFoto);
+                } else {
+                    $pagina = new \app\models\Pagina();
+                    $pagina->setProtetorId($protetorId);
+                    $pagina->setFotoPerfil($caminhoFoto);
+                    $this->paginaRepo->salvar($pagina);
                 }
-                $this->paginaRepo->atualizarPagina($protetorId, $paginaAtual['descricao'] ?? null, $paginaAtual['chave_pix'] ?? null, $caminhoFoto);
             }
         }
 
         $_SESSION['foto_perfil'] = $caminhoFoto;
     }
 
-/**
-     * Salva a imagem enviada em Base64 pelo Cropper diretamente na pasta pública de assets
-     */
-    private function salvarBase64ViaUploadService(string $base64Data, UploadService $uploadService): string
+    private function removerFotoAntigaDoPerfil(int $usuarioId, bool $isProtetorOng): void
     {
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $tipo)) {
-            $extensao = strtolower($tipo[1]);
-            $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+        if ($isProtetorOng) {
+            $prot = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            if ($prot) {
+                $pagAntiga = $this->paginaRepo->buscarPorProtetorId((int)$prot['protetor_id']);
+                if (!empty($pagAntiga['foto_perfil'])) {
+                    $this->removerArquivoAntigo($pagAntiga['foto_perfil']);
+                }
+            }
         } else {
-            $extensao = 'png';
+            $adotAntigo = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
+            if (!empty($adotAntigo['foto_perfil'])) {
+                $this->removerArquivoAntigo($adotAntigo['foto_perfil']);
+            }
         }
-
-        $binario = base64_decode($base64Data);
-        if ($binario === false) {
-            throw new Exception("Falha ao processar arquivo de imagem recortada.");
-        }
-
-        // Normaliza extensão jpeg para jpg
-        if ($extensao === 'jpeg') {
-            $extensao = 'jpg';
-        }
-
-        $extensoesPermitidas = ['jpg', 'png', 'webp'];
-        if (!in_array($extensao, $extensoesPermitidas, true)) {
-            $extensao = 'png';
-        }
-
-        // Gera o nome único utilizando o mesmo padrão MD5 do UploadService
-        $nomeUnico = md5(uniqid((string)rand(), true)) . '.' . $extensao;
-        
-        // Usa reflexão ou recupera a subpasta do UploadService para montar o diretório destino
-        $subpasta = ($extensao === 'png' || str_contains($base64Data, 'png')) ? 'uploads/foto_perfil' : 'uploads/foto_perfil';
-        
-        // Define o caminho absoluto correto baseado na estrutura do UploadService
-        $diretorioDestino = __DIR__ . '/../../public/assets/' . trim($subpasta, '/') . '/';
-        if (!is_dir($diretorioDestino)) {
-            mkdir($diretorioDestino, 0755, true);
-        }
-
-        $caminhoAbsoluto = $diretorioDestino . $nomeUnico;
-
-        if (file_put_contents($caminhoAbsoluto, $binario) !== false) {
-            // Retorna o caminho relativo exato esperado pelo banco
-            return 'assets/' . trim($subpasta, '/') . '/' . $nomeUnico;
-        }
-
-        throw new Exception("Falha ao salvar a imagem recortada no servidor.");
     }
 
     private function removerArquivoAntigo(?string $caminhoRelativo): void
@@ -258,7 +230,6 @@ class PerfilService
             return;
         }
 
-        // Como o UploadService grava com prefixo 'assets/', removemos para achar a raiz public/
         $caminhoRelativoLimpo = preg_replace('#^assets/#', '', ltrim($caminhoRelativo, '/'));
         $caminhoAbsoluto = __DIR__ . '/../../public/assets/' . $caminhoRelativoLimpo;
 
@@ -267,4 +238,3 @@ class PerfilService
         }
     }
 }
-

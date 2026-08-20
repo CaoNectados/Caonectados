@@ -109,11 +109,11 @@ class EspecieController extends Controller
     {
         try {
             $id = (int)($_GET['id'] ?? 0);
-            if ($id > 0) {
-                $this->service->excluir($id);
-                $this->redirecionarComMensagem('sucesso', 'Espécie desativada com sucesso!', '/admin/especie');
+            if ($id <= 0) {
+                throw new Exception('Espécie inválida.');
             }
-            $this->redirect('/admin/especie');
+            $this->service->excluir($id);
+            $this->redirecionarComMensagem('sucesso', 'Espécie desativada com sucesso!', '/admin/especie');
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', 'Erro ao desativar a espécie.', '/admin/especie', $e->getMessage());
         }
@@ -123,11 +123,11 @@ class EspecieController extends Controller
     {
         try {
             $id = (int)($_GET['id'] ?? 0);
-            if ($id > 0) {
-                $this->service->reativar($id);
-                $this->redirecionarComMensagem('sucesso', 'Espécie reativada com sucesso!', '/admin/especie');
+            if ($id <= 0) {
+                throw new Exception('Espécie inválida.');
             }
-            $this->redirect('/admin/especie');
+            $this->service->reativar($id);
+            $this->redirecionarComMensagem('sucesso', 'Espécie reativada com sucesso!', '/admin/especie');
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', 'Erro ao reativar espécie.', '/admin/especie', $e->getMessage());
         }
@@ -139,9 +139,8 @@ class EspecieController extends Controller
     public function buscarJson(): void
     {
         try {
-            $pdo = ConnectionFactory::getConnection();
-            $especies = $this->especieRepo->buscarTodas($pdo);
-            
+            $especies = $this->especieRepo->buscarTodas();
+
             header('Content-Type: application/json');
             echo json_encode(['sucesso' => true, 'dados' => $especies]);
         } catch (Exception $e) {

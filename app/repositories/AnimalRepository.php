@@ -54,7 +54,6 @@ class AnimalRepository extends BaseRepository
             a.animal_id,
             a.protetor_id,
             a.raca_id,
-            r.nome AS raca_nome,
             a.nome,
             a.dt_nasc,
             a.sexo,
@@ -67,9 +66,12 @@ class AnimalRepository extends BaseRepository
             a.historico_saude,
             a.criado_em,
             a.deletado_em,
-            a.atualizado_em
+            a.atualizado_em,
+            rc.nome AS raca_nome,
+            fa.caminho_foto AS foto_principal
         FROM ANIMAL a
-        LEFT JOIN RACA r ON a.raca_id = r.raca_id
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
         WHERE a.animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
@@ -81,13 +83,12 @@ class AnimalRepository extends BaseRepository
         return $row === false ? null : $this->mapAnimal($row);
     }
 
-    public function listarAnimal(string $filtro = 'todos'): array
+    public function listarComFiltros(string $tipoPerfil, int $protetorId, string $status = 'todos'): array
     {
         $sql = "SELECT
             a.animal_id,
             a.protetor_id,
             a.raca_id,
-            r.nome AS raca_nome,
             a.nome,
             a.dt_nasc,
             a.sexo,
@@ -100,28 +101,35 @@ class AnimalRepository extends BaseRepository
             a.historico_saude,
             a.criado_em,
             a.deletado_em,
-            a.atualizado_em
+            a.atualizado_em,
+            rc.nome AS raca_nome,
+            fa.caminho_foto AS foto_principal
         FROM ANIMAL a
-        LEFT JOIN RACA r ON a.raca_id = r.raca_id
-        WHERE 1=1 ";
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
+        WHERE 1=1";
 
         $params = [];
 
-        if ($filtro === 'desativado') {
-            $sql .= "AND a.deletado_em IS NOT NULL ";
-        } else {
-            if ($filtro !== 'todos') {
-                $sql .= "AND a.status = :status ";
-                $params[':status'] = $filtro;
-            }
+        if ($tipoPerfil !== 'administrador') {
+            $sql .= " AND a.protetor_id = :protetor_id";
+            $params[':protetor_id'] = $protetorId;
         }
 
-        $sql .= "ORDER BY a.animal_id";
+        if ($status !== 'todos' && !empty($status)) {
+            $sql .= " AND a.status = :status";
+            $params[':status'] = $status;
+        }
+
+        $sql .= " ORDER BY a.criado_em DESC";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, PDO::PARAM_INT);
+        }
+        $stmt->execute();
 
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
@@ -146,9 +154,8 @@ class AnimalRepository extends BaseRepository
         $stmt = $this->db->prepare($sql);
         $this->bindAnimalValues($stmt, $animal);
         $stmt->bindValue(':animal_id', $animal->getAnimalId(), PDO::PARAM_INT);
-        $stmt->execute();
 
-        return $stmt->rowCount() > 0;
+        return $stmt->execute();
     }
 
     public function alterarStatus(int $id, string $status): bool
@@ -165,11 +172,7 @@ class AnimalRepository extends BaseRepository
 
     public function excluirLogico(int $id): bool
     {
-        $sql = "UPDATE ANIMAL 
-            SET status = 'desativado', 
-                deletado_em = CURRENT_TIMESTAMP, 
-                atualizado_em = CURRENT_TIMESTAMP 
-            WHERE animal_id = :animal_id AND deletado_em IS NULL";
+        $sql = "UPDATE ANIMAL SET status = 'desativado', deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -180,11 +183,7 @@ class AnimalRepository extends BaseRepository
 
     public function reativarAnimal(int $id): bool
     {
-        $sql = "UPDATE ANIMAL 
-            SET status = 'disponivel', 
-                deletado_em = NULL, 
-                atualizado_em = CURRENT_TIMESTAMP 
-            WHERE animal_id = :animal_id";
+        $sql = "UPDATE ANIMAL SET status = 'disponivel', deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
@@ -199,7 +198,6 @@ class AnimalRepository extends BaseRepository
             a.animal_id,
             a.protetor_id,
             a.raca_id,
-            r.nome AS raca_nome,
             a.nome,
             a.dt_nasc,
             a.sexo,
@@ -212,10 +210,11 @@ class AnimalRepository extends BaseRepository
             a.historico_saude,
             a.criado_em,
             a.deletado_em,
-            a.atualizado_em
+            a.atualizado_em,
+            rc.nome AS raca_nome
         FROM ANIMAL a
-        LEFT JOIN RACA r ON a.raca_id = r.raca_id
-        WHERE a.protetor_id = :protetor_id AND a.deletado_em IS NULL
+        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
+        WHERE a.protetor_id = :protetor_id
         ORDER BY a.criado_em DESC";
 
         $stmt = $this->db->prepare($sql);
@@ -225,50 +224,6 @@ class AnimalRepository extends BaseRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
-    }
-
-    public function verificarExistencia(int $id): bool
-    {
-        $sql = "SELECT 1 FROM ANIMAL WHERE animal_id = :animal_id LIMIT 1";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchColumn() !== false;
-    }
-
-    public function verificarExclusaoLogica(int $id): bool
-    {
-        $sql = "SELECT deletado_em FROM ANIMAL WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $deletedAt = $stmt->fetchColumn();
-
-        return $deletedAt !== false && $deletedAt !== null;
-    }
-
-    public function salvar(Animal $animal): int
-    {
-        return $this->cadastrarAnimal($animal);
-    }
-
-    public function listarTodos(): array
-    {
-        return $this->listarAnimal();
-    }
-
-    public function atualizar(Animal $animal): bool
-    {
-        return $this->editarAnimal($animal);
-    }
-
-    public function deletar(int $id): bool
-    {
-        return $this->excluirLogico($id);
     }
 
     private function bindAnimalValues(PDOStatement $stmt, Animal $animal): void
@@ -287,6 +242,23 @@ class AnimalRepository extends BaseRepository
         $stmt->bindValue(':historico_saude', $animal->getHistoricoSaude(), $animal->getHistoricoSaude() === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
     }
 
+    /**
+     * Substitui a foto principal do animal (modelo de foto única).
+     */
+    public function salvarFotoPrincipal(int $animalId, string $caminhoFoto): void
+    {
+        $stmtDelete = $this->db->prepare("DELETE FROM FOTO_ANIMAL WHERE animal_id = :animal_id AND foto_principal = 1");
+        $stmtDelete->bindValue(':animal_id', $animalId, PDO::PARAM_INT);
+        $stmtDelete->execute();
+
+        $stmtInsert = $this->db->prepare(
+            "INSERT INTO FOTO_ANIMAL (animal_id, caminho_foto, foto_principal) VALUES (:animal_id, :caminho_foto, 1)"
+        );
+        $stmtInsert->bindValue(':animal_id', $animalId, PDO::PARAM_INT);
+        $stmtInsert->bindValue(':caminho_foto', $caminhoFoto, PDO::PARAM_STR);
+        $stmtInsert->execute();
+    }
+
     private function mapAnimal(array $row): Animal
     {
         $animal = new Animal();
@@ -294,6 +266,7 @@ class AnimalRepository extends BaseRepository
         $animal->setProtetorId((int) $row['protetor_id']);
         $animal->setRacaId((int) $row['raca_id']);
         $animal->setRacaNome($row['raca_nome'] ?? null);
+        $animal->setFotoPrincipal($row['foto_principal'] ?? null);
         $animal->setNome($row['nome']);
         $animal->setDtNasc($row['dt_nasc']);
         $animal->setSexo($row['sexo']);

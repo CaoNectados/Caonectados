@@ -24,6 +24,7 @@ class OnboardingController extends Controller
         $this->autenticacaoRequired();
         $this->verificarSeJaPossuiPerfil();
     }
+
     public function index()
     {
         $this->view('onboarding/selecionar_perfil', [
@@ -31,26 +32,56 @@ class OnboardingController extends Controller
             'descricao' => 'Escolha o tipo de perfil que deseja criar.'
         ]);
     }
-    private function verificarSeJaPossuiPerfil()
+
+    private function verificarSeJaPossuiPerfil(): void
     {
         $usuarioId = $_SESSION['usuario_id'] ?? null;
-        if ($usuarioId) {
-            // O serviço de checagem deve delegar a busca ao repositório
-            if ($this->onboardingService->usuarioJaPossuiPerfil($usuarioId)) {
-                if ($_SERVER['REQUEST_URI'] !== '/feed' && $_SERVER['REQUEST_URI'] !== '/') {
-                    $this->redirect('/feed');
-                    exit;
+        if (!$usuarioId) {
+            $this->redirect('/login');
+        }
+
+        $uriAtual = $this->getUriLimpa();
+
+        // Rotas liberadas durante o fluxo de onboarding / edição
+        $rotasPermitidas = [
+            '/aguardando-aprovacao',
+            '/onboarding/aguardando-aprovacao',
+            '/onboarding/salvar-adotante',
+            '/onboarding/salvar-protetor',
+            '/onboarding/especies-ativas',
+            '/onboarding/protetor',
+            '/onboarding/ong',
+            '/onboarding/adotante',
+            '/logout'
+        ];
+
+        if (in_array($uriAtual, $rotasPermitidas, true)) {
+            return;
+        }
+
+        if ($this->onboardingService->usuarioJaPossuiPerfil((int)$usuarioId)) {
+            $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+            $validado = $_SESSION['validado'] ?? false;
+            $recusado = $_SESSION['recusado'] ?? false;
+
+            if (in_array($tipoPerfil, ['protetor', 'ong'], true)) {
+                if (!$validado || $recusado) {
+                    if ($uriAtual !== '/aguardando-aprovacao') {
+                        $this->redirect('/aguardando-aprovacao');
+                    }
+                    return;
                 }
             }
-        } else {
-            $this->redirect('/login');
-            exit;
+
+            // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+            if ($uriAtual !== '/perfil') {
+                $this->redirect('/perfil');
+            }
         }
     }
 
-    public function adotante()
+    public function adotante(): void
     {
-        // Repositories buscam a conexão via BaseRepository automaticamente
         $regioes = $this->regiaoRepo->buscarTodas();
         $especies = $this->especieRepo->buscarTodas();
 
@@ -61,75 +92,78 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function ong()
-    {
-        $regioes = $this->regiaoRepo->buscarTodas();
-
-        $this->view('onboarding/protetor_onboarding', [
-            'titulo'      => 'Cadastro de ONG',
-            'regioes'     => $regioes,
-            'tipo_perfil' => 'cnpj'
-        ]);
-    }
-
-    public function protetor()
-    {
-        $regioes = $this->regiaoRepo->buscarTodas();
-
-        $this->view('onboarding/protetor_onboarding', [
-            'titulo'      => 'Cadastro de Protetor',
-            'regioes'     => $regioes,
-            'tipo_perfil' => 'cpf'
-        ]);
-    }
-
-    public function salvarProtetor()
+    public function salvarAdotante(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
-
+                $usuarioId = $_SESSION['usuario_id'] ?? null;
                 if (!$usuarioId) {
                     throw new Exception("Sessão expirada. Faça login novamente.");
                 }
 
-                ValidationService::validarCamposObrigatorios($_POST, ['nome_fantasia', 'cnpj_cpf', 'regiao_id']);
-
-                $tipoDoc = $_POST['tipo_documento'] ?? 'cpf';
-                $documentoBruto = $_POST['cnpj_cpf'];
-                $documentoLimpo = preg_replace('/[^0-9]/', '', $documentoBruto);
-
-                if ($tipoDoc === 'cnpj') {
-                    if (strlen($documentoLimpo) !== 14 || !ValidationService::validarCnpj($documentoLimpo)) {
-                        throw new Exception("Formato inválido. As ONGs devem informar um CNPJ válido com 14 dígitos.");
-                    }
-                    if (!ValidationService::verificarExistenciaCnpjReal($documentoLimpo)) {
-                        throw new Exception("O CNPJ informado não consta como ativo na Receita Federal.");
-                    }
-                } else {
-                    if (strlen($documentoLimpo) !== 11 || !ValidationService::validarCpf($documentoLimpo)) {
-                        throw new Exception("Formato inválido. Protetores Independentes devem informar um CPF válido com 11 dígitos.");
-                    }
-                }
-
-                if (!empty($_POST['instagram']) && !ValidationService::validarLinkRedeSocial($_POST['instagram'], 'instagram')) {
-                    throw new Exception("O link informado para o Instagram é inválido.");
-                }
-
-                if (!empty($_POST['facebook']) && !ValidationService::validarLinkRedeSocial($_POST['facebook'], 'facebook')) {
-                    throw new Exception("O link informado para o Facebook é inválido.");
-                }
-
-                if (!empty($_POST['chave_pix']) && !ValidationService::validarChavePix($_POST['chave_pix'])) {
-                    throw new Exception("A Chave PIX informada não é válida.");
-                }
-
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
-                $this->onboardingService->processarOng($dadosLimpos, $_FILES, $usuarioId);
+                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, (int)$usuarioId);
 
                 $this->json(200, [
                     'status'       => 'sucesso',
-                    'mensagem'     => 'Cadastro enviado para análise com sucesso!',
+                    'mensagem'     => 'Perfil de adotante criado com sucesso!',
+                    // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+                    'redirect_url' => URL_BASE . '/perfil'
+                ]);
+            } catch (Exception $e) {
+                $this->json(200, [
+                    'status'   => 'erro',
+                    'mensagem' => $e->getMessage()
+                ]);
+            }
+        }
+    }
+
+    public function ong(): void
+    {
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        $regioes = $this->regiaoRepo->buscarTodas();
+        $dadosExistentes = $this->onboardingService->obterDadosPreenchidosProtetor($usuarioId);
+
+        $this->view('onboarding/protetor_onboarding', [
+            'titulo'        => 'Cadastro de ONG',
+            'regioes'       => $regioes,
+            'tipo_perfil'   => 'cnpj',
+            'modoEdicao'    => !empty($dadosExistentes),
+            'dadosProtetor' => $dadosExistentes ?? []
+        ]);
+    }
+
+    public function protetor(): void
+    {
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        $regioes = $this->regiaoRepo->buscarTodas();
+        $dadosExistentes = $this->onboardingService->obterDadosPreenchidosProtetor($usuarioId);
+
+        $this->view('onboarding/protetor_onboarding', [
+            'titulo'        => 'Cadastro de Protetor',
+            'regioes'       => $regioes,
+            'tipo_perfil'   => 'cpf',
+            'modoEdicao'    => !empty($dadosExistentes),
+            'dadosProtetor' => $dadosExistentes ?? []
+        ]);
+    }
+
+    public function salvarProtetor(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $usuarioId = $_SESSION['usuario_id'] ?? null;
+                if (!$usuarioId) {
+                    throw new Exception("Sessão expirada. Faça login novamente.");
+                }
+
+                $dadosLimpos = ValidationService::sanitizarArray($_POST);
+                $this->onboardingService->processarOng($dadosLimpos, $_FILES, (int)$usuarioId);
+
+                $this->json(200, [
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Solicitação enviada para análise com sucesso!',
                     'redirect_url' => URL_BASE . '/aguardando-aprovacao'
                 ]);
             } catch (Exception $e) {
@@ -141,52 +175,58 @@ class OnboardingController extends Controller
         }
     }
 
-    public function salvarAdotante()
+    public function especiesAtivas(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                $usuarioId = $_SESSION['usuario_id'] ?? $_SESSION['usuario_logado']->usuario_id ?? null;
+        try {
+            $especies = $this->especieRepo->buscarTodas();
+            $dados = array_map(function($esp) {
+                return [
+                    'especie_id' => is_array($esp) ? $esp['especie_id'] : $esp->getEspecieId(),
+                    'nome'       => is_array($esp) ? $esp['nome'] : $esp->getNome()
+                ];
+            }, $especies);
 
-                if (!$usuarioId) {
-                    throw new Exception("Sessão expirada. Faça login novamente.");
-                }
-
-                $dadosLimpos = ValidationService::sanitizarArray($_POST);
-                ValidationService::validarCamposObrigatorios($dadosLimpos, ['regiao_id', 'nome_usuario']);
-
-                $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, $usuarioId);
-
-                $_SESSION['boas_vindas_nome'] = $dadosLimpos['nome_usuario'];
-                $_SESSION['boas_vindas_tipo'] = 'adotante';
-
-                $this->json(200, [
-                    'status'       => 'sucesso',
-                    'mensagem'     => 'Seu perfil foi criado com sucesso!',
-                    'redirect_url' => URL_BASE . '/feed'
-                ]);
-            } catch (Exception $e) {
-                $this->json(200, [
-                    'status'   => 'erro',
-                    'mensagem' => $e->getMessage()
-                ]);
-            }
+            $this->json(200, [
+                'status' => 'sucesso',
+                'dados'  => $dados
+            ]);
+        } catch (Exception $e) {
+            $this->json(200, [
+                'status'   => 'erro',
+                'mensagem' => $e->getMessage()
+            ]);
         }
     }
 
-  public function aguardandoAprovacao()
+    public function aguardandoAprovacao(): void
     {
-        $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
-        $validado = $_SESSION['validado'] ?? false;
-
-        // Se o usuário atual for um adotante, ou se a ONG dele JÁ FOI validada, não tem porque ele estar nesta tela.
-        if ($tipoPerfil === 'adotante' || $validado === true || $validado === 1) {
-            $this->redirect('/feed');
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        if (!$usuarioId) {
+            $this->redirect('/login');
         }
 
+        $this->onboardingService->usuarioJaPossuiPerfil($usuarioId);
+
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+        $validado = $_SESSION['validado'] ?? false;
+        $recusado = $_SESSION['recusado'] ?? false;
+
+        if ($validado && !$recusado) {
+            $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
+            $_SESSION['boas_vindas_nome'] = $_SESSION['usuario_nome'] ?? 'Protetor';
+            // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+            $this->redirect('/perfil');
+        }
+
+        $dadosProtetor = $this->onboardingService->obterDadosPreenchidosProtetor($usuarioId);
+        $motivoRecusa = $_SESSION['motivo_recusa_protetor_' . ($dadosProtetor['protetor_id'] ?? 0)] ?? 'Documentação incompleta ou inconsistente.';
+
         $this->view('onboarding/aguardando_aprovacao', [
-            'titulo' => 'Aguardando Aprovação'
+            'titulo'        => 'Status da Solicitação',
+            'validado'      => $validado,
+            'recusado'      => $recusado,
+            'motivoRecusa'  => $motivoRecusa,
+            'tipoDocumento' => $dadosProtetor['tipo_documento'] ?? 'cpf'
         ]);
     }
 }
-
-

@@ -57,23 +57,34 @@
                 informativo: 'Informação'
             };
 
-            const classesCores = {
-                erro:        { texto: 'text-erro', bg: 'bg-erro' },
-                aviso:       { texto: 'text-aviso', bg: 'bg-aviso' },
-                sucesso:     { texto: 'text-sucesso', bg: 'bg-sucesso' },
-                informativo: { texto: 'text-informativo', bg: 'bg-informativo' }
+            // Nomes das variáveis CSS (definidas em tailwind_config.php, :root e .dark).
+            // Aplicadas via style.setProperty em vez de classes bg-erro/bg-aviso/etc: o
+            // Tailwind (CDN) só gera CSS para nomes de classe que consegue "ver" no HTML,
+            // e classes só existentes como pedaço de string dentro do JS (cores.bg + tipo)
+            // podem não ser detectadas a tempo — resultando no botão sem cor de fundo.
+            const varCores = {
+                erro:        '--color-erro',
+                aviso:       '--color-aviso',
+                sucesso:     '--color-sucesso',
+                informativo: '--color-informativo'
             };
 
             const tipoFeedback = tipo || 'informativo';
-            const cores = classesCores[tipoFeedback] || classesCores.informativo;
+            const nomeVar = varCores[tipoFeedback] || varCores.informativo;
+            // --color-X guarda um trio "R G B" (formato exigido pelo Tailwind para
+            // suportar opacidade em bg-x/50 etc.), por isso precisa do wrapper rgb().
+            const cor = 'rgb(' + getComputedStyle(document.documentElement).getPropertyValue(nomeVar).trim() + ')';
 
             const elTitulo = document.getElementById('titulo-modal-feedback');
             const elTexto = document.getElementById('texto-modal-feedback');
             const elBtn = document.getElementById('btn-modal-feedback');
             const modal = document.getElementById('modal-feedback');
 
-            elTitulo.className = 'text-xl font-bold mb-3 font-shantell ' + cores.texto;
-            elBtn.className = 'w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins ' + cores.bg;
+            elTitulo.className = 'text-xl font-bold mb-3 font-shantell';
+            elTitulo.style.color = cor;
+
+            elBtn.className = 'w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins';
+            elBtn.style.backgroundColor = cor;
 
             elTitulo.innerText = titulos[tipoFeedback] || titulos.informativo;
             elTexto.innerText = mensagem;

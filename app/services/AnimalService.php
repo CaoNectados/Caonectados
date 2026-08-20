@@ -10,16 +10,46 @@ use InvalidArgumentException;
 class AnimalService
 {
     private AnimalRepository $animalRepository;
+    private UploadService $uploadService;
     private array $erros = [];
 
-    public function __construct(AnimalRepository $animalRepository)
+    public function __construct(AnimalRepository $animalRepository, ?UploadService $uploadService = null)
     {
         $this->animalRepository = $animalRepository;
+        $this->uploadService = $uploadService ?? new UploadService();
+    }
+
+    /**
+     * Salva/substitui a foto principal do animal. Aceita tanto um array de $_FILES quanto uma string Base64.
+     */
+    public function salvarFoto($arquivoOuBase64, int $animalId): ?string
+    {
+        if (empty($arquivoOuBase64) || $animalId <= 0) {
+            return null;
+        }
+
+        $caminhoFoto = $this->uploadService->salvar($arquivoOuBase64, 'animal');
+
+        if ($caminhoFoto) {
+            $this->animalRepository->salvarFotoPrincipal($animalId, $caminhoFoto);
+        }
+
+        return $caminhoFoto;
     }
 
     public function getErros(): array
     {
         return $this->erros;
+    }
+
+    public function buscarPorId(int $id): ?Animal
+    {
+        return $this->animalRepository->buscarPorId($id);
+    }
+
+    public function listarComFiltros(string $tipoPerfil, int $protetorId, string $status = 'todos'): array
+    {
+        return $this->animalRepository->listarComFiltros($tipoPerfil, $protetorId, $status);
     }
 
     public function cadastrarAnimal(Animal $animal): void
@@ -106,9 +136,7 @@ class AnimalService
     private function validarNome(?string $nome): void
     {
         if (trim((string) $nome) === '') {
-            $this->erros['nome'] = 'O nome do animal é obrigatório.';
-        } else if (mb_strlen($nome) > 120) {
-            $this->erros['nome'] = 'O nome do animal deve ter no máximo 120 caracteres.';
+            throw new InvalidArgumentException('O nome do animal é obrigatório.');
         }
     }
 
@@ -145,52 +173,20 @@ class AnimalService
 
     private function validarDataNascimento(?string $dataNascimento): void
     {
+        // Campo opcional (dt_nasc é NULL-able no banco e não é obrigatório no formulário).
         if ($dataNascimento === null || trim($dataNascimento) === '') {
-            $this->erros['dt_nasc'] = 'A data de nascimento é obrigatória.';
-        } else {
-            $data = DateTime::createFromFormat('Y-m-d', $dataNascimento);
-
-            if ($data === false || $data->format('Y-m-d') !== $dataNascimento) {
-                $this->erros['dt_nasc'] = 'A data de nascimento informada é inválida.';
-            } else {
-                $hoje = new DateTime('today');
-                if ($data > $hoje) {
-                    $this->erros['dt_nasc'] = 'A data de nascimento não pode ser uma data futura.';
-                }
-            }
-        }
-    }
-
-    private function validarPermissaoDoProtetor(Animal $animal): void
-    {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
-        $usuarioId = $_SESSION['usuario_id'] ?? null;
-        $protetorId = $_SESSION['protetor_id'] ?? null;
-        $tipoPerfil = $_SESSION['tipo_perfil'] ?? $_SESSION['tipo_perfil'] ?? null;
-
-        if ($usuarioId === null && $protetorId === null) {
-            throw new InvalidArgumentException('Usuário não autenticado.');
-        }
-
-        if ($tipoPerfil === 'administrador') {
             return;
         }
 
-        $animalBanco = $this->animalRepository->buscarPorId($animal->getAnimalId() ?? 0);
+        $data = DateTime::createFromFormat('Y-m-d', $dataNascimento);
 
-        if ($animalBanco === null) {
-            throw new InvalidArgumentException('Animal não encontrado.');
-        }
-
-        $ownerIds = array_filter([(int) $protetorId, (int) $usuarioId], static function ($value): bool {
-            return $value > 0;
-        });
-
-        if ($ownerIds === [] || !in_array((int) $animalBanco->getProtetorId(), $ownerIds, true)) {
-            throw new InvalidArgumentException('Somente o protetor dono do animal pode realizar esta ação.');
+        if ($data === false || $data->format('Y-m-d') !== $dataNascimento) {
+            $this->erros['dt_nasc'] = 'A data de nascimento informada é inválida.';
+        } else {
+            $hoje = new DateTime('today');
+            if ($data > $hoje) {
+                $this->erros['dt_nasc'] = 'A data de nascimento não pode ser uma data futura.';
+            }
         }
     }
 }

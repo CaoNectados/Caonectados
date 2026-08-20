@@ -1,77 +1,87 @@
-<?php 
-require_once __DIR__ . '/../templates/header.php'; 
+<?php
+require_once __DIR__ . '/../templates/header.php';
+$urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
+
+$perfis = [
+    [
+        'id'       => 'adotante',
+        'titulo'   => 'Quero Adotar',
+        'cor'      => 'bg-rosa-4',
+        'descricao'=> 'Encontre seu novo melhor amigo. Navegue por animais disponíveis e converse com protetores e ONGs.',
+        'url'      => URL_BASE . '/onboarding/adotante',
+    ],
+    [
+        'id'       => 'protetor',
+        'titulo'   => 'Protetor Independente',
+        'cor'      => 'bg-laranja-1',
+        'descricao'=> 'Cadastre os animais que você resgata, gerencie solicitações de adoção e compartilhe sua causa com a comunidade.',
+        'url'      => URL_BASE . '/onboarding/protetor',
+    ],
+    [
+        'id'       => 'ong',
+        'titulo'   => 'Sou uma ONG',
+        'cor'      => 'bg-roxo2',
+        'descricao'=> 'Gerencie o feed de pets da sua instituição, com acesso a todas as funcionalidades de adoção do app.',
+        'url'      => URL_BASE . '/onboarding/ong',
+    ],
+];
 ?>
 
-<main class="flex flex-col items-center justify-center min-h-[70vh] px-4 py-8">
-    <div class="max-w-4xl w-full space-y-8 text-center">
-        
-        <!-- Cabeçalho -->
-        <div>
-            <h1 class="font-shantell text-4xl md:text-5xl font-bold text-primary">
-                Bem‑vindo(a) ao CãoNectados 🐾
+<main class="flex flex-col items-center justify-center min-h-[75vh] px-4 py-10">
+    <div class="max-w-md w-full">
+
+        <div class="text-center mb-8">
+            <h1 class="font-shantell text-2xl md:text-3xl font-bold text-text-dark dark:text-white">
+                Como você vai usar o CãoNectados?
             </h1>
-            <p class="text-lg text-text-muted mt-2 max-w-2xl mx-auto">
-                Escolha o perfil que melhor descreve você e comece a transformar vidas.
+            <p class="text-sm text-text-muted mt-2">
+                Escolha o perfil que melhor descreve você para personalizarmos a sua experiência.
             </p>
         </div>
 
-        <!-- Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            
-            <!-- Card Adotante -->
-            <div class="bg-surface rounded-2xl shadow-lg p-6 border border-rosa-2 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-rosa-1 flex items-center justify-center text-4xl mb-4">
-                    🏠
+        <!-- Clicar no rótulo navega direto; clicar no ícone "i" só mostra/esconde a explicação -->
+        <div class="space-y-3" id="lista-perfis">
+            <?php foreach ($perfis as $p): ?>
+                <div class="perfil-opcao group rounded-xl overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300" data-perfil="<?= $p['id'] ?>">
+                    <div class="flex items-stretch <?= $p['cor'] ?>">
+                        <a href="<?= $p['url'] ?>" class="flex-1 px-5 py-4 font-shantell font-bold text-text-dark hover:brightness-95 transition">
+                            <?= htmlspecialchars($p['titulo']) ?>
+                        </a>
+                        <button type="button"
+                                onclick="OnboardingSelecao.toggleInfo('<?= $p['id'] ?>')"
+                                class="px-4 flex items-center justify-center hover:brightness-95 transition cursor-pointer"
+                                aria-label="Saiba mais sobre o perfil <?= htmlspecialchars($p['titulo']) ?>">
+                            <img src="<?= $urlBase ?>/assets/icons/info.svg" alt="" class="w-5 h-5">
+                        </button>
+                    </div>
+                    <div class="perfil-descricao hidden group-hover:block bg-branco dark:bg-preto2 border-t border-black/5 dark:border-white/5 px-5 py-3 transition-all duration-300">
+                        <p class="text-xs text-text-dark dark:text-white/90 leading-relaxed"><?= htmlspecialchars($p['descricao']) ?></p>
+                    </div>
                 </div>
-                <h2 class="font-shantell text-2xl font-bold text-text-dark">Quero Adotar</h2>
-                <p class="text-text-muted text-sm mt-2 leading-relaxed">
-                    Encontre seu novo melhor amigo. Navegue por animais disponíveis, dê petiscos e inicie o contato com protetores.
-                </p>
-                <a href="<?= URL_BASE ?>/onboarding/adotante" 
-                   class="mt-6 btn-primario w-full sm:w-auto">
-                    Escolher este perfil
-                </a>
-            </div>
-
-            <!-- Card Protetor Independente -->
-            <div class="bg-surface rounded-2xl shadow-lg p-6 border border-rosa-2 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-rosa-1 flex items-center justify-center text-4xl mb-4">
-                    🐕
-                </div>
-                <h2 class="font-shantell text-2xl font-bold text-text-dark">Protetor</h2>
-                <p class="text-text-muted text-sm mt-2 leading-relaxed">
-                    Cadastre os animais que você resgata, gerencie solicitações de adoção e compartilhe sua causa com a comunidade.
-                </p>
-                <a href="<?= URL_BASE ?>/onboarding/protetor" 
-                   class="mt-6 btn-primario w-full sm:w-auto">
-                    Escolher este perfil
-                </a>
-            </div>
-
-            <!-- Card ONG -->
-            <div class="bg-surface rounded-2xl shadow-lg p-6 border border-rosa-2 hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center">
-                <div class="w-20 h-20 rounded-full bg-rosa-1 flex items-center justify-center text-4xl mb-4">
-                    🏢
-                </div>
-                <h2 class="font-shantell text-2xl font-bold text-text-dark">Sou uma ONG</h2>
-                <p class="text-text-muted text-sm mt-2 leading-relaxed">
-                    Cadastre sua instituição, mobilize voluntários, receba doações e encontre lares para muitos animais.
-                </p>
-                <a href="<?= URL_BASE ?>/onboarding/ong" 
-                   class="mt-6 btn-primario w-full sm:w-auto">
-                    Escolher este perfil
-                </a>
-            </div>
-
+            <?php endforeach; ?>
         </div>
 
-        <!-- Rodapé informativo -->
-        <p class="text-xs text-text-muted mt-8">
+        <p class="text-xs text-text-muted text-center mt-6">
             Todos os perfis passam por validação para garantir a segurança da nossa comunidade.
         </p>
     </div>
 </main>
 
-<?php 
-require_once __DIR__ . '/../templates/footer.php'; 
+<script>
+const OnboardingSelecao = {
+    toggleInfo(id) {
+        document.querySelectorAll('.perfil-opcao').forEach(function (card) {
+            const descricao = card.querySelector('.perfil-descricao');
+            if (card.dataset.perfil === id) {
+                descricao.classList.toggle('hidden');
+            } else {
+                descricao.classList.add('hidden');
+            }
+        });
+    }
+};
+</script>
+
+<?php
+require_once __DIR__ . '/../templates/footer.php';
 ?>

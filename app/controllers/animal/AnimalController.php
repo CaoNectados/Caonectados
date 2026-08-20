@@ -5,6 +5,8 @@ namespace app\controllers\animal;
 use app\core\Controller;
 use app\models\Animal;
 use app\repositories\AnimalRepository;
+use app\repositories\EspecieRepository;
+use app\repositories\ProtetorRepository;
 use app\services\AnimalService;
 use app\database\ConnectionFactory;
 use PDO;
@@ -28,252 +30,244 @@ class AnimalController extends Controller
 
     public function index(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+
         try {
-            // Captura o status escolhido no select do HTML (se não houver, o padrão é 'todos')
-            $filtro = $_GET['status'] ?? 'todos';
+            $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
+            $statusFiltro = $_GET['status'] ?? 'todos';
 
-            $repository = new AnimalRepository($this->db);
-            $animais = $repository->listarAnimal($filtro);
+            $protetorId = $this->obterProtetorIdAutenticado();
 
-            // Se for requisição por View HTML: armazenar tudo em session
-            if ($this->isHtmlRequest()) {
-                $_SESSION['animais'] = $animais;
-                $this->view('animal/index');
-                return;
-            }
+            $animais = $this->service->listarComFiltros($tipoPerfil, $protetorId, $statusFiltro);
 
-            // Se for requisição por API JSON: padrão { status, data }
-            $this->json(200, [
-                'status' => 'sucesso',
-                'data' => array_map(function (Animal $animal): array {
-                    return $this->animalToArray($animal);
-                }, $animais)
+            $this->view('animal/index', [
+                'titulo'  => 'Gerenciar Animais',
+                'animais' => $animais
             ]);
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            $this->redirecionarComMensagem('erro', 'Erro ao carregar animais: ' . $e->getMessage(), '/admin/dashboard');
+        }
+    }
+
+    public function deleteView(): void
+    {
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+
+        try {
+            $id = $this->getIdFromRequest();
+            $animal = $this->carregarEValidarPropriedade($id);
+
+            $_SESSION['animal'] = $animal;
+
+            $this->view('animal/excluir', [
+                'titulo' => 'Desativar Animal',
+                'animal' => $animal
+            ]);
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
     }
 
     public function create(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
-        if ($this->isHtmlRequest()) {
-            $especieRepo = new \app\repositories\EspecieRepository($this->db);
-            $_SESSION['especies'] = $especieRepo->listarTodas('ativos');
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
 
-            $_SESSION['erros'] = $_SESSION['erros'] ?? [];
-            $_SESSION['old'] = $_SESSION['old'] ?? [];
+        $especieRepo = new EspecieRepository($this->db);
+        $especies = $especieRepo->buscarAtivas();
 
-            $this->view('animal/cadastrar');
-
-            unset($_SESSION['erros'], $_SESSION['old']);
-            return;
-        }
-
-        $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de criação pronto.']);
-    }
-
-    public function edit(): void
-    {
-        //$this->autenticacaoRequired(['protetor']);
-        $id = $this->getIdFromRequest();
-        $repository = new AnimalRepository($this->db);
-        $animal = $repository->buscarPorId($id);
-
-        if (!$animal) {
-            $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
-            return;
-        }
-
-        if ($this->isHtmlRequest()) {
-            $racaRepo = new \app\repositories\RacaRepository($this->db);
-            $_SESSION['animal'] = $animal;
-            $_SESSION['racas'] = $racaRepo->listarTodas('ativos');
-
-            $_SESSION['erros'] = $_SESSION['erros'] ?? [];
-            $_SESSION['old'] = $_SESSION['old'] ?? [];
-
-            $this->view('animal/editar');
-
-            unset($_SESSION['erros'], $_SESSION['old']);
-            return;
-        }
-
-        $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de edição pronto.']);
+        $this->view('animal/cadastrar', ['titulo' => 'Cadastrar Animal', 'especies' => $especies]);
     }
 
     public function store(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
-            $data = $this->getJsonBody();
+            $data = $_POST;
+            $protetorId = $this->obterProtetorIdAutenticado();
+
+            if ($protetorId <= 0 && ($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
+                throw new Exception('Perfil de protetor não encontrado para este usuário.');
+            }
+
+            // Força a fonte de identidade vinda da sessão backend
+            $data['protetor_id'] = $protetorId;
+
             $animal = $this->buildAnimalFromArray($data);
 
             $this->service->cadastrarAnimal($animal);
 
-            if ($this->isHtmlRequest()) {
-                $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
-                return;
+            $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
+            if (!empty($fotoEnviada)) {
+                $this->service->salvarFoto($fotoEnviada, (int) $animal->getAnimalId());
             }
 
-            $this->json(201, [
-                'status' => 'sucesso',
-                'mensagem' => 'Animal cadastrado com sucesso.'
-            ]);
+            $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
         } catch (Exception $e) {
-            if ($this->isHtmlRequest()) {
-                $errosValidacao = $this->service->getErros();
-                $_SESSION['erros'] = !empty($errosValidacao) ? $errosValidacao : ['geral' => $e->getMessage()];
-                $_SESSION['old'] = $_POST;
-                header('Location: ' . URL_BASE . '/animal/cadastrar');
-                exit;
-            }
-
-            $this->json(422, [
-                'status' => 'erro',
-                'mensagem' => $e->getMessage(),
-                'erros' => $this->service->getErros()
-            ]);
+            $_SESSION['old'] = $_POST;
+            $_SESSION['erros'] = [$e->getMessage()];
+            $this->redirect('/animal/cadastrar');
         }
     }
 
     public function show(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        // Perfil público do animal: qualquer usuário autenticado (inclusive adotantes
+        // navegando pelo Feed) pode visualizar — só as ações de gestão (editar/excluir/
+        // status) permanecem restritas ao protetor dono ou ao administrador.
+        $this->autenticacaoRequired();
         try {
             $id = $this->getIdFromRequest();
-            $repository = new AnimalRepository($this->db);
-            $animal = $repository->buscarPorId($id);
+            $animal = $this->service->buscarPorId($id);
 
             if ($animal === null) {
-                if ($this->isHtmlRequest()) {
-                    $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
-                    return;
-                }
-
-                $this->json(404, ['status' => 'erro', 'mensagem' => 'Animal não encontrado.']);
+                $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
                 return;
             }
 
-            if ($this->isHtmlRequest()) {
-                $_SESSION['animal'] = $animal;
-                $this->view('animal/detalhes');
-                return;
-            }
-
-            $this->json(200, [
-                'status' => 'sucesso',
-                'data' => $this->animalToArray($animal)
-            ]);
+            $this->view('animal/detalhes', ['titulo' => 'Detalhes do Animal', 'animal' => $animal]);
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
+        }
+    }
+
+    public function edit(): void
+    {
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+
+        try {
+            $id = $this->getIdFromRequest();
+            $animal = $this->carregarEValidarPropriedade($id);
+
+            $_SESSION['animal'] = $animal;
+
+            $this->view('animal/editar', ['titulo' => 'Editar Animal', 'animal' => $animal]);
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
     }
 
     public function update(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
-            $id = $this->getIdFromRequest();
-            $data = $this->getJsonBody();
+            $id = (int)($_POST['id'] ?? 0);
+            $animalExistente = $this->carregarEValidarPropriedade($id);
+
+            $data = $_POST;
+            // Preserva o vínculo original do protetor do registro auditado
+            $data['protetor_id'] = $animalExistente->getProtetorId();
 
             $animal = $this->buildAnimalFromArray($data);
             $animal->setAnimalId($id);
             $this->service->editarAnimal($animal);
 
-            if ($this->isHtmlRequest()) {
-                $this->redirecionarComMensagem('sucesso', 'Animal atualizado com sucesso!', '/animal');
-                return;
+            $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
+            if (!empty($fotoEnviada)) {
+                $this->service->salvarFoto($fotoEnviada, $id);
             }
 
-            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal atualizado com sucesso.']);
+            unset($_SESSION['animal']);
+            $this->redirecionarComMensagem('sucesso', 'Animal atualizado com sucesso!', '/animal');
         } catch (Exception $e) {
-            if ($this->isHtmlRequest()) {
-                $errosValidacao = $this->service->getErros();
-                $_SESSION['erros'] = !empty($errosValidacao) ? $errosValidacao : ['geral' => $e->getMessage()];
-                $_SESSION['old'] = $_POST;
-                header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? URL_BASE . '/animal'));
-                exit;
-            }
-
-            $this->json(422, [
-                'status' => 'erro',
-                'mensagem' => $e->getMessage(),
-                'erros' => $this->service->getErros()
-            ]);
+            $_SESSION['old'] = $_POST;
+            $_SESSION['erros'] = [$e->getMessage()];
+            $id = $_POST['id'] ?? 0;
+            $this->redirect('/animal/editar?id=' . $id);
         }
     }
 
     public function status(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = $this->getIdFromRequest();
-            $data = $this->getJsonBody();
+            $this->carregarEValidarPropriedade($id);
 
-            $status = $data['status'] ?? null;
-            if (!is_string($status) || trim($status) === '') {
-                throw new Exception('O status é obrigatório.');
-            }
+            $status = $_POST['status'] ?? '';
 
             $animal = new Animal();
             $animal->setAnimalId($id);
             $animal->setStatus($status);
             $this->service->atualizarStatus($animal);
 
-            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Status atualizado com sucesso.']);
+            $this->redirecionarComMensagem('sucesso', 'Status atualizado com sucesso!', '/animal');
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
     }
 
     public function reativar(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = $this->getIdFromRequest();
+            $this->carregarEValidarPropriedade($id);
 
             $animal = new Animal();
             $animal->setAnimalId($id);
             $this->service->reativarAnimal($animal);
 
-            if ($this->isHtmlRequest()) {
-                $this->redirecionarComMensagem('sucesso', 'Animal reativado com sucesso!', '/animal');
-                return;
-            }
-
-            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal reativado com sucesso.']);
+            $this->redirecionarComMensagem('sucesso', 'Animal reativado com sucesso!', '/animal');
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
     }
 
     public function destroy(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
-            $id = $this->getIdFromRequest();
+            $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
+            $this->carregarEValidarPropriedade($id);
 
             $animal = new Animal();
             $animal->setAnimalId($id);
             $this->service->desativarAnimal($animal);
 
-            if ($this->isHtmlRequest()) {
-                $this->redirecionarComMensagem('sucesso', 'Animal excluído com sucesso!', '/animal');
-                return;
-            }
-
-            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Animal excluído com sucesso.']);
+            $this->redirecionarComMensagem('sucesso', 'Animal desativado com sucesso!', '/animal');
         } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
     }
 
-    private function isHtmlRequest(): bool
+    private function carregarEValidarPropriedade(int $animalId): Animal
     {
-        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
-        return strpos($accept, 'text/html') !== false;
+        $animal = $this->service->buscarPorId($animalId);
+
+        if (!$animal) {
+            throw new Exception('Animal não encontrado.');
+        }
+
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
+        if ($tipoPerfil === 'administrador') {
+            return $animal;
+        }
+
+        $protetorId = $this->obterProtetorIdAutenticado();
+        if ($animal->getProtetorId() !== $protetorId) {
+            throw new Exception('Acesso negado: Você não tem permissão para manipular este animal.');
+        }
+
+        return $animal;
+    }
+
+    private function obterProtetorIdAutenticado(): int
+    {
+        if (isset($_SESSION['protetor_id']) && (int)$_SESSION['protetor_id'] > 0) {
+            return (int)$_SESSION['protetor_id'];
+        }
+
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        if ($usuarioId > 0) {
+            $protetorRepo = new ProtetorRepository($this->db);
+            $protetor = $protetorRepo->buscarPorUsuarioId($usuarioId);
+            if ($protetor && isset($protetor['protetor_id'])) {
+                $_SESSION['protetor_id'] = (int)$protetor['protetor_id'];
+                return (int)$protetor['protetor_id'];
+            }
+        }
+
+        return 0;
     }
 
     private function buildAnimalFromArray(?array $data): Animal
@@ -283,107 +277,29 @@ class AnimalController extends Controller
         }
 
         $animal = new Animal();
-        $animal->setProtetorId((int) ($data['protetor_id'] ?? $_SESSION['protetor_id'] ?? 0));
+        $animal->setProtetorId((int) ($data['protetor_id'] ?? 0));
         $animal->setRacaId((int) ($data['raca_id'] ?? 0));
         $animal->setNome((string) ($data['nome'] ?? ''));
-        $animal->setDtNasc($data['dt_nasc'] ?? null);
+        $dtNasc = trim((string) ($data['dt_nasc'] ?? ''));
+        $animal->setDtNasc($dtNasc === '' ? null : $dtNasc);
         $animal->setSexo((string) ($data['sexo'] ?? ''));
         $animal->setPorte((string) ($data['porte'] ?? ''));
         $animal->setStatus((string) ($data['status'] ?? 'disponivel'));
         $animal->setDescricao((string) ($data['descricao'] ?? ''));
-        $animal->setVacinado((bool) ($data['vacinado'] ?? false));
-        $animal->setCastrado((bool) ($data['castrado'] ?? false));
+        $animal->setVacinado(!empty($data['vacinado']));
+        $animal->setCastrado(!empty($data['castrado']));
         $animal->setComportamento($data['comportamento'] ?? null);
         $animal->setHistoricoSaude($data['historico_saude'] ?? null);
 
         return $animal;
     }
 
-    private function animalToArray(Animal $animal): array
-    {
-        return [
-            'animal_id'       => $animal->getAnimalId(),
-            'protetor_id'     => $animal->getProtetorId(),
-            'raca_id'         => $animal->getRacaId(),
-            'nome'            => $animal->getNome(),
-            'dt_nasc'         => $animal->getDtNasc(),
-            'sexo'            => $animal->getSexo(),
-            'porte'           => $animal->getPorte(),
-            'status'          => $animal->getStatus(),
-            'descricao'       => $animal->getDescricao(),
-            'vacinado'        => $animal->isVacinado(),
-            'castrado'        => $animal->isCastrado(),
-            'comportamento'   => $animal->getComportamento(),
-            'historico_saude' => $animal->getHistoricoSaude(),
-            'criado_em'       => $animal->getCriadoEm(),
-            'deletado_em'     => $animal->getDeletadoEm(),
-            'atualizado_em'   => $animal->getAtualizadoEm(),
-        ];
-    }
-
-    private function getJsonBody(): array
-    {
-        $rawBody = file_get_contents('php://input');
-
-        if ($rawBody === '') {
-            $data = $_POST;
-        } else {
-            $data = json_decode($rawBody, true);
-
-            if (!is_array($data)) {
-                parse_str($rawBody, $data);
-            }
-        }
-
-        if (!is_array($data)) {
-            throw new Exception('Corpo da requisição inválido.');
-        }
-
-        return $data;
-    }
-
     private function getIdFromRequest(): int
     {
         $id = $_GET['id'] ?? $_POST['id'] ?? null;
-
-        if ($id === null) {
-            $rawBody = file_get_contents('php://input');
-            if ($rawBody !== '') {
-                $data = json_decode($rawBody, true);
-                if (is_array($data) && isset($data['id'])) {
-                    $id = $data['id'];
-                }
-            }
-        }
-
         if (!is_numeric($id) || (int) $id <= 0) {
             throw new Exception('ID inválido.');
         }
-
         return (int) $id;
-    }
-
-    public function deleteView(): void
-    {
-        try {
-            $id = $this->getIdFromRequest();
-            $repository = new AnimalRepository($this->db);
-            $animal = $repository->buscarPorId($id);
-
-            if (!$animal) {
-                $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
-                return;
-            }
-
-            if ($this->isHtmlRequest()) {
-                $_SESSION['animal'] = $animal;
-                $this->view('animal/excluir');
-                return;
-            }
-
-            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Endpoint de confirmação de exclusão pronto.']);
-        } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
-        }
     }
 }

@@ -1,10 +1,11 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
 
-$animal = $_SESSION['animal'] ?? null;
+$animalRaw = $_SESSION['animal'] ?? null;
 $old = $_SESSION['old'] ?? [];
+unset($_SESSION['old']);
 
-if (!$animal) {
+if (!$animalRaw) {
     echo "<main class='flex flex-col items-center justify-center p-4'>";
     echo "<div class='bg-branco dark:bg-preto2 p-8 rounded-[2rem] shadow-lg text-center border border-cinzaMarrom/20 dark:border-branco/10'>";
     echo "<h2 class='font-shantell text-2xl font-bold text-text-dark dark:text-branco mb-4'>Erro: Animal não encontrado.</h2>";
@@ -14,17 +15,24 @@ if (!$animal) {
     exit;
 }
 
-// Define os valores priorizando dados antigos preenchidos pelo usuário após falha de validação
-$nome = $old['nome'] ?? $animal->getNome();
-$dtNasc = $old['dt_nasc'] ?? $animal->getDtNasc();
-$sexo = $old['sexo'] ?? $animal->getSexo();
-$porte = $old['porte'] ?? $animal->getPorte();
-$status = $old['status'] ?? $animal->getStatus();
-$comportamento = $old['comportamento'] ?? $animal->getComportamento();
-$historicoSaude = $old['historico_saude'] ?? $animal->getHistoricoSaude();
-$descricao = $old['descricao'] ?? $animal->getDescricao();
-$vacinado = !empty($old) ? !empty($old['vacinado']) : $animal->isVacinado();
-$castrado = !empty($old) ? !empty($old['castrado']) : $animal->isCastrado();
+$isObj = is_object($animalRaw);
+
+$animalId       = $isObj ? $animalRaw->getAnimalId() : ($animalRaw['animal_id'] ?? 0);
+$racaId         = $isObj ? $animalRaw->getRacaId() : ($animalRaw['raca_id'] ?? 0);
+
+$nome           = !empty($old['nome']) ? $old['nome'] : ($isObj ? $animalRaw->getNome() : ($animalRaw['nome'] ?? ''));
+$dtNasc         = !empty($old['dt_nasc']) ? $old['dt_nasc'] : ($isObj ? $animalRaw->getDtNasc() : ($animalRaw['dt_nasc'] ?? ''));
+$sexo           = !empty($old['sexo']) ? $old['sexo'] : ($isObj ? $animalRaw->getSexo() : ($animalRaw['sexo'] ?? ''));
+$porte          = !empty($old['porte']) ? $old['porte'] : ($isObj ? $animalRaw->getPorte() : ($animalRaw['porte'] ?? ''));
+$status         = !empty($old['status']) ? $old['status'] : ($isObj ? $animalRaw->getStatus() : ($animalRaw['status'] ?? 'disponivel'));
+$comportamento  = !empty($old['comportamento']) ? $old['comportamento'] : ($isObj ? $animalRaw->getComportamento() : ($animalRaw['comportamento'] ?? ''));
+$historicoSaude = !empty($old['historico_saude']) ? $old['historico_saude'] : ($isObj ? $animalRaw->getHistoricoSaude() : ($animalRaw['historico_saude'] ?? ''));
+$descricao      = !empty($old['descricao']) ? $old['descricao'] : ($isObj ? $animalRaw->getDescricao() : ($animalRaw['descricao'] ?? ''));
+
+$vacinado = !empty($old) ? !empty($old['vacinado']) : ($isObj ? $animalRaw->isVacinado() : !empty($animalRaw['vacinado']));
+$castrado = !empty($old) ? !empty($old['castrado']) : ($isObj ? $animalRaw->isCastrado() : !empty($animalRaw['castrado']));
+
+$fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_principal'] ?? null);
 ?>
 
 <main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -40,15 +48,25 @@ $castrado = !empty($old) ? !empty($old['castrado']) : $animal->isCastrado();
                 <?php foreach ($_SESSION['erros'] as $erro): ?>
                     <p><?= htmlspecialchars($erro) ?></p>
                 <?php endforeach; ?>
+                <?php unset($_SESSION['erros']); ?>
             </div>
         <?php endif; ?>
 
-        <form action="<?= URL_BASE ?>/animal/editar" method="POST" class="w-full max-w-md flex flex-col gap-6">
-            <input type="hidden" name="id" value="<?= $animal->getAnimalId() ?>">
+        <form action="<?= URL_BASE ?>/animal/editar" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6" data-no-autosave>
+            <input type="hidden" name="id" value="<?= htmlspecialchars($animalId) ?>">
+            <input type="hidden" name="raca_id" value="<?= htmlspecialchars($racaId) ?>">
+
+            <div>
+                <label for="foto" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Foto do animal</label>
+                <?php if (!empty($fotoPrincipal)): ?>
+                    <img src="<?= URL_BASE ?>/<?= htmlspecialchars($fotoPrincipal) ?>" alt="Foto atual de <?= htmlspecialchars($nome) ?>" class="w-24 h-24 object-cover rounded-xl mb-3 border-2 border-text-dark dark:border-branco/30">
+                <?php endif; ?>
+                <input type="file" id="foto" name="foto" accept="image/png,image/jpeg,image/jpg,image/webp" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
+            </div>
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
-                <input type="text" id="nome" name="nome" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" value="<?= htmlspecialchars($nome) ?>" placeholder="Ex: Thor" maxlength="120">
+                <input type="text" id="nome" name="nome" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" value="<?= htmlspecialchars($nome) ?>" placeholder="Ex: Thor" maxlength="120" required>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -58,7 +76,7 @@ $castrado = !empty($old) ? !empty($old['castrado']) : $animal->isCastrado();
                 </div>
                 <div>
                     <label for="sexo" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sexo <span class="text-rosaAlerta">*</span></label>
-                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
+                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="macho" class="dark:bg-preto2" <?= $sexo === 'macho' ? 'selected' : '' ?>>Macho</option>
                         <option value="femea" class="dark:bg-preto2" <?= $sexo === 'femea' ? 'selected' : '' ?>>Fêmea</option>
@@ -69,7 +87,7 @@ $castrado = !empty($old) ? !empty($old['castrado']) : $animal->isCastrado();
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="porte" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Porte <span class="text-rosaAlerta">*</span></label>
-                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
+                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="pequeno" class="dark:bg-preto2" <?= $porte === 'pequeno' ? 'selected' : '' ?>>Pequeno</option>
                         <option value="medio" class="dark:bg-preto2" <?= $porte === 'medio' ? 'selected' : '' ?>>Médio</option>
@@ -78,7 +96,7 @@ $castrado = !empty($old) ? !empty($old['castrado']) : $animal->isCastrado();
                 </div>
                 <div>
                     <label for="status" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Status <span class="text-rosaAlerta">*</span></label>
-                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
+                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="disponivel" class="dark:bg-preto2" <?= $status === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
                         <option value="em_analise" class="dark:bg-preto2" <?= $status === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
                         <option value="adotado" class="dark:bg-preto2" <?= $status === 'adotado' ? 'selected' : '' ?>>Adotado</option>
@@ -115,12 +133,9 @@ $castrado = !empty($old) ? !empty($old['castrado']) : $animal->isCastrado();
             </div>
 
             <div>
-                <label for="descricao" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sobre/Mais</label>
-                <textarea id="descricao" name="descricao" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none resize-y transition-colors" rows="3" placeholder="História e detalhes..."><?= htmlspecialchars($descricao ?? '') ?></textarea>
+                <label for="descricao" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sobre/Mais <span class="text-rosaAlerta">*</span></label>
+                <textarea id="descricao" name="descricao" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none resize-y transition-colors" rows="3" placeholder="História e detalhes..." required><?= htmlspecialchars($descricao ?? '') ?></textarea>
             </div>
-
-            <input type="hidden" name="protetor_id" value="<?= htmlspecialchars($animal->getProtetorId()) ?>">
-            <input type="hidden" name="raca_id" value="<?= htmlspecialchars($animal->getRacaId()) ?>">
 
             <div class="flex flex-col items-center gap-4 mt-8">
                 <button type="submit" class="w-full max-w-[200px] py-4 bg-rosaAlerta hover:bg-rosa-2 text-white dark:hover:text-text-dark font-bold rounded-full shadow-md transition-all duration-300 hover:-translate-y-1">

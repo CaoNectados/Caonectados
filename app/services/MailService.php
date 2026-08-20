@@ -124,4 +124,36 @@ class MailService
             'mensagem_rodape' => 'Este link expira em <strong>30 minutos</strong>. Se você não fez essa solicitação, pode ignorar este e-mail com segurança.'
         ]);
     }
+
+    /**
+     * Envia e-mail notificando aprovação do cadastro de Protetor/ONG
+     */
+    public static function enviarNotificacaoAprovacao(string $emailDestino, string $nomeDestino): bool
+    {
+        return self::enviarEmailTemplate($emailDestino, $nomeDestino, 'Cadastro Aprovado! - CãoNectados', [
+            'nome_usuario'    => $nomeDestino,
+            'titulo_mensagem' => 'Seu cadastro foi aprovado! 🐾🎉',
+            'mensagem_corpo'  => 'Temos uma ótima notícia: a análise da sua documentação foi concluída com sucesso e seu perfil de Protetor/ONG foi aprovado e validado em nossa plataforma. Agora você já pode divulgar pets para adoção e gerenciar sua página.',
+            'link_botao'      => URL_BASE . '/login',
+            'texto_botao'     => 'Acessar Minha Conta',
+            'mensagem_rodape' => 'Obrigado por fazer a diferença na vida dos animais da nossa região!'
+        ]);
+    }
+
+    /**
+     * Envia e-mail notificando recusa da solicitação com o motivo
+     */
+    public static function enviarNotificacaoRecusa(string $emailDestino, string $nomeDestino, string $motivo): bool
+    {
+        $motivoTexto = !empty($motivo) ? htmlspecialchars($motivo) : 'Documentação inconsistente ou ilegível.';
+
+        return self::enviarEmailTemplate($emailDestino, $nomeDestino, 'Atualização sobre seu cadastro - CãoNectados', [
+            'nome_usuario'    => $nomeDestino,
+            'titulo_mensagem' => 'Atualização sobre a validação do cadastro ⚠️',
+            'mensagem_corpo'  => "Analisamos a documentação enviada para o seu perfil de Protetor/ONG, mas infelizmente não pudemos aprovar o seu cadastro neste momento.<br><br><strong>Motivo informado:</strong><br><em>{$motivoTexto}</em><br><br>Você pode revisar seus dados e documentos ou entrar em contato com nossa equipe para mais esclarecimentos.",
+            'link_botao'      => URL_BASE . '/aguardando-aprovacao',
+            'texto_botao'     => 'Corrigir Meus Dados',
+            'mensagem_rodape' => 'Caso tenha dúvidas, responda diretamente a este e-mail para receber suporte.'
+        ]);
+    }
 }

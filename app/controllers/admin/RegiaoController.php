@@ -29,7 +29,7 @@ class RegiaoController extends Controller
             $regioes = $this->regiaoRepo->buscarTodas();
             $this->view('regiao/index', [
                 'regioes' => $regioes,
-                'titulo' => 'Gerenciar Bairros'
+                'titulo' => 'Gerenciar Regiões'
             ]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', 'Erro ao listar regiões.', '/admin/dashboard', $e->getMessage());
@@ -142,6 +142,30 @@ class RegiaoController extends Controller
             return $this->regiaoRepo->buscarTodas();
         } catch (Exception $e) {
             return [];
+        }
+    }
+
+    public function deletarMultiplos(): void
+    {
+        try {
+            $ids = $_POST['ids'] ?? [];
+            
+            if (!empty($ids) && is_array($ids)) {
+                $count = 0;
+                foreach ($ids as $id) {
+                    $idFormatado = (int) $id;
+                    if ($idFormatado > 0) {
+                        // Utiliza o serviço existente para deletar cada ID validado
+                        $this->service->excluirRegiao($idFormatado);
+                        $count++;
+                    }
+                }
+                $this->redirecionarComMensagem('sucesso', "{$count} bairro(s) excluído(s) com sucesso!", '/admin/regiao');
+            } else {
+                $this->redirecionarComMensagem('aviso', 'Nenhum bairro foi selecionado para exclusão.', '/admin/regiao');
+            }
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', 'Ação interrompida: ' . $e->getMessage(), '/admin/regiao');
         }
     }
 }

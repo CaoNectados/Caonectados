@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
 
-$especies = $_SESSION['especies'] ?? [];
+$especies = $especies ?? [];
 $old = $_SESSION['old'] ?? [];
+unset($_SESSION['old']);
 ?>
 
 <main class="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
@@ -19,73 +20,58 @@ $old = $_SESSION['old'] ?? [];
                 <?php foreach ($_SESSION['erros'] as $erro): ?>
                     <p><?= htmlspecialchars($erro) ?></p>
                 <?php endforeach; ?>
+                <?php unset($_SESSION['erros']); ?>
             </div>
         <?php endif; ?>
 
-        <form action="<?= URL_BASE ?>/animal" method="POST" class="w-full max-w-md flex flex-col gap-6">
+        <form action="<?= URL_BASE ?>/animal" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6">
+
+            <div>
+                <label for="foto" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Foto do animal</label>
+                <input type="file" id="foto" name="foto" accept="image/png,image/jpeg,image/jpg,image/webp" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+            </div>
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
-                <input type="text" id="nome" name="nome" placeholder="Ex: Thor" maxlength="120" value="<?= htmlspecialchars($old['nome'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+                <input type="text" id="nome" name="nome" placeholder="Ex: Thor" maxlength="120" value="<?= htmlspecialchars($old['nome'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                    <label for="protetor_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Protetor ID <span class="text-rosaAlerta">*</span></label>
-                    <input type="number" id="protetor_id" name="protetor_id" placeholder="ID" value="<?= htmlspecialchars($old['protetor_id'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <!-- <div class="form-group">
-                    <label for="raca_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Raça:</label>
-                    <select name="raca_id" id="raca_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
-                        <option value="">Selecione uma Raça</option>
-                        <?php //if (!empty($_SESSION['racas'])): 
-                        ?>
-                            <?php //foreach ($_SESSION['racas'] as $raca): 
-                            ?>
-                                <option value="<?php // $raca->getId(); 
-                                                ?>" <?php // ($old['raca_id'] ?? '') == $raca->getId() ? 'selected' : '' 
-                                                    ?>>
-                                    <?php //htmlspecialchars($raca->getNome()); 
-                                    ?>
-                                </option>
-                            <?php //endforeach; 
-                            ?>
-                        <?php //endif; 
-                        ?>
-                    </select>
-                </div> -->
-                <!-- Select de Espécie (Filtro visual, não precisa do attribute 'name') -->
+                <!-- Select de Espécie -->
                 <div class="col-md-6 mb-3">
-                    <label for="especie_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Espécie</label>
-                    <select id="especie_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+                    <label for="especie_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Espécie <span class="text-rosaAlerta">*</span></label>
+                    <select id="especie_id" name="especie_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="">Selecione uma espécie</option>
                         <?php foreach ($especies as $especie): ?>
-                            <option value="<?= $especie->getId() ?>"><?= htmlspecialchars($especie->getNome()) ?></option>
+                            <?php 
+                                $idEsp = is_array($especie) ? ($especie['especie_id'] ?? $especie['id']) : $especie->getId();
+                                $nomeEsp = is_array($especie) ? $especie['nome'] : $especie->getNome();
+                            ?>
+                            <option value="<?= $idEsp ?>">
+                                <?= htmlspecialchars($nomeEsp) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
-                <!-- Select de Raça (Enviado no formulário) -->
+                <!-- Select de Raça -->
                 <div class="col-md-6 mb-3">
-                    <label for="raca_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Raça</label>
-                    <select id="raca_id" name="raca_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" disabled>
+                    <label for="raca_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Raça <span class="text-rosaAlerta">*</span></label>
+                    <select id="raca_id" name="raca_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" disabled required>
                         <option value="">Selecione primeiro a espécie</option>
                     </select>
                 </div>
             </div>
 
             <div>
-                <label for="dt_nasc" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Data de nascimento aproximada <span class="text-rosaAlerta">*</span></label>
+                <label for="dt_nasc" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Data de nascimento aproximada</label>
                 <input type="date" id="dt_nasc" name="dt_nasc" value="<?= htmlspecialchars($old['dt_nasc'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="sexo" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sexo <span class="text-rosaAlerta">*</span></label>
-                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="macho" class="dark:bg-preto2" <?= ($old['sexo'] ?? '') === 'macho' ? 'selected' : '' ?>>Macho</option>
                         <option value="femea" class="dark:bg-preto2" <?= ($old['sexo'] ?? '') === 'femea' ? 'selected' : '' ?>>Fêmea</option>
@@ -93,7 +79,7 @@ $old = $_SESSION['old'] ?? [];
                 </div>
                 <div>
                     <label for="porte" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Porte <span class="text-rosaAlerta">*</span></label>
-                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="pequeno" class="dark:bg-preto2" <?= ($old['porte'] ?? '') === 'pequeno' ? 'selected' : '' ?>>Pequeno</option>
                         <option value="medio" class="dark:bg-preto2" <?= ($old['porte'] ?? '') === 'medio' ? 'selected' : '' ?>>Médio</option>
@@ -105,7 +91,7 @@ $old = $_SESSION['old'] ?? [];
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="status" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Status <span class="text-rosaAlerta">*</span></label>
-                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
                         <option value="disponivel" class="dark:bg-preto2" <?= ($old['status'] ?? 'disponivel') === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
                         <option value="em_analise" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
                         <option value="adotado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'adotado' ? 'selected' : '' ?>>Adotado</option>
@@ -126,12 +112,12 @@ $old = $_SESSION['old'] ?? [];
 
             <div>
                 <label for="historico_saude" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Saúde</label>
-                <textarea id="historico_saude" name="historico_saude" rows="3" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none resize-y transition-colors" placeholder="Tomou alguma vacina? Tem doença crônica? Use esse espaço para falar sobre a saúde do animal..."><?= htmlspecialchars($old['historico_saude'] ?? '') ?></textarea>
+                <textarea id="historico_saude" name="historico_saude" rows="3" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none resize-y transition-colors" placeholder="Tomou alguma vacina? Tem doença crônica?"><?= htmlspecialchars($old['historico_saude'] ?? '') ?></textarea>
             </div>
 
             <div>
-                <label for="descricao" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sobre/Mais</label>
-                <textarea id="descricao" name="descricao" rows="4" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none resize-y transition-colors" placeholder="Como ele chegou até você? Qual sua história? Use esse espaço para mais detalhes específicos..."><?= htmlspecialchars($old['descricao'] ?? '') ?></textarea>
+                <label for="descricao" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sobre/Mais <span class="text-rosaAlerta">*</span></label>
+                <textarea id="descricao" name="descricao" rows="4" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none resize-y transition-colors" placeholder="História e detalhes..." required><?= htmlspecialchars($old['descricao'] ?? '') ?></textarea>
             </div>
 
             <div class="flex items-center gap-8 mt-2">
@@ -156,15 +142,12 @@ $old = $_SESSION['old'] ?? [];
         </form>
     </div>
 </main>
-
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
 
 <script>
     document.getElementById('especie_id').addEventListener('change', async function() {
         const especieId = this.value;
         const racaSelect = document.getElementById('raca_id');
-
-        console.log('ID da espécie selecionada:', especieId);
 
         racaSelect.innerHTML = '<option value="">Carregando raças...</option>';
         racaSelect.disabled = true;
@@ -176,22 +159,18 @@ $old = $_SESSION['old'] ?? [];
 
         try {
             const url = `<?= URL_BASE ?>/raca/json?especie_id=${especieId}`;
-            console.log('Requisitando:', url);
+            const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            
+            const textResponse = await response.text();
+            let result;
+            try {
+                result = JSON.parse(textResponse);
+            } catch (e) {
+                console.error("Resposta não é um JSON válido:", textResponse);
+                throw new Error("O servidor retornou uma resposta inválida.");
+            }
 
-            const response = await fetch(url, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            const text = await response.text();
-            console.log('Status HTTP:', response.status);
-            console.log('Resposta bruta do servidor:', text);
-
-            const result = JSON.parse(text);
-
-            // Identifica a lista de raças independentemente da estrutura de retorno usada no Controller
-            const listaRacas = result.data || result.dados || result.racas || (Array.isArray(result) ? result : []);
+            const listaRacas = result.dados || result.data || result.racas || (Array.isArray(result) ? result : []);
 
             if (listaRacas.length > 0) {
                 racaSelect.innerHTML = '<option value="">Selecione uma raça</option>';
@@ -206,7 +185,7 @@ $old = $_SESSION['old'] ?? [];
                 racaSelect.innerHTML = '<option value="">Nenhuma raça encontrada</option>';
             }
         } catch (error) {
-            console.error('Erro detalhado no Fetch:', error);
+            console.error("Erro no fetch de raças:", error);
             racaSelect.innerHTML = '<option value="">Erro ao carregar raças</option>';
         }
     });

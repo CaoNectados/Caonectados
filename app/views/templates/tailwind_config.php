@@ -20,84 +20,84 @@
             extend: {
                 colors: {
                     // Aliases semânticos (usados no dia a dia)
-                    primary:      'var(--color-primary)',
-                    secondary:    'var(--color-secondary)',
-                    accent:       'var(--color-accent)',
-                    background:   'var(--color-background)',
-                    surface:      'var(--color-surface)',
-                    'text-dark':  'var(--color-text-dark)',
-                    'text-muted': 'var(--color-text-muted)',
+                    primary:      'rgb(var(--color-primary) / <alpha-value>)',
+                    secondary:    'rgb(var(--color-secondary) / <alpha-value>)',
+                    accent:       'rgb(var(--color-accent) / <alpha-value>)',
+                    background:   'rgb(var(--color-background) / <alpha-value>)',
+                    surface:      'rgb(var(--color-surface) / <alpha-value>)',
+                    'text-dark':  'rgb(var(--color-text-dark) / <alpha-value>)',
+                    'text-muted': 'rgb(var(--color-text-muted) / <alpha-value>)',
 
                     // Cores destaque - Rosa (1 a 7)
                     rosa: {
-                        1: 'var(--color-rosa-1)',
-                        2: 'var(--color-rosa-2)',
-                        3: 'var(--color-rosa-3)',
-                        4: 'var(--color-rosa-4)',
-                        5: 'var(--color-rosa-5)',
-                        6: 'var(--color-rosa-6)',
-                        7: 'var(--color-rosa-7)',
+                        1: 'rgb(var(--color-rosa-1) / <alpha-value>)',
+                        2: 'rgb(var(--color-rosa-2) / <alpha-value>)',
+                        3: 'rgb(var(--color-rosa-3) / <alpha-value>)',
+                        4: 'rgb(var(--color-rosa-4) / <alpha-value>)',
+                        5: 'rgb(var(--color-rosa-5) / <alpha-value>)',
+                        6: 'rgb(var(--color-rosa-6) / <alpha-value>)',
+                        7: 'rgb(var(--color-rosa-7) / <alpha-value>)',
                     },
 
                     // Cores destaque - Laranja (1 a 3)
                     laranja: {
-                        1: 'var(--color-laranja-1)',
-                        2: 'var(--color-laranja-2)',
-                        3: 'var(--color-laranja-3)',
+                        1: 'rgb(var(--color-laranja-1) / <alpha-value>)',
+                        2: 'rgb(var(--color-laranja-2) / <alpha-value>)',
+                        3: 'rgb(var(--color-laranja-3) / <alpha-value>)',
                     },
 
                     // Outras cores de destaque
-                    salmao:       'var(--color-salmao)',
-                    rosaAlerta:   'var(--color-rosaAlerta)',
+                    salmao:       'rgb(var(--color-salmao) / <alpha-value>)',
+                    rosaAlerta:   'rgb(var(--color-rosaAlerta) / <alpha-value>)',
 
-                    corFundo: 'var(--color-corFundo)',
-                    fundoChat: 'var(--color-fundoChat)',
-                    notificacao: 'var(--color-notificacao)',
-                    msgEnvia:  'var(--color-msgEnvia)',
-                    msgRespondida: 'var(--color-msgRespondida)',
-                    perfilChats: 'var(--color-perfilChats)',
+                    corFundo: 'rgb(var(--color-corFundo) / <alpha-value>)',
+                    fundoChat: 'rgb(var(--color-fundoChat) / <alpha-value>)',
+                    notificacao: 'rgb(var(--color-notificacao) / <alpha-value>)',
+                    msgEnvia:  'rgb(var(--color-msgEnvia) / <alpha-value>)',
+                    msgRespondida: 'rgb(var(--color-msgRespondida) / <alpha-value>)',
+                    perfilChats: 'rgb(var(--color-perfilChats) / <alpha-value>)',
 
                     // Cores claras
-                    branco:       'var(--color-branco)',
-                    brancoRosado: 'var(--color-brancoRosado)',
-                    rosaClaro:    'var(--color-rosaClaro)',
-                    rosaClaro2:   'var(--color-rosaClaro2)',
-                    roxinhoFofo:  'var(--color-roxinhoFofo)',
+                    branco:       'rgb(var(--color-branco) / <alpha-value>)',
+                    brancoRosado: 'rgb(var(--color-brancoRosado) / <alpha-value>)',
+                    rosaClaro:    'rgb(var(--color-rosaClaro) / <alpha-value>)',
+                    rosaClaro2:   'rgb(var(--color-rosaClaro2) / <alpha-value>)',
+                    roxinhoFofo:  'rgb(var(--color-roxinhoFofo) / <alpha-value>)',
 
-                    // Cores suaves (Atenção: aqui estão as que estavam faltando!)
-                    roxo:         'var(--color-roxo)',
-                    cinzaMarrom:  'var(--color-cinzaMarrom)',
-                    roxo1:        'var(--color-roxo1)',
-                    roxo2:        'var(--color-roxo2)',
+                    // Cores suaves
+                    roxo:         'rgb(var(--color-roxo) / <alpha-value>)',
+                    cinzaMarrom:  'rgb(var(--color-cinzaMarrom) / <alpha-value>)',
+                    roxo1:        'rgb(var(--color-roxo1) / <alpha-value>)',
+                    roxo2:        'rgb(var(--color-roxo2) / <alpha-value>)',
 
                     // Cores escuras
-                    preto:        'var(--color-preto)',
-                    preto1:       'var(--color-preto1)',
-                    preto2:       'var(--color-preto2)',
-                    preto3:       'var(--color-preto3)',
-                    marrom:       'var(--color-marrom)',
-                    marrom1:      'var(--color-marrom1)',
-                    roxoApagado:  'var(--color-roxoApagado)',
-                    rosaEscura:   'var(--color-rosaEscura)',
+                    preto:        'rgb(var(--color-preto) / <alpha-value>)',
+                    preto1:       'rgb(var(--color-preto1) / <alpha-value>)',
+                    preto2:       'rgb(var(--color-preto2) / <alpha-value>)',
+                    preto3:       'rgb(var(--color-preto3) / <alpha-value>)',
+                    marrom:       'rgb(var(--color-marrom) / <alpha-value>)',
+                    marrom1:      'rgb(var(--color-marrom1) / <alpha-value>)',
+                    roxoApagado:  'rgb(var(--color-roxoApagado) / <alpha-value>)',
+                    rosaEscura:   'rgb(var(--color-rosaEscura) / <alpha-value>)',
 
                     // Cores inversas
-                    verdeEscuro:  'var(--color-verdeEscuro)',
-                    azul:         'var(--color-azul)',
-                    amarelo:      'var(--color-amarelo)',
-                    verdeMusgo:   'var(--color-verdeMusgo)',
-                    azulEscuro:   'var(--color-azulEscuro)',
-                    laranjaEscuro:'var(--color-laranjaEscuro)',
+                    verdeEscuro:  'rgb(var(--color-verdeEscuro) / <alpha-value>)',
+                    azul:         'rgb(var(--color-azul) / <alpha-value>)',
+                    amarelo:      'rgb(var(--color-amarelo) / <alpha-value>)',
+                    verdeMusgo:   'rgb(var(--color-verdeMusgo) / <alpha-value>)',
+                    azulEscuro:   'rgb(var(--color-azulEscuro) / <alpha-value>)',
+                    laranjaEscuro:'rgb(var(--color-laranjaEscuro) / <alpha-value>)',
 
                     // Modais de Feedback
-                    erro:         'var(--color-erro)',
-                    aviso:        'var(--color-aviso)',
-                    sucesso:      'var(--color-sucesso)',
-                    informativo:  'var(--color-informativo)',
+                    erro:         'rgb(var(--color-erro) / <alpha-value>)',
+                    aviso:        'rgb(var(--color-aviso) / <alpha-value>)',
+                    sucesso:      'rgb(var(--color-sucesso) / <alpha-value>)',
+                    informativo:  'rgb(var(--color-informativo) / <alpha-value>)',
 
                     // Primitives (cores base)
-                    corBarra:     'var(--color-corBarra)',
-                    cinza2:       'var(--color-cinza2)',
-                    cinza3:       'var(--color-cinza3)',
+                    corBarra:     'rgb(var(--color-corBarra) / <alpha-value>)',
+                    cinza2:       'rgb(var(--color-cinza2) / <alpha-value>)',
+                    cinza3:       'rgb(var(--color-cinza3) / <alpha-value>)',
                 },
 
                 // Famílias de fonte
@@ -142,6 +142,27 @@
         :focus-visible {
             @apply outline outline-[3px] outline-rosaAlerta outline-offset-2 rounded;
         }
+
+        /* Seta customizada para TODO <select> do site — some a seta nativa do navegador
+           (que muda de estilo por SO/browser e não pode ser recolorida via CSS) e desenha
+           um chevron próprio, consistente em Light e Dark Mode.
+           padding-right usa !important de propósito: os selects do projeto têm classes de
+           padding (px-4, p-3, etc.) definidas individualmente em cada view — sem isso, o
+           texto de algumas opções ficaria por baixo do ícone. */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-repeat: no-repeat;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23716C93' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-position: right 0.75rem center;
+            background-size: 1.1rem;
+            padding-right: 2.75rem !important;
+            cursor: pointer;
+        }
+        select::-ms-expand {
+            display: none;
+        }
     }
 
     @layer components {
@@ -164,6 +185,22 @@
                    transition hover:bg-rosa-2 hover:text-text-dark active:scale-95;
         }
 
+        /* Botões estilo "cartão 3D" das telas de autenticação (Login/Cadastro) */
+        .btn-auth-primario {
+            @apply w-full rounded-2xl bg-primary px-6 py-3.5 font-shantell text-lg
+                   font-bold text-text-dark shadow-[4px_4px_0px_rgba(44,44,44,0.25)]
+                   dark:shadow-[4px_4px_0px_rgba(0,0,0,0.5)]
+                   transition hover:-translate-y-0.5 active:translate-y-0 active:shadow-none
+                   disabled:cursor-not-allowed disabled:opacity-50;
+        }
+        .btn-auth-secundario {
+            @apply w-full rounded-2xl bg-rosa-1 px-6 py-3.5 font-shantell text-lg
+                   font-bold text-text-dark shadow-[4px_4px_0px_rgba(44,44,44,0.25)]
+                   dark:shadow-[4px_4px_0px_rgba(0,0,0,0.5)]
+                   transition hover:-translate-y-0.5 active:translate-y-0 active:shadow-none
+                   block text-center;
+        }
+
         /* Formulários */
         .label-padrao {
             @apply mb-1 block font-poppins text-sm font-medium text-text-dark;
@@ -177,8 +214,50 @@
         .input-erro {
             @apply border-erro focus:border-erro focus:ring-rosa-2;
         }
+        /* Campos de bairro/região: chevron do estado fechado do combobox customizado
+           (regiao-combobox.js). Fica como fallback visual antes do JS rodar; depois de
+           inicializado, o JS assume o próprio background-image do input (o popup de
+           sugestões nativo do <datalist> foi substituído por um painel próprio, já que
+           aquele popup não pode ser restilizado em nenhum navegador). */
+        .input-com-seta {
+            @apply border-2 border-preto1 font-bold dark:border-white;
+            background-repeat: no-repeat;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23716C93' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-position: right 0.75rem center;
+            background-size: 1.1rem;
+            padding-right: 2.75rem !important;
+        }
+        /* Painel do combobox customizado de bairro/região (substitui o popup do <datalist>). */
+        .regiao-dropdown-panel {
+            @apply absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto rounded-2xl
+                   border-2 border-preto1 dark:border-white bg-branco dark:bg-preto1
+                   shadow-lg;
+        }
+        .regiao-dropdown-item {
+            @apply cursor-pointer border-b border-cinzaMarrom/15 px-4 py-3 font-poppins text-sm
+                   font-bold text-text-dark transition-colors last:border-b-0 hover:bg-rosa-1/30
+                   dark:border-preto3 dark:text-white dark:hover:bg-preto2;
+        }
+        .regiao-dropdown-vazio {
+            @apply px-4 py-3 font-poppins text-sm italic text-text-muted;
+        }
+        .regiao-dropdown-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .regiao-dropdown-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .regiao-dropdown-panel::-webkit-scrollbar-thumb {
+            background-color: #2C2C2C;
+            border-radius: 999px;
+        }
         .msg-erro {
             @apply mt-1 text-xs font-medium text-erro;
+        }
+
+        /* Badge "fita" do perfil (Adotante/Protetor/ONG/Admin) — pontas em bico, como no protótipo. */
+        .ribbon-perfil {
+            clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0% 50%);
         }
 
         /* Cards */
@@ -204,53 +283,6 @@
         .rotulo-link {
             @apply whitespace-nowrap font-poppins font-medium transition-opacity duration-200;
         }
-
-        /* Scrollbars */
-        #area-conteudo::-webkit-scrollbar {
-            width: 34px;
-        }
-        #area-conteudo::-webkit-scrollbar-track {
-            @apply bg-rosa-6 dark:bg-preto2;
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            background-clip: padding-box;
-        }
-        #area-conteudo::-webkit-scrollbar-thumb {
-            @apply bg-roxo1 dark:bg-roxo1;
-            border-radius: 20px;
-            border: 12px solid transparent;
-            background-clip: padding-box;
-        }
-        #area-conteudo::-webkit-scrollbar-thumb:hover {
-            @apply bg-primary dark:bg-primary;
-        }
-        #area-conteudo::-webkit-scrollbar-button:single-button {
-            display: block;
-            height: 34px;
-            background-color: transparent;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-        }
-        #area-conteudo::-webkit-scrollbar-button:single-button:vertical:decrement {
-            background-image: url("<?= e(URL_BASE) ?>/assets/img/patinha-cima.png");
-        }
-        #area-conteudo::-webkit-scrollbar-button:single-button:vertical:increment {
-            background-image: url("<?= e(URL_BASE) ?>/assets/img/patinha-baixo.png");
-        }
-        #sidebar nav::-webkit-scrollbar {
-            width: 10px;
-        }
-        #sidebar nav::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #sidebar nav::-webkit-scrollbar-thumb {
-            @apply bg-white/20 dark:bg-white/10;
-            border-radius: 10px;
-        }
-        #sidebar nav::-webkit-scrollbar-thumb:hover {
-            @apply bg-white/40 dark:bg-roxo2;
-        }
     }
 </style>
 
@@ -259,144 +291,129 @@
 ============================================================= -->
 <style>
     :root {
-        /* Aliases semânticos */
-        --color-primary: #4F4873;
-        --color-secondary: #716C93;
-        --color-accent: #FA5672;
-        --color-background: #F9F9F9;
-        --color-surface: #FEF8FB;
-        --color-text-dark: #2C2C2C;
-        --color-text-muted: #9E9E9E;
+        --color-primary: 79 72 115;
+        --color-secondary: 113 108 147;
+        --color-accent: 250 86 114;
+        --color-background: 249 249 249;
+        --color-surface: 254 248 251;
+        --color-text-dark: 44 44 44;
+        --color-text-muted: 158 158 158;
 
-        /* Cores destaque */
-        --color-rosa-1: #FBDBEB;
-        --color-rosa-2: #F3ACBB;
-        --color-rosa-3: #F6BFCE;
-        --color-rosa-4: #F5B5C5;
-        --color-rosa-5: #EFA8A5;
-        --color-rosa-6: #F8C8D8;
-        --color-rosa-7: #F9D2E1;
-        --color-laranja-1: #DD994C;
-        --color-laranja-2: #E19D62;
-        --color-laranja-3: #E6A178;
-        --color-salmao: #EAA48F;
-        --color-rosaAlerta: #FA5672;
+        --color-rosa-1: 251 219 235;
+        --color-rosa-2: 243 172 187;
+        --color-rosa-3: 246 191 206;
+        --color-rosa-4: 245 181 197;
+        --color-rosa-5: 239 168 165;
+        --color-rosa-6: 248 200 216;
+        --color-rosa-7: 249 210 225;
+        --color-laranja-1: 221 153 76;
+        --color-laranja-2: 225 157 98;
+        --color-laranja-3: 230 161 120;
+        --color-salmao: 234 164 143;
+        --color-rosaAlerta: 250 86 114;
 
-        --color-corFundo: #F9F9F9;
-        --color-fundoChat: #FEF8FB;
-        --color-notificacao: #2C2C2C;
-        --color-msgEnvia: #111042;
-        --color-msgRespondida: #E9EBEE;
-        --color-perfilChats: #21262E;
+        --color-corFundo: 249 249 249;
+        --color-fundoChat: 254 248 251;
+        --color-notificacao: 44 44 44;
+        --color-msgEnvia: 17 16 66;
+        --color-msgRespondida: 233 235 238;
+        --color-perfilChats: 33 38 46;
 
-        /* Cores claras */
-        --color-branco: #FFFFFF;
-        --color-brancoRosado: #FEF8FB;
-        --color-rosaClaro: #FBDEED;
-        --color-rosaClaro2: #FDEBF4;
-        --color-roxinhoFofo: #E0D1FF;
+        --color-branco: 255 255 255;
+        --color-brancoRosado: 254 248 251;
+        --color-rosaClaro: 251 222 237;
+        --color-rosaClaro2: 253 235 244;
+        --color-roxinhoFofo: 224 209 255;
 
-        /* Cores suaves */
-        --color-roxo: #A8849B;
-        --color-cinzaMarrom: #B4A4A4;
-        --color-roxo1: #6C6494;
-        --color-roxo2: #716C93;
+        --color-roxo: 168 132 155;
+        --color-cinzaMarrom: 180 164 164;
+        --color-roxo1: 108 100 148;
+        --color-roxo2: 113 108 147;
 
-        /* Cores escuras */
-        --color-preto: #000000;
-        --color-preto1: #171415;
-        --color-preto2: #2E282B;
-        --color-preto3: #443C40;
-        --color-marrom: #897780;
-        --color-marrom1: #B79FAB;
-        --color-roxoApagado: #CDB3C0;
-        --color-rosaEscura: #E4C7D6;
+        --color-preto: 0 0 0;
+        --color-preto1: 23 20 21;
+        --color-preto2: 46 40 43;
+        --color-preto3: 68 60 64;
+        --color-marrom: 137 119 128;
+        --color-marrom1: 183 159 171;
+        --color-roxoApagado: 205 179 192;
+        --color-rosaEscura: 228 199 214;
 
-        /* Cores inversas */
-        --color-verdeEscuro: #042414;
-        --color-azul: #4DA3BA;
-        --color-amarelo: #EEEFBD;
-        --color-verdeMusgo: #4C5942;
-        --color-azulEscuro: #111042;
-        --color-laranjaEscuro: #B25C45;
+        --color-verdeEscuro: 4 36 20;
+        --color-azul: 77 163 186;
+        --color-amarelo: 238 239 189;
+        --color-verdeMusgo: 76 89 66;
+        --color-azulEscuro: 17 16 66;
+        --color-laranjaEscuro: 178 92 69;
 
-        /* Modais (feedback) */
-        --color-erro: #740704;
-        --color-aviso: #F8AE00;
-        --color-sucesso: #43A047;
-        --color-informativo: #0F62CE;
+        --color-erro: 116 7 4;
+        --color-aviso: 248 174 0;
+        --color-sucesso: 67 160 71;
+        --color-informativo: 15 98 206;
 
-        /* Primitives */
-        --color-corBarra: #505965;
-        --color-cinza2: #2D2D2D;
-        --color-cinza3: #3D3D3D;
+        --color-corBarra: 80 89 101;
+        --color-cinza2: 45 45 45;
+        --color-cinza3: 61 61 61;
     }
 
     .dark {
-        --color-primary: #716C93;
-        --color-secondary: #4F4873;
-        --color-background: #19183e;
-        --color-surface: #150D37;
-        --color-text-dark: #FFFFFF;
-        --color-text-muted: #d4d4d4;
+        --color-primary: 79 72 115;
+        --color-secondary: 79 72 115;
+        --color-background: 25 24 62;
+        --color-surface: 21 13 55;
+        --color-text-dark: 255 255 255;
+        --color-text-muted: 212 212 212;
 
-        /* Cores destaque */
-        --color-rosa-1: #d18cae;
-        --color-rosa-2: #ce687e;
-        --color-rosa-3: #d38399;
-        --color-rosa-4: #bb697e;
-        --color-rosa-5: #c76e6b;
-        --color-rosa-6: #c27d94;
-        --color-rosa-7: #d08da7;
-        --color-laranja-1: #b97629;
-        --color-laranja-2: #bd7739;
-        --color-laranja-3: #bf754b;
-        --color-salmao: #EAA48F;
-        --color-rosaAlerta: #d2324d;
+        --color-rosa-1: 209 140 174;
+        --color-rosa-2: 206 104 126;
+        --color-rosa-3: 211 131 153;
+        --color-rosa-4: 187 105 126;
+        --color-rosa-5: 199 110 107;
+        --color-rosa-6: 194 125 148;
+        --color-rosa-7: 208 141 167;
+        --color-laranja-1: 185 118 41;
+        --color-laranja-2: 189 119 57;
+        --color-laranja-3: 191 117 75;
+        --color-salmao: 234 164 143;
+        --color-rosaAlerta: 210 50 77;
 
-        --color-corFundo: #0C0B28;
-        --color-fundoChat: #150D37;
-        --color-notificacao: #470092;
-        --color-msgEnvia: #575679;
-        --color-msgRespondida: #1D1D1D;
-        --color-perfilChats: #FFFFFF;
+        --color-corFundo: 12 11 40;
+        --color-fundoChat: 21 13 55;
+        --color-notificacao: 71 0 146;
+        --color-msgEnvia: 87 86 121;
+        --color-msgRespondida: 29 29 29;
+        --color-perfilChats: 255 255 255;
 
-        /* Cores claras */
-        --color-branco: #6c6c6c;
-        --color-brancoRosado: #fda7d2;
-        --color-rosaClaro: #eb7eb4;
-        --color-rosaClaro2: #ec5fa6;
-        --color-roxinhoFofo: #a282e1;
+        --color-branco: 108 108 108;
+        --color-brancoRosado: 253 167 210;
+        --color-rosaClaro: 235 126 180;
+        --color-rosaClaro2: 236 95 166;
+        --color-roxinhoFofo: 162 130 225;
 
-        /* Cores suaves */
-        --color-roxo: #bd8dac;
-        --color-cinzaMarrom: #b08484;
-        --color-roxo1: #8b82b8;
-        --color-roxo2: #8d87b8;
+        --color-roxo: 189 141 172;
+        --color-cinzaMarrom: 176 132 132;
+        --color-roxo1: 139 130 184;
+        --color-roxo2: 141 135 184;
 
-        /* Cores escuras */
-        --color-preto: #000000;
-        --color-preto1: #171415;
-        --color-preto2: #2E282B;
-        --color-preto3: #443C40;
-        --color-marrom: #897780;
-        --color-marrom1: #B79FAB;
-        --color-roxoApagado: #CDB3C0;
-        --color-rosaEscura: #E4C7D6;
+        --color-preto: 0 0 0;
+        --color-preto1: 23 20 21;
+        --color-preto2: 46 40 43;
+        --color-preto3: 68 60 64;
+        --color-marrom: 137 119 128;
+        --color-marrom1: 183 159 171;
+        --color-roxoApagado: 205 179 192;
+        --color-rosaEscura: 228 199 214;
 
-        /* Cores inversas */
-        --color-verdeEscuro: #042414;
-        --color-azul: #4DA3BA;
-        --color-amarelo: #EEEFBD;
-        --color-verdeMusgo: #4C5942;
-        --color-azulEscuro: #111042;
-        --color-laranjaEscuro: #B25C45;
+        --color-verdeEscuro: 4 36 20;
+        --color-azul: 77 163 186;
+        --color-amarelo: 238 239 189;
+        --color-verdeMusgo: 76 89 66;
+        --color-azulEscuro: 17 16 66;
+        --color-laranjaEscuro: 178 92 69;
 
-        --color-erro: #ff6b6b;
-        --color-sucesso: #69db7c;
-        --color-aviso: #fcc419;
-        --color-informativo: #74c0fc;
+        --color-erro: 255 107 107;
+        --color-sucesso: 105 219 124;
+        --color-aviso: 252 196 25;
+        --color-informativo: 116 192 252;
     }
 </style>
-
-

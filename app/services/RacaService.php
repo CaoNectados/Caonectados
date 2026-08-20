@@ -49,79 +49,83 @@ class RacaService
         return $this->repository->excluir($id);
     }
 
-    public function importarDeApisExternas(EspecieRepository $especieRepo): array
-    {
-        $cao = $especieRepo->buscarOuCriarPorNome('Cão');
-        $gato = $especieRepo->buscarOuCriarPorNome('Gato');
-
-        $novosCadastros = 0;
-
-        // API Cães
-        $dogHeaders = [
-            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36",
-            "x-api-key: " . $this->dogApiKey
-        ];
-
-        $dogContext = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => implode("\r\n", $dogHeaders) . "\r\n"
-            ]
-        ]);
-
-        $dogsJson = @file_get_contents('https://api.thedogapi.com/v1/breeds', false, $dogContext);
-
-        if ($dogsJson !== false) {
-            $dogs = json_decode($dogsJson, true);
-            if (is_array($dogs)) {
-                foreach ($dogs as $dog) {
-                    $nomeRaca = trim($dog['name'] ?? '');
-                    if ($nomeRaca !== '' && !$this->repository->existePorNomeEEspecie($nomeRaca, $cao->getId())) {
-                        $raca = new Raca();
-                        $raca->setNome($nomeRaca);
-                        $raca->setEspecieId($cao->getId());
-                        $this->repository->cadastrar($raca);
-                        $novosCadastros++;
-                    }
-                }
-            }
-        }
-        
-        // API Gatos
-        $catHeaders = [
-            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36",
-            "x-api-key: " . $this->catApiKey
-        ];
-
-        $catContext = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => implode("\r\n", $catHeaders) . "\r\n"
-            ]
-        ]);
-        $catsJson = @file_get_contents('https://api.thecatapi.com/v1/breeds', false, $catContext);
-        
-        if ($catsJson !== false) {
-            $cats = json_decode($catsJson, true);
-            if (is_array($cats)) {
-                foreach ($cats as $cat) {
-                    $nomeRaca = trim($cat['name'] ?? '');
-                    if ($nomeRaca !== '' && !$this->repository->existePorNomeEEspecie($nomeRaca, $gato->getId())) {
-                        $raca = new Raca();
-                        $raca->setNome($nomeRaca);
-                        $raca->setEspecieId($gato->getId());
-                        $this->repository->cadastrar($raca);
-                        $novosCadastros++;
-                    }
-                }
-            }
-        }
-
-        return ['sucesso' => true, 'total' => $novosCadastros];
-    }
-
     public function reativar(int $id): bool
     {
         return $this->repository->reativar($id);
+    }
+
+    /**
+     * Método unificado e privado para consumir qualquer API externa de raças.
+     */
+    private function buscarDaApi(string $url, string $apiKey): array
+    {
+        $headers = [
+            "User-Agent: Mozilla/5.0",
+            "x-api-key: " . $apiKey
+        ];
+        
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => implode("\r\n", $headers),
+                'timeout' => 15
+            ]
+        ]);
+
+        $json = @file_get_contents($url, false, $context);
+        if ($json !== false) {
+            $data = json_decode($json, true);
+            if (is_array($data)) {
+                return array_column($data, 'name');
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Retorna sugestões brutas de cães e gatos utilizando o método unificado.
+     */
+    public function buscarSugestoesExternas(): array
+    {
+        return [
+            'caes' => $this->buscarDaApi('https://api.thedogapi.com/v1/breeds', $this->dogApiKey),
+            'gatos' => $this->buscarDaApi('https://api.thecatapi.com/v1/breeds', $this->catApiKey)
+        ];
+    }
+
+    /**
+     * Cadastra em lote as raças selecionadas pelo administrador.
+     */
+    public function importarSelecionadas(EspecieRepository $especieRepo, string $especieNome, array $racasAceitas): int
+    {
+        if (empty($racasAceitas)) {
+            return 0;
+        }
+
+        $especie = $especieRepo->buscarOuCriarPorNome($especieNome);
+        $cadastros = 0;
+
+        foreach ($racasAceitas as $nomeRaca) {
+            $nomeRaca = trim($nomeRaca);
+            if ($nomeRaca !== '' && !$this->repository->existePorNomeEEspecie($nomeRaca, $especie->getId())) {
+                $raca = new Raca();
+                $raca->setNome($nomeRaca);
+                $raca->setEspecieId($especie->getId());
+                $this->repository->cadastrar($raca);
+                $cadastros++;
+            }
+        }
+
+        return $cadastros;
+    }
+
+    public function importarDeApisExternas(EspecieRepository $especieRepo): array
+    {
+        $sugestoes = $this->buscarSugestoesExternas();
+        $totalCaes = $this->importarSelecionadas($especieRepo, 'Cão', $sugestoes['caes']);
+        $totalGatos = $this->importarSelecionadas($especieRepo, 'Gato', $sugestoes['gatos']);
+
+        return ['sucesso' => true, 'total' => ($totalCaes + $totalGatos)];
     }
 }
