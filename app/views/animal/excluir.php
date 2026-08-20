@@ -14,7 +14,8 @@ if (!$animal) {
 }
 ?>
 
-<main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+<!-- min-h dá altura pro justify-center realmente centralizar o card na tela -->
+<main class="flex flex-col items-center justify-center min-h-[75vh] py-12 px-4 sm:px-6 lg:px-8">
     <div class="w-full max-w-2xl flex flex-col items-center py-10 px-8 relative bg-branco dark:bg-fundoChat-escuro shadow-[0_8px_20px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-cinzaMarrom/20 dark:border-branco/10 transition-colors duration-300 text-center">
         
         <h1 class="font-shantell text-[32px] font-bold text-text-dark dark:text-branco mb-6 transition-colors duration-300">
