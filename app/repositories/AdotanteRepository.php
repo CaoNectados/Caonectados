@@ -8,9 +8,22 @@ use PDO;
 
 class AdotanteRepository extends BaseRepository
 {
+    // Usado por: PerfilController, OnBoardingService e PerfilService::atualizarPerfil()
+    public function buscarPorUsuarioId(int $usuarioId): ?array
+    {
+        $sql = "SELECT * FROM ADOTANTE WHERE usuario_id = :usuario_id AND deletado_em IS NULL LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $dados ?: null;
+    }
+
+    // Usado por: OnBoardingService::processarAdotante() e PerfilService::atualizarPerfil()
     public function salvar(Adotante $adotante): int
     {
-        $sql = "INSERT INTO ADOTANTE (usuario_id, tipo_moradia, foto_perfil, descricao, tamanho_interno_moradia, detalhes) 
+        $sql = "INSERT INTO ADOTANTE (usuario_id, tipo_moradia, foto_perfil, descricao, tamanho_interno_moradia, detalhes)
                 VALUES (:usuario_id, :tipo_moradia, :foto_perfil, :descricao, :tamanho_interno_moradia, :detalhes)";
 
         $stmt = $this->db->prepare($sql);
@@ -26,17 +39,7 @@ class AdotanteRepository extends BaseRepository
         return (int) $this->db->lastInsertId();
     }
 
-    public function buscarPorUsuarioId(int $usuarioId): ?array
-    {
-        $sql = "SELECT * FROM ADOTANTE WHERE usuario_id = :usuario_id AND deletado_em IS NULL LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $dados = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $dados ?: null;
-    }
-
+    // Usado por: PerfilService::atualizarPerfil()
     public function atualizarDadosAdotante(int $usuarioId, string $tipoMoradia, ?string $tamanhoInterno, string $detalhesJson, ?string $fotoPerfil): bool
     {
         $sql = "UPDATE ADOTANTE 

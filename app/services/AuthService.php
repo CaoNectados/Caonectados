@@ -15,6 +15,7 @@ class AuthService
         $this->usuarioRepo = new UsuarioRepository();
     }
 
+    // Usado por: AuthController::login
     public function autenticar(string $email, string $senha): Usuario
     {
         $usuario = $this->usuarioRepo->buscarPorEmail($email);
@@ -35,6 +36,7 @@ class AuthService
         return $usuario;
     }
 
+    // Usado por: AuthController::cadastro
     public function registrar(string $email, string $senha, string $tipoPerfil = 'usuario'): int
     {
         if ($this->usuarioRepo->buscarPorEmail($email)) {
@@ -51,6 +53,7 @@ class AuthService
         return $this->usuarioRepo->salvarNovoUsuario($usuario);
     }
 
+    // Usado por: AuthController (recuperação de senha)
     public function solicitarRecuperacaoSenha(string $email): void
     {
         $usuario = $this->usuarioRepo->buscarPorEmail($email);
@@ -68,6 +71,7 @@ class AuthService
         }
     }
 
+    // Usado por: AuthController (redefinição de senha)
     public function redefinirSenha(string $email, string $codigo, string $novaSenha): void
     {
         $usuario = $this->usuarioRepo->buscarPorEmail($email);
@@ -87,6 +91,7 @@ class AuthService
         $this->usuarioRepo->marcarCodigoComoUsado($registro['codigo_id']);
     }
 
+    // Usado por: AuthController (reenvio de código de verificação)
     public function validarRateLimitReenvioCodigo(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -116,6 +121,7 @@ class AuthService
         $_SESSION['reenvio_count']++;
     }
 
+    // Usado por: AuthController (login, cadastro e verificação de código)
     public function iniciarSessao(Usuario $usuario): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -176,6 +182,7 @@ class AuthService
         ];
     }
 
+    // Usado por: (não referenciado atualmente)
     public function logout(): void
     {
         if (session_status() === PHP_SESSION_NONE) {

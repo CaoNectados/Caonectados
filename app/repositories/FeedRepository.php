@@ -10,6 +10,7 @@ class FeedRepository extends BaseRepository
     /**
      * Busca os animais que estarão visíveis no feed.
      */
+    // Usado por: FeedController::index()
     public function buscarAnimaisFeed(int $limite = 10): array
     {
         $sql = "SELECT a.*, r.nome AS raca_nome, p.nome_fantasia, fa.caminho_foto AS foto_principal

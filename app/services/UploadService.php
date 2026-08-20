@@ -26,24 +26,23 @@ class UploadService
      * @param string $tipo Tipo do upload (ex: 'foto_perfil', 'foto_pagina', 'comprovante')
      * @return string|null Retorna o caminho relativo para salvar no banco (ex: 'assets/uploads/foto_perfil/img_xxx.png')
      */
+    // Usado por: AnimalService, OnBoardingService, PerfilService (upload de fotos, comprovantes e imagens de animais)
     public function salvar($arquivoOuBase64, string $tipo): ?string
     {
         if (empty($arquivoOuBase64)) {
             return null;
         }
 
-        // 1. Identifica a subpasta pelo tipo informado
         $subpasta = self::PASTAS[$tipo] ?? $tipo;
         $subpastaLimpa = trim($subpasta, '/');
 
-        // Caminho absoluto físico do servidor
         $diretorioDestino = __DIR__ . '/../../public/assets/uploads/' . $subpastaLimpa . '/';
 
         if (!is_dir($diretorioDestino)) {
             mkdir($diretorioDestino, 0755, true);
         }
 
-        // 2. Se for string Base64 (Cropper.js)
+        // Se for string Base64 (Cropper.js)
         if (is_string($arquivoOuBase64)) {
             if (!preg_match('/^data:image\/(\w+);base64,/', $arquivoOuBase64, $match)) {
                 return null;
@@ -75,7 +74,7 @@ class UploadService
             throw new Exception("Falha ao salvar a imagem Base64.");
         }
 
-        // 3. Se for array padrão do PHP ($_FILES)
+        // Se for array padrão do PHP ($_FILES)
         if (is_array($arquivoOuBase64)) {
             if (!isset($arquivoOuBase64['tmp_name']) || empty($arquivoOuBase64['tmp_name']) || $arquivoOuBase64['error'] !== UPLOAD_ERR_OK) {
                 return null;

@@ -8,19 +8,7 @@ use PDO;
 
 class RedeRepository extends BaseRepository
 {
-    public function salvar(Rede $rede): int
-    {
-        $sql = "INSERT INTO REDE (protetor_id, link_rede, tipo_rede) VALUES (:protetor_id, :link_rede, :tipo_rede)";
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':protetor_id', $rede->getProtetorId(), PDO::PARAM_INT);
-        $stmt->bindValue(':link_rede', $rede->getLinkRede(), PDO::PARAM_STR);
-        $stmt->bindValue(':tipo_rede', $rede->getTipoRede(), PDO::PARAM_STR);
-        
-        $stmt->execute();
-        return (int) $this->db->lastInsertId();
-    }
-
+    // Usado por: PerfilController::exibirPerfil()
     public function buscarPorProtetorId(int $protetorId): array
     {
         $sql = "SELECT tipo_rede, link_rede FROM REDE WHERE protetor_id = :protetor_id";
@@ -31,6 +19,21 @@ class RedeRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    // Usado por: (não referenciado atualmente)
+    public function salvar(Rede $rede): int
+    {
+        $sql = "INSERT INTO REDE (protetor_id, link_rede, tipo_rede) VALUES (:protetor_id, :link_rede, :tipo_rede)";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':protetor_id', $rede->getProtetorId(), PDO::PARAM_INT);
+        $stmt->bindValue(':link_rede', $rede->getLinkRede(), PDO::PARAM_STR);
+        $stmt->bindValue(':tipo_rede', $rede->getTipoRede(), PDO::PARAM_STR);
+
+        $stmt->execute();
+        return (int) $this->db->lastInsertId();
+    }
+
+    // Usado por: OnBoardingService::processarOng() e PerfilService::atualizarPerfil() (substitui todas as redes do protetor)
     public function sincronizarRedes(int $protetorId, ?string $instagram, ?string $facebook): void
     {
         $sqlDelete = "DELETE FROM REDE WHERE protetor_id = :protetor_id";

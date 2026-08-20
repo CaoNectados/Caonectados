@@ -5,6 +5,7 @@ namespace app\controllers\auth;
 use app\core\Controller;
 use app\services\AuthService;
 use app\services\MailService;
+use app\services\ValidationService;
 use app\repositories\UsuarioRepository;
 use Exception;
 
@@ -20,6 +21,7 @@ class AuthController extends Controller
         $this->authService = new AuthService();
     }
 
+    // Usado por: rota GET /login
     public function login()
     {
         $this->view('auth/login', [
@@ -28,6 +30,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /login
     public function processarLogin()
     {
         $email = trim($_POST['email'] ?? '');
@@ -60,14 +63,13 @@ class AuthController extends Controller
                 MailService::enviarCodigoVerificacao($usuario->getEmail(), $usuario->getNome() ?? 'Admin', $codigo, 'login_admin');
 
                 $this->json(200, [
-                    'status'       => 'sucesso', 
-                    'mensagem'     => 'Código de segurança enviado para seu e-mail administrativo.', 
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Código de segurança enviado para seu e-mail administrativo.',
                     'redirect_url' => URL_BASE . '/verificar-email'
                 ]);
             }
 
             // SE NÃO FOR ADMIN: Inicia a sessão normalmente
-           // SE NÃO FOR ADMIN: Inicia a sessão normalmente
             $this->authService->iniciarSessao($usuario);
 
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
@@ -86,8 +88,8 @@ class AuthController extends Controller
             }
 
             $this->json(200, [
-                'status'       => 'sucesso', 
-                'mensagem'     => 'Login efetuado com sucesso!', 
+                'status'       => 'sucesso',
+                'mensagem'     => 'Login efetuado com sucesso!',
                 'redirect_url' => URL_BASE . $urlRedirect
             ]);
 
@@ -96,6 +98,7 @@ class AuthController extends Controller
         }
     }
 
+    // Usado por: rota GET /cadastro
     public function cadastro()
     {
         $this->view('auth/cadastro', [
@@ -104,6 +107,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /cadastro
     public function processarCadastro()
     {
         $email = trim($_POST['email'] ?? '');
@@ -114,13 +118,13 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Todos os campos são obrigatórios.']);
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'Insira um formato de e-mail válido.']);
+        try {
+            ValidationService::validarEmail($email);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
 
-        // ==========================================
-        // TRAVA PRÉVIA: VERIFICA SE O EMAIL JÁ EXISTE
-        // ==========================================
+        // TRAVA PRÉVIA: verifica se o e-mail já existe
         $usuarioRepo = new UsuarioRepository();
         if ($usuarioRepo->buscarPorEmail($email) !== null) {
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Este e-mail já está cadastrado em nossa plataforma.']);
@@ -130,12 +134,14 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => 'As senhas não coincidem.']);
         }
 
-        if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e um caractere especial.']);
+        try {
+            ValidationService::validarForcaSenha($senha);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
 
         $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         $_SESSION['pendente_cadastro'] = [
             'email'       => $email,
             'senha'       => $senha,
@@ -149,8 +155,8 @@ class AuthController extends Controller
             MailService::enviarCodigoVerificacao($email, 'Usuário', $codigo, 'cadastro');
 
             $this->json(200, [
-                'status'       => 'sucesso', 
-                'mensagem'     => 'Verifique seu e-mail para continuar.', 
+                'status'       => 'sucesso',
+                'mensagem'     => 'Verifique seu e-mail para continuar.',
                 'redirect_url' => URL_BASE . '/verificar-email'
             ]);
         } catch (Exception $e) {
@@ -158,7 +164,25 @@ class AuthController extends Controller
         }
     }
 
-   public function processarVerificacao()
+    // Usado por: rota GET /logout
+    public function logout()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        session_unset();
+        session_destroy();
+        $this->redirecionarComMensagem('sucesso', 'Sessão encerrada com sucesso.', '/login');
+    }
+
+    // Usado por: rota GET /verificar-email
+    public function telaVerificacao()
+    {
+        $this->view('auth/verificar_email', ['titulo' => 'Verificação de Segurança']);
+    }
+
+    // Usado por: rota POST /verificar-email/validar
+    public function processarVerificacao()
     {
         $input = json_decode(file_get_contents('php://input'), true);
         $codigoInformado = trim($_POST['codigo'] ?? $input['codigo'] ?? '');
@@ -168,13 +192,11 @@ class AuthController extends Controller
         }
 
         try {
-            // ==========================================
             // CONTEXTO: 2FA DE ADMINISTRADOR
-            // ==========================================
             if (isset($_SESSION['admin_2fa'])) {
                 $dadosPendente = $_SESSION['admin_2fa'];
                 $usuarioRepo = new UsuarioRepository();
-                
+
                 $registro = $usuarioRepo->buscarCodigoValido($dadosPendente['usuario_id'], $codigoInformado);
 
                 if (!$registro) {
@@ -183,7 +205,7 @@ class AuthController extends Controller
                 }
 
                 $usuarioRepo->marcarCodigoComoUsado((int)$registro['codigo_id']);
-                
+
                 $usuarioObj = $usuarioRepo->buscarPorEmail($dadosPendente['email']);
                 if ($usuarioObj) {
                     $this->authService->iniciarSessao($usuarioObj);
@@ -192,16 +214,14 @@ class AuthController extends Controller
                 unset($_SESSION['admin_2fa'], $_SESSION['email_pendente_verificacao']);
 
                 $this->json(200, [
-                    'status'       => 'sucesso', 
-                    'mensagem'     => 'Acesso administrativo confirmado!', 
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'Acesso administrativo confirmado!',
                     'redirect_url' => URL_BASE . '/admin/dashboard'
                 ]);
                 return;
             }
 
-            // ==========================================
             // CONTEXTO: CADASTRO DE NOVO USUÁRIO
-            // ==========================================
             if (isset($_SESSION['pendente_cadastro'])) {
                 $dadosPendentes = $_SESSION['pendente_cadastro'];
 
@@ -216,8 +236,8 @@ class AuthController extends Controller
                 }
 
                 $this->authService->registrar(
-                    $dadosPendentes['email'], 
-                    $dadosPendentes['senha'], 
+                    $dadosPendentes['email'],
+                    $dadosPendentes['senha'],
                     $dadosPendentes['tipo_perfil']
                 );
 
@@ -225,14 +245,14 @@ class AuthController extends Controller
 
                 $usuarioRepo = new UsuarioRepository();
                 $usuarioObj = $usuarioRepo->buscarPorEmail($dadosPendentes['email']);
-                
+
                 if ($usuarioObj) {
                     $this->authService->iniciarSessao($usuarioObj);
                 }
 
                 $this->json(200, [
-                    'status'       => 'sucesso', 
-                    'mensagem'     => 'E-mail confirmado com sucesso!', 
+                    'status'       => 'sucesso',
+                    'mensagem'     => 'E-mail confirmado com sucesso!',
                     'redirect_url' => URL_BASE . '/onboarding'
                 ]);
                 return;
@@ -245,6 +265,7 @@ class AuthController extends Controller
         }
     }
 
+    // Usado por: rota GET /reenviar-codigo
     public function reenviarCodigo()
     {
         try {
@@ -254,17 +275,17 @@ class AuthController extends Controller
             if (isset($_SESSION['admin_2fa'])) {
                 $email = $_SESSION['admin_2fa']['email'];
                 $usuarioId = $_SESSION['admin_2fa']['usuario_id'];
-                
+
                 $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                 $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-                
+
                 $usuarioRepo = new UsuarioRepository();
                 $usuarioRepo->salvarCodigoVerificacao($usuarioId, $novoCodigo, $expiraEm);
 
                 MailService::enviarCodigoVerificacao($email, 'Administrador', $novoCodigo, 'login_admin');
 
                 $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
-            } 
+            }
             // REENVIO PARA CADASTRO NORMAL
             elseif (isset($_SESSION['pendente_cadastro'])) {
                 $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -275,7 +296,7 @@ class AuthController extends Controller
                 MailService::enviarCodigoVerificacao($email, 'Usuário', $novoCodigo, 'cadastro');
 
                 $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
-            } 
+            }
             else {
                 $this->json(400, ['status' => 'erro', 'mensagem' => 'Nenhum processo pendente encontrado para reenvio.']);
             }
@@ -285,39 +306,28 @@ class AuthController extends Controller
         }
     }
 
-    public function logout()
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        session_unset();
-        session_destroy();
-        $this->redirecionarComMensagem('sucesso', 'Sessão encerrada com sucesso.', '/login');
-    }
-
-    public function telaVerificacao()
-    {
-        $this->view('auth/verificar_email', ['titulo' => 'Verificação de Segurança']);
-    }
-
+    // Usado por: rota GET /esqueci-senha
     public function esqueciSenha()
     {
         $this->view('auth/esqueci_senha', ['titulo' => 'Esqueci minha senha']);
     }
 
+    // Usado por: rota POST /esqueci-senha/processar
     public function processarEsqueciSenha()
     {
         $email = trim($_POST['email'] ?? '');
 
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'Informe um e-mail válido.']);
+        try {
+            ValidationService::validarEmail($email);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
 
         try {
             $this->authService->solicitarRecuperacaoSenha($email);
             $this->json(200, [
-                'status'       => 'sucesso', 
-                'mensagem'     => 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.', 
+                'status'       => 'sucesso',
+                'mensagem'     => 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.',
                 'redirect_url' => URL_BASE . '/login'
             ]);
         } catch (Exception $e) {
@@ -325,6 +335,7 @@ class AuthController extends Controller
         }
     }
 
+    // Usado por: rota GET /redefinir-senha
     public function redefinirSenha()
     {
         $email = $_GET['email'] ?? '';
@@ -341,6 +352,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /redefinir-senha/processar
     public function processarRedefinirSenha()
     {
         $email = trim($_POST['email'] ?? '');
@@ -356,15 +368,17 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => 'As senhas não coincidem.']);
         }
 
-        if (strlen($senha) < 8 || !preg_match('/[A-Z]/', $senha) || !preg_match('/[a-z]/', $senha) || !preg_match('/[0-9]/', $senha) || !preg_match('/[\W_]/', $senha)) {
-            $this->json(400, ['status' => 'erro', 'mensagem' => 'A senha deve conter 8 caracteres, maiúsculas, minúsculas, números e um caractere especial.']);
+        try {
+            ValidationService::validarForcaSenha($senha);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
 
         try {
             $this->authService->redefinirSenha($email, $codigo, $senha);
             $this->json(200, [
-                'status'       => 'sucesso', 
-                'mensagem'     => 'Senha redefinida com sucesso! Redirecionando...', 
+                'status'       => 'sucesso',
+                'mensagem'     => 'Senha redefinida com sucesso! Redirecionando...',
                 'redirect_url' => URL_BASE . '/login'
             ]);
         } catch (Exception $e) {

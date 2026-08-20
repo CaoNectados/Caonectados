@@ -4,12 +4,13 @@ use app\core\Controller;
 
 class OngController extends Controller
 {
+    // Usado por: (não referenciado atualmente)
     public function __construct()
     {
-        // aqui só permita acesso se for ong, vamos usar esse método para proteger as rotas que são restritas
         $this->autenticacaoRequired(['ong']);
     }
 
+    // Usado por: (não referenciado atualmente)
     public function dashboard()
     {
         $this->view('ong/dashboard', [

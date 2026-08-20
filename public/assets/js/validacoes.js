@@ -1,13 +1,16 @@
 // public/assets/js/validacoes.js
+// Ponto único de validações de formulário do front-end. Todo formulário que precisa
+// validar CPF/CNPJ, e-mail, telefone, links sociais, chave PIX, datas ou arquivos
+// deve reutilizar as funções abaixo em vez de reimplementar regex/checagens na view.
 
 const CaonectadosValidator = {
-    
-    // 1. Valida se o bairro selecionado existe no datalist
+
+    // Usado por: atributo oninput do campo de bairro em perfil/editar.php
     validarRegiao: function(inputId, hiddenId, datalistId) {
         const inputTexto = document.getElementById(inputId);
         const inputHidden = document.getElementById(hiddenId);
         const datalistOptions = document.querySelectorAll(`#${datalistId} option`);
-        
+
         let encontradoId = '';
 
         datalistOptions.forEach(option => {
@@ -20,7 +23,7 @@ const CaonectadosValidator = {
         return encontradoId !== '';
     },
 
-    // 2. Valida CPF matematicamente
+    // Usado por: perfil/editar.php, protetor_onboarding.php e internamente por validarDocumento()/validarChavePix()
     isCpfValido: function(cpf) {
         cpf = cpf.replace(/[^\d]+/g, '');
         if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
@@ -40,7 +43,7 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // 3. Valida CNPJ matematicamente
+    // Usado por: perfil/editar.php, protetor_onboarding.php e internamente por validarDocumento()/validarChavePix()
     isCnpjValido: function(cnpj) {
         cnpj = cnpj.replace(/[^\d]+/g, '');
         if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
@@ -71,7 +74,7 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // 4. Determina se é CPF ou CNPJ pelo tamanho e valida
+    // Usado por: (não referenciado atualmente) — determina CPF/CNPJ pelo tamanho do documento e delega para isCpfValido()/isCnpjValido()
     validarDocumento: function(documento) {
         const docLimpo = documento.replace(/[^\d]+/g, '');
         if (docLimpo.length <= 11) {
@@ -81,7 +84,7 @@ const CaonectadosValidator = {
         }
     },
 
-    // 5. Valida o tamanho máximo de um arquivo (em Megabytes)
+    // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php (uploads de foto/comprovante)
     validarTamanhoArquivo: function(inputElement, tamanhoMaximoMB = 2) {
         if (inputElement.files && inputElement.files[0]) {
             const tamanhoEmMB = inputElement.files[0].size / (1024 * 1024);
@@ -90,7 +93,7 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // 6. Valida links de redes sociais (INSTAGRAM E FACEBOOK)
+    // Usado por: perfil/editar.php e protetor_onboarding.php (campos de Instagram/Facebook)
     validarLinkSocial: function(url, rede) {
         if (!url || url.trim() === '') return true;
 
@@ -113,53 +116,71 @@ const CaonectadosValidator = {
         }
     },
 
-    // 7. Valida Chave PIX (E-mail, CPF, CNPJ, Telefone ou Aleatória)
+    // Usado por: perfil/editar.php e protetor_onboarding.php (campo de chave PIX)
     validarChavePix: function(chave) {
         if (!chave || chave.trim() === '') return true;
         const c = chave.trim();
 
-        // Email
         if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return true;
 
-        // Numéricos (CPF, CNPJ ou Telefone)
         const numeros = c.replace(/[^\d]+/g, '');
         if (numeros.length === 11) return this.isCpfValido(numeros);
         if (numeros.length === 14) return this.isCnpjValido(numeros);
         if (numeros.length === 10 || numeros.length === 11) return true;
 
-        // Chave Aleatória EVP
+        // Chave aleatória EVP (padrão UUID)
         if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c)) return true;
 
         return false;
     },
 
-    // 8. Valida Maioridade (18 anos ou mais)
+    // Usado por: adotante_onboarding.php e protetor_onboarding.php (etapa de dados pessoais)
     validarMaioridade: function(dataNascimento) {
         if (!dataNascimento) return false;
-        
+
         const hoje = new Date();
         const nascimento = new Date(dataNascimento);
         let idade = hoje.getFullYear() - nascimento.getFullYear();
         const mes = hoje.getMonth() - nascimento.getMonth();
-        
+
         if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
             idade--;
         }
-        
+
         return idade >= 18;
     },
 
-    // 9. Valida o Nome (Mínimo de 2 caracteres)
+    // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php
     validarNome: function(nome) {
         return nome && nome.trim().length >= 2;
     },
 
-    // 10. Valida Telefone (se preenchido, deve conter 10 ou 11 números)
+    // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php
     validarTelefone: function(telefone) {
-        if (!telefone || telefone.trim() === '') return true; // Opcional
-        
+        if (!telefone || telefone.trim() === '') return true; // Campo opcional
+
         const numeros = telefone.replace(/[^\d]+/g, '');
         return numeros.length === 10 || numeros.length === 11;
+    },
+
+    // Usado por: (não referenciado atualmente) — equivalente client-side de ValidationService::validarDataNaoFutura() no back-end
+    validarDataNaoFutura: function(dataStr) {
+        if (!dataStr || typeof dataStr !== 'string') return false;
+
+        const regex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regex.test(dataStr)) return false;
+
+        const dataEntrada = new Date(dataStr + 'T00:00:00');
+        if (isNaN(dataEntrada.getTime())) return false;
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        return dataEntrada <= hoje;
     }
-    
+
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { CaonectadosValidator };
+}

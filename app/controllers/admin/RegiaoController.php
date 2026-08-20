@@ -14,6 +14,7 @@ class RegiaoController extends Controller
     private RegiaoService $service;
     private RegiaoRepository $regiaoRepo;
 
+    // Usado por: instanciado pelo Router para todas as rotas /admin/regiao/*
     public function __construct()
     {
         $this->autenticacaoRequired(['administrador']);
@@ -23,6 +24,7 @@ class RegiaoController extends Controller
         $this->service = new RegiaoService($this->regiaoRepo);
     }
 
+    // Usado por: rota GET /admin/regiao
     public function index(): void
     {
         try {
@@ -36,6 +38,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/regiao/cadastrar
     public function create(): void
     {
         $this->view('regiao/cadastrar', [
@@ -43,6 +46,7 @@ class RegiaoController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /admin/regiao/salvar
     public function store(): void
     {
         try {
@@ -58,6 +62,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/regiao/editar
     public function edit(): void
     {
         try {
@@ -77,6 +82,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota POST /admin/regiao/atualizar
     public function update(): void
     {
         try {
@@ -94,6 +100,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/regiao/excluir
     public function deleteView(): void
     {
         try {
@@ -113,6 +120,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota POST /admin/regiao/deletar
     public function destroy(): void
     {
         try {
@@ -126,6 +134,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota GET /admin/regiao/json
     public function buscarJson(): void
     {
         try {
@@ -136,6 +145,7 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: (não referenciado atualmente)
     public function listarTodas(): array
     {
         try {
@@ -145,17 +155,17 @@ class RegiaoController extends Controller
         }
     }
 
+    // Usado por: rota POST /admin/regiao/deletar-multiplos
     public function deletarMultiplos(): void
     {
         try {
             $ids = $_POST['ids'] ?? [];
-            
+
             if (!empty($ids) && is_array($ids)) {
                 $count = 0;
                 foreach ($ids as $id) {
                     $idFormatado = (int) $id;
                     if ($idFormatado > 0) {
-                        // Utiliza o serviço existente para deletar cada ID validado
                         $this->service->excluirRegiao($idFormatado);
                         $count++;
                     }

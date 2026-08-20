@@ -1,3 +1,5 @@
+// Autosave genérico de formulários em sessionStorage (opt-out via atributo data-no-autosave).
+// Usado por: templates/footer.php, incluído em todas as páginas com formulários (onboarding, perfil, animal).
 document.addEventListener("DOMContentLoaded", function() {
     const form = document.querySelector('form');
     
@@ -105,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function() {
     form.addEventListener('focusout', salvarDados); 
 });
 
-// Chame esta função após o envio com sucesso
+// Usado por: onboarding.js, após o envio bem-sucedido de um formulário de onboarding
 function limparAutoSave() {
     const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search;
     sessionStorage.removeItem(storageKey);

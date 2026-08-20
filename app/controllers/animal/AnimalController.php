@@ -28,6 +28,7 @@ class AnimalController extends Controller
         $this->service = new AnimalService($repository);
     }
 
+    // Usado por: rotas GET /animal e GET /gerenciar-animais
     public function index(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -49,25 +50,29 @@ class AnimalController extends Controller
         }
     }
 
-    public function deleteView(): void
+    // Usado por: rota GET /animal/mostrar
+    public function show(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-
+        // Perfil público do animal: qualquer usuário autenticado (inclusive adotantes
+        // navegando pelo Feed) pode visualizar — só as ações de gestão (editar/excluir/
+        // status) permanecem restritas ao protetor dono ou ao administrador.
+        $this->autenticacaoRequired();
         try {
             $id = $this->getIdFromRequest();
-            $animal = $this->carregarEValidarPropriedade($id);
+            $animal = $this->service->buscarPorId($id);
 
-            $_SESSION['animal'] = $animal;
+            if ($animal === null) {
+                $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
+                return;
+            }
 
-            $this->view('animal/excluir', [
-                'titulo' => 'Desativar Animal',
-                'animal' => $animal
-            ]);
+            $this->view('animal/detalhes', ['titulo' => 'Detalhes do Animal', 'animal' => $animal]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
     }
 
+    // Usado por: rota GET /animal/cadastrar
     public function create(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -78,6 +83,7 @@ class AnimalController extends Controller
         $this->view('animal/cadastrar', ['titulo' => 'Cadastrar Animal', 'especies' => $especies]);
     }
 
+    // Usado por: rota POST /animal
     public function store(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -109,27 +115,7 @@ class AnimalController extends Controller
         }
     }
 
-    public function show(): void
-    {
-        // Perfil público do animal: qualquer usuário autenticado (inclusive adotantes
-        // navegando pelo Feed) pode visualizar — só as ações de gestão (editar/excluir/
-        // status) permanecem restritas ao protetor dono ou ao administrador.
-        $this->autenticacaoRequired();
-        try {
-            $id = $this->getIdFromRequest();
-            $animal = $this->service->buscarPorId($id);
-
-            if ($animal === null) {
-                $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
-                return;
-            }
-
-            $this->view('animal/detalhes', ['titulo' => 'Detalhes do Animal', 'animal' => $animal]);
-        } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
-        }
-    }
-
+    // Usado por: rota GET /animal/editar
     public function edit(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -146,6 +132,7 @@ class AnimalController extends Controller
         }
     }
 
+    // Usado por: rota POST /animal/editar
     public function update(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -176,6 +163,45 @@ class AnimalController extends Controller
         }
     }
 
+    // Usado por: rota GET /animal/excluir
+    public function deleteView(): void
+    {
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+
+        try {
+            $id = $this->getIdFromRequest();
+            $animal = $this->carregarEValidarPropriedade($id);
+
+            $_SESSION['animal'] = $animal;
+
+            $this->view('animal/excluir', [
+                'titulo' => 'Desativar Animal',
+                'animal' => $animal
+            ]);
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
+        }
+    }
+
+    // Usado por: rota POST /animal/excluir
+    public function destroy(): void
+    {
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        try {
+            $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
+            $this->carregarEValidarPropriedade($id);
+
+            $animal = new Animal();
+            $animal->setAnimalId($id);
+            $this->service->desativarAnimal($animal);
+
+            $this->redirecionarComMensagem('sucesso', 'Animal desativado com sucesso!', '/animal');
+        } catch (Exception $e) {
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
+        }
+    }
+
+    // Usado por: rota POST /animal/status
     public function status(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -196,6 +222,7 @@ class AnimalController extends Controller
         }
     }
 
+    // Usado por: rota POST /animal/reativar
     public function reativar(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
@@ -213,23 +240,7 @@ class AnimalController extends Controller
         }
     }
 
-    public function destroy(): void
-    {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
-        try {
-            $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
-            $this->carregarEValidarPropriedade($id);
-
-            $animal = new Animal();
-            $animal->setAnimalId($id);
-            $this->service->desativarAnimal($animal);
-
-            $this->redirecionarComMensagem('sucesso', 'Animal desativado com sucesso!', '/animal');
-        } catch (Exception $e) {
-            $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
-        }
-    }
-
+    // Usado por: deleteView(), edit(), update(), status(), reativar() e destroy()
     private function carregarEValidarPropriedade(int $animalId): Animal
     {
         $animal = $this->service->buscarPorId($animalId);
@@ -251,6 +262,7 @@ class AnimalController extends Controller
         return $animal;
     }
 
+    // Usado por: index(), store() e carregarEValidarPropriedade()
     private function obterProtetorIdAutenticado(): int
     {
         if (isset($_SESSION['protetor_id']) && (int)$_SESSION['protetor_id'] > 0) {
@@ -270,6 +282,7 @@ class AnimalController extends Controller
         return 0;
     }
 
+    // Usado por: store() e update()
     private function buildAnimalFromArray(?array $data): Animal
     {
         if (!is_array($data)) {
@@ -294,6 +307,7 @@ class AnimalController extends Controller
         return $animal;
     }
 
+    // Usado por: deleteView(), show(), edit(), status() e reativar()
     private function getIdFromRequest(): int
     {
         $id = $_GET['id'] ?? $_POST['id'] ?? null;

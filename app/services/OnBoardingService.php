@@ -34,6 +34,7 @@ class OnboardingService
         $this->uploadService = new UploadService();
     }
 
+    // Usado por: OnBoardingController (verificação de perfil já existente e sincronização de sessão)
     public function usuarioJaPossuiPerfil(int $usuarioId): bool
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -65,11 +66,13 @@ class OnboardingService
         return false;
     }
 
+    // Usado por: OnBoardingController (pré-preenchimento do formulário de protetor/ONG)
     public function obterDadosPreenchidosProtetor(int $usuarioId): ?array
     {
         return $this->protetorRepo->buscarPorUsuarioIdCompleto($usuarioId);
     }
 
+    // Usado por: OnBoardingController (cadastro de perfil adotante)
     public function processarAdotante(array $dados, array $arquivos, int $usuarioId): void
     {
         ValidationService::validarNome($dados['nome_usuario'] ?? '');
@@ -152,6 +155,7 @@ class OnboardingService
         }
     }
 
+    // Usado por: OnBoardingController (cadastro/reenvio de perfil protetor/ONG)
     public function processarOng(array $dados, array $arquivos, int $usuarioId): void
     {
         ValidationService::validarNome($dados['nome_fantasia'] ?? '');

@@ -9,17 +9,18 @@ use PDOStatement;
 
 class RegiaoRepository extends BaseRepository
 {
-    public function cadastrarRegiao(Regiao $regiao): int
+    // Usado por: RegiaoController, OnBoardingController e PerfilController
+    public function buscarTodas(): array
     {
-        $sql = "INSERT INTO REGIAO (nome_regiao) VALUES (:nome_regiao)";
+        $sql = "SELECT regiao_id, nome_regiao FROM REGIAO ORDER BY nome_regiao ASC";
 
-        $stmt = $this->db->prepare($sql);
-        $this->bindRegiaoValues($stmt, $regiao);
-        $stmt->execute();
+        $stmt = $this->db->query($sql);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return (int) $this->db->lastInsertId();
+        return array_map(fn(array $row) => $this->mapRegiao($row), $rows);
     }
 
+    // Usado por: PerfilController::editar() e RegiaoController
     public function buscarPorId(int $id): ?Regiao
     {
         $sql = "SELECT regiao_id, nome_regiao FROM REGIAO WHERE regiao_id = :regiao_id";
@@ -33,6 +34,7 @@ class RegiaoRepository extends BaseRepository
         return $row === false ? null : $this->mapRegiao($row);
     }
 
+    // Usado por: RegiaoService::cadastrar() e editar() (checagem de nome duplicado)
     public function buscarPorNome(string $nomeRegiao, ?int $ignorarId = null): ?Regiao
     {
         $sql = "SELECT regiao_id, nome_regiao FROM REGIAO WHERE LOWER(nome_regiao) = LOWER(:nome_regiao)";
@@ -54,16 +56,19 @@ class RegiaoRepository extends BaseRepository
         return $row === false ? null : $this->mapRegiao($row);
     }
 
-    public function buscarTodas(): array
+    // Usado por: RegiaoService::cadastrar() -> RegiaoController::store()
+    public function cadastrarRegiao(Regiao $regiao): int
     {
-        $sql = "SELECT regiao_id, nome_regiao FROM REGIAO ORDER BY nome_regiao ASC";
+        $sql = "INSERT INTO REGIAO (nome_regiao) VALUES (:nome_regiao)";
 
-        $stmt = $this->db->query($sql);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->prepare($sql);
+        $this->bindRegiaoValues($stmt, $regiao);
+        $stmt->execute();
 
-        return array_map(fn(array $row) => $this->mapRegiao($row), $rows);
+        return (int) $this->db->lastInsertId();
     }
 
+    // Usado por: RegiaoService::editar() -> RegiaoController::update()
     public function editarRegiao(Regiao $regiao): bool
     {
         $sql = "UPDATE REGIAO SET nome_regiao = :nome_regiao WHERE regiao_id = :regiao_id";
@@ -76,6 +81,7 @@ class RegiaoRepository extends BaseRepository
         return $stmt->rowCount() > 0;
     }
 
+    // Usado por: RegiaoService::excluir() -> RegiaoController::destroy()
     public function excluirRegiao(int $id): bool
     {
         $sql = "DELETE FROM REGIAO WHERE regiao_id = :regiao_id";
@@ -87,11 +93,13 @@ class RegiaoRepository extends BaseRepository
         return $stmt->rowCount() > 0;
     }
 
+    // Usado por: RegiaoRepository::cadastrarRegiao() e editarRegiao() (uso interno)
     private function bindRegiaoValues(PDOStatement $stmt, Regiao $regiao): void
     {
         $stmt->bindValue(':nome_regiao', trim($regiao->getNomeRegiao()), PDO::PARAM_STR);
     }
 
+    // Usado por: RegiaoRepository::buscarPorId(), buscarPorNome() e buscarTodas() (uso interno)
     private function mapRegiao(array $row): Regiao
     {
         $regiao = new Regiao();

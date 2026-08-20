@@ -29,6 +29,7 @@ class PerfilService
         $this->redeRepo = new RedeRepository();
     }
 
+    // Usado por: PerfilController (atualização de dados do perfil)
     public function atualizarPerfil(array $dados, array $arquivos, int $usuarioId, string $tipoPerfilSessao): string
     {
         ValidationService::validarNome($dados['nome'] ?? '');
@@ -152,6 +153,7 @@ class PerfilService
         }
     }
 
+    // Usado por: PerfilController (troca rápida da foto de perfil)
     public function atualizarApenasFoto(string $base64Data, int $usuarioId, string $tipoPerfilSessao): void
     {
         $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
@@ -202,6 +204,7 @@ class PerfilService
         $_SESSION['foto_perfil'] = $caminhoFoto;
     }
 
+    // Usado por: atualizarPerfil(), atualizarApenasFoto()
     private function removerFotoAntigaDoPerfil(int $usuarioId, bool $isProtetorOng): void
     {
         if ($isProtetorOng) {
@@ -220,6 +223,7 @@ class PerfilService
         }
     }
 
+    // Usado por: removerFotoAntigaDoPerfil()
     private function removerArquivoAntigo(?string $caminhoRelativo): void
     {
         if (empty($caminhoRelativo)) {

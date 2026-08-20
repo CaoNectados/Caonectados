@@ -12,6 +12,7 @@ use app\repositories\RedeRepository;
 use app\services\PerfilService;
 use app\repositories\EspecieRepository;
 use app\services\MailService;
+use app\services\ValidationService;
 use Exception;
 
 class PerfilController extends Controller
@@ -22,6 +23,7 @@ class PerfilController extends Controller
     private EspecieRepository $especieRepo;
     private ProtetorRepository $protetorRepo;
 
+    // Usado por: instanciado pelo Router para todas as rotas /perfil/*
     public function __construct()
     {
         $this->autenticacaoRequired();
@@ -32,6 +34,7 @@ class PerfilController extends Controller
         $this->protetorRepo = new ProtetorRepository();
     }
 
+    // Usado por: rota GET /perfil
     public function index(): void
     {
         $usuarioId = (int)$_SESSION['usuario_id'];
@@ -57,11 +60,13 @@ class PerfilController extends Controller
         ]);
     }
 
+    // Usado por: (não referenciado atualmente)
     public function perfil(): void
     {
         $this->index();
     }
 
+    // Usado por: rota GET /perfil/editar
     public function editar(): void
     {
         $usuarioId = (int)$_SESSION['usuario_id'];
@@ -135,6 +140,7 @@ class PerfilController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /perfil/atualizar
     public function atualizar(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -160,6 +166,7 @@ class PerfilController extends Controller
         }
     }
 
+    // Usado por: rota POST /perfil/atualizar-foto
     public function atualizarFoto(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -192,10 +199,9 @@ class PerfilController extends Controller
         }
     }
 
-    // ==========================================
     // FLUXOS DE SEGURANÇA (SENHA E E-MAIL)
-    // ==========================================
 
+    // Usado por: rota GET /perfil/redefinir-senha
     public function telaRedefinirSenha(): void
     {
         $usuario = $this->usuarioRepo->buscarPorId((int)$_SESSION['usuario_id']);
@@ -209,6 +215,7 @@ class PerfilController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /perfil/redefinir-senha/enviar-codigo
     public function enviarCodigoSenha(): void
     {
         try {
@@ -230,6 +237,7 @@ class PerfilController extends Controller
         }
     }
 
+    // Usado por: rota POST /perfil/redefinir-senha/confirmar
     public function confirmarNovaSenha(): void
     {
         try {
@@ -242,9 +250,7 @@ class PerfilController extends Controller
                 throw new Exception('As senhas não coincidem.');
             }
 
-            if (strlen($novaSenha) < 8 || !preg_match('/[A-Z]/', $novaSenha) || !preg_match('/[a-z]/', $novaSenha) || !preg_match('/[0-9]/', $novaSenha) || !preg_match('/[\W_]/', $novaSenha)) {
-                throw new Exception('A senha deve conter ao menos 8 caracteres, letras maiúsculas, minúsculas, números e um caractere especial.');
-            }
+            ValidationService::validarForcaSenha($novaSenha);
 
             $registro = $this->usuarioRepo->buscarCodigoValido($usuarioId, $codigo);
             if (!$registro) {
@@ -266,6 +272,7 @@ class PerfilController extends Controller
         }
     }
 
+    // Usado por: rota GET /perfil/trocar-email
     public function telaTrocarEmail(): void
     {
         $usuario = $this->usuarioRepo->buscarPorId((int)$_SESSION['usuario_id']);
@@ -275,15 +282,14 @@ class PerfilController extends Controller
         ]);
     }
 
+    // Usado por: rota POST /perfil/trocar-email/enviar-codigo
     public function enviarCodigoTrocaEmail(): void
     {
         try {
             $usuarioId = (int)$_SESSION['usuario_id'];
             $novoEmail = trim($_POST['novo_email'] ?? '');
 
-            if (empty($novoEmail) || !filter_var($novoEmail, FILTER_VALIDATE_EMAIL)) {
-                throw new Exception('Informe um e-mail válido.');
-            }
+            ValidationService::validarEmail($novoEmail);
 
             $existente = $this->usuarioRepo->buscarPorEmail($novoEmail);
             if ($existente && (int)$existente->getUsuarioId() !== $usuarioId) {
@@ -308,6 +314,7 @@ class PerfilController extends Controller
         }
     }
 
+    // Usado por: rota POST /perfil/trocar-email/confirmar
     public function confirmarTrocaEmail(): void
     {
         try {
@@ -341,6 +348,7 @@ class PerfilController extends Controller
         }
     }
 
+    // Usado por: rota POST /perfil/trocar
    public function alternar(): void
     {
         $tipo = strtolower(trim($_POST['tipo'] ?? ''));
@@ -362,7 +370,6 @@ class PerfilController extends Controller
 
         $usuarioId = (int)$_SESSION['usuario_id'];
 
-        // Persiste o tipo_atual no banco
         $this->usuarioRepo->atualizarTipoAtual($usuarioId, $tipo);
 
         // $tipo já foi validado contra a lista de perfis permitidos e ativos do usuário
