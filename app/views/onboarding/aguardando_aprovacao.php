@@ -12,7 +12,9 @@ $rotaEdicao = ($tipoDoc === 'cnpj') ? '/onboarding/ong' : '/onboarding/protetor'
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
-<div class="max-w-md mx-auto p-6 text-center mt-10 bg-surface dark:bg-preto1 rounded-3xl shadow-md border border-rosa-2 dark:border-preto3 transition-colors">
+<!-- Wrapper centraliza o card de status na altura visível da área de conteúdo -->
+<div class="min-h-[75vh] flex flex-col items-center justify-center px-4 py-10">
+<div class="w-full max-w-md p-6 text-center bg-surface dark:bg-preto1 rounded-3xl shadow-md border border-rosa-2 dark:border-preto3 transition-colors">
 
     <?php if ($recusado): ?>
         <!-- ESTADO: RECUSADO -->
@@ -63,6 +65,7 @@ require_once __DIR__ . '/../templates/header.php';
             Sair da conta
         </a>
     </div>
+</div>
 </div>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

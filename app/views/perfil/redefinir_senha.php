@@ -1,12 +1,14 @@
 <?php require_once __DIR__ . '/../templates/header.php'; ?>
 
-<div class="max-w-md mx-auto bg-background min-h-screen pb-20">
+<!-- flex-col: seta de voltar fica fixa no topo; o bloco de conteúdo abaixo (flex-1) centraliza
+     verticalmente no espaço restante da tela, em vez de nascer colado no topo -->
+<div class="max-w-md mx-auto bg-background min-h-screen pb-20 flex flex-col">
 
-    <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem] mb-6">
+    <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem]">
         <a href="<?= URL_BASE ?>/perfil/editar" class="text-2xl hover:scale-110 transition-transform text-text-dark">&larr;</a>
     </div>
 
-    <div class="px-6 my-8 text-center">
+    <div class="px-6 flex-1 flex flex-col justify-center text-center">
         <div class="w-20 h-20 bg-roxinhoFofo/20 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
             🔑
         </div>

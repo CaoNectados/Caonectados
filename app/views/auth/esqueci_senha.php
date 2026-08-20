@@ -1,6 +1,8 @@
 <?php require_once __DIR__ . '/../templates/header.php'; ?>
 
-<div class="max-w-md mx-auto p-6 bg-surface rounded-2xl shadow-md my-10 text-center">
+<!-- Wrapper centraliza o card na altura visível da área de conteúdo (mesmo padrão de login/cadastro) -->
+<div class="min-h-[75vh] flex flex-col items-center justify-center px-4 py-10">
+<div class="w-full max-w-md p-6 bg-surface rounded-2xl shadow-md text-center">
     <div class="flex items-center justify-center gap-3 mb-6">
         <h1 class="font-shantell text-3xl font-bold text-primary">Esqueci a Senha</h1>
     </div>
@@ -26,6 +28,7 @@
             &#129144; Voltar para o Login
         </a>
     </div>
+</div>
 </div>
 
 <script>
