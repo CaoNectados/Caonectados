@@ -6,16 +6,17 @@ $nomeUsuario = $_SESSION['usuario']['nome'] ?? $_SESSION['usuario_nome'] ?? 'Nom
 
 $fotoPerfilSessao = $_SESSION['foto_perfil'] ?? null;
 if (empty($fotoPerfilSessao)) {
-    if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
+    if ($tipoPerfil === 'adotante') {
         $adotanteInfo = (new \app\repositories\AdotanteRepository())->buscarPorUsuarioId((int)$_SESSION['usuario_id']);
         $fotoPerfilSessao = $adotanteInfo['foto_perfil'] ?? null;
-    } else {
+    } elseif (in_array($tipoPerfil, ['protetor', 'ong'], true)) {
         $protetorInfo = (new \app\repositories\ProtetorRepository())->buscarPorUsuarioId((int)$_SESSION['usuario_id']);
         if ($protetorInfo) {
             $paginaInfo = (new \app\repositories\PaginaRepository())->buscarPorProtetorId((int)$protetorInfo['protetor_id']);
             $fotoPerfilSessao = $paginaInfo['foto_perfil'] ?? null;
         }
     }
+    // 'usuario' (sem nenhum perfil ativo) e 'administrador' caem no placeholder padrão abaixo.
 }
 
 $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
@@ -30,10 +31,8 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     $srcFoto = $urlBase . '/assets/img/perfil-placeholder.png';
 }
 
-// 'usuario' é um estado transitório (antes do onboarding) e nunca deve aparecer
-// visualmente — um usuário nesse estado é tratado/exibido como "Adotante".
 $labelsPerfil = [
-    'usuario'       => 'Adotante',
+    'usuario'       => 'Perfil Incompleto',
     'adotante'      => 'Adotante',
     'protetor'      => 'Protetor',
     'ong'           => 'ONG',
@@ -67,7 +66,17 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Sair',             'icone' => 'sair.svg',          'url' => '/logout'],
         ['label' => 'Denunciar',        'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
     ];
-} else { 
+} elseif ($tipoPerfil === 'usuario') {
+    // Sem nenhum perfil ativo (ex: admin desativou todos os perfis da pessoa, ou ela nunca
+    // completou o onboarding). Não existe um Adotante/Protetor "de verdade" pra editar ou
+    // alternar aqui, então oferecemos só completar o onboarding de novo.
+    $tituloCabecalho = 'Perfil Incompleto';
+    $botoes = [
+        ['label' => 'Completar Perfil', 'icone' => 'torne-se.svg', 'url' => '/onboarding'],
+        ['label' => 'Excluir Conta',    'icone' => 'excluir.svg',  'url' => '/perfil/excluir'],
+        ['label' => 'Sair',             'icone' => 'sair.svg',     'url' => '/logout'],
+    ];
+} else {
     $botoes = [
         ['label' => 'Editar Perfil',          'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil',        'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
@@ -106,7 +115,7 @@ $paginasBotoes = array_chunk($botoes, 6);
                      onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
             </div>
 
-            <?php if (!in_array($tipoPerfil, ['administrador', 'admin'], true)): ?>
+            <?php if (!in_array($tipoPerfil, ['administrador', 'admin', 'usuario'], true)): ?>
                 <button type="button"
                         onclick="document.getElementById('input-foto-direta').click()"
                         class="absolute top-0 right-0 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted hover:bg-rosa-1 transition hover:scale-105 cursor-pointer"
