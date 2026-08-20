@@ -206,7 +206,6 @@ if (!empty($fotoNomeDet)) {
                         <input type="text"
                                id="inputMotivo"
                                name="motivo_recusa"
-                               required
                                placeholder="Ex.: Documento ilegível, CNPJ inativo, fotos insuficientes..."
                                class="input-padrao flex-1 py-2 sm:py-2.5 text-sm">
                         <button type="submit" class="px-6 py-2.5 bg-erro text-white font-bold text-xs sm:text-sm rounded-xl hover:opacity-90 transition">

@@ -22,7 +22,7 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
 
     <form action="<?= URL_BASE ?>/verificar-email/validar" method="POST" class="space-y-4">
         <div>
-            <input type="text" name="codigo" placeholder="Digite o código de 6 dígitos" maxlength="6" required
+            <input type="text" name="codigo" placeholder="Digite o código de 6 dígitos" maxlength="6"
                    class="w-full text-center text-2xl tracking-widest p-3 border border-cinzaMarrom rounded-xl bg-branco font-poppins text-text-dark focus:border-primary focus:ring-2 focus:ring-roxinhoFofo focus:outline-none">
         </div>
 

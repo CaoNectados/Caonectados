@@ -14,7 +14,7 @@
           
             <div>
                 <label for="especie_id" class="label-padrao">Espécie Pertencente <span class="text-rosaAlerta">*</span></label>
-                <select id="especie_id" name="especie_id" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40" required>
+                <select id="especie_id" name="especie_id" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
                     <?php foreach ($especies as $e): ?>
                         <option value="<?= $e->getId(); ?>" <?= $e->getId() === $raca->getEspecieId() ? 'selected' : ''; ?>>
                             <?= htmlspecialchars($e->getNome()); ?>
@@ -25,7 +25,7 @@
 
             <div>
                 <label for="nome" class="label-padrao">Nome da Raça <span class="text-rosaAlerta">*</span></label>
-                <input autocomplete="nope" type="text" id="nome" name="nome" value="<?= htmlspecialchars($raca->getNome()); ?>" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40" required>
+                <input autocomplete="nope" type="text" id="nome" name="nome" value="<?= htmlspecialchars($raca->getNome()); ?>" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
             </div>
 
             <div class="pt-6 flex flex-col sm:flex-row gap-3">
