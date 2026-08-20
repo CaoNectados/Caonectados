@@ -20,7 +20,7 @@ class UsuarioRepository extends BaseRepository
         return $dados === false ? null : $this->mapUsuario($dados);
     }
 
-    // Usado por: Controller::exigirLogin(), PerfilController e UsuarioAdminService::obterDetalhesUsuario()
+    // Usado por: Controller::sincronizarSessaoComBanco(), PerfilController e UsuarioAdminService::obterDetalhesUsuario()
     public function buscarPorId(int $usuarioId): ?array
     {
         $sql = "SELECT usuario_id, regiao_id, logradouro, numero, telefone, email, nome, dt_nasc, tipo_atual, perfis_ativos, status_conta
