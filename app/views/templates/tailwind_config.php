@@ -113,7 +113,7 @@
             },
         },
     };
-    console.log('✅ Tailwind configurado com sucesso!');
+    console.log('Tailwind configurado com sucesso!');
 </script>
 
 <!-- ============================================================

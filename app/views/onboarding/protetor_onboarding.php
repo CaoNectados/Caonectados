@@ -90,7 +90,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <span class="text-sm font-medium text-text-muted">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white flex items-center justify-center shadow hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -135,7 +135,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white flex items-center justify-center shadow hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -167,7 +167,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white flex items-center justify-center shadow hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -212,7 +212,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white flex items-center justify-center shadow hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -242,7 +242,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white flex items-center justify-center shadow hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 

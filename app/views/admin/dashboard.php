@@ -7,8 +7,9 @@
         <div class="flex items-center justify-center gap-4 mb-6">
             <h1 class="text-3xl font-bold font-shantell text-primary">Análise Geral</h1>
             <select class="bg-gray-300 text-gray-700 text-xs px-2 py-1 rounded cursor-pointer outline-none">
-                <option>Nov 2027 📅</option>
+                <option>Nov 2027</option>
             </select>
+            <?= icone('calendar', 'h-5 w-5 text-gray-500 -ml-2') ?>
         </div>
 
         <!-- MOCKUP DO GRÁFICO (Apenas a estrutura de textos) -->
@@ -35,7 +36,7 @@
             <!-- Card 1 -->
             <div class="card-padrao text-center border-t-8 border-amber-500 bg-white shadow rounded-lg p-4">
                 <span class="text-xs font-bold uppercase bg-amber-500 text-white px-6 py-1 rounded-full inline-block mb-4">Revisar</span>
-                <div class="my-3 text-4xl">🕒</div>
+                <div class="my-3 flex justify-center text-amber-500"><?= icone('clock', 'h-10 w-10') ?></div>
                 <h3 class="text-sm font-bold text-gray-800">Cadastros Pendentes</h3>
                 <p class="text-xs text-text-muted">12 ONGs aguardando</p>
             </div>
@@ -43,7 +44,7 @@
             <!-- Card 2 -->
             <div class="card-padrao text-center border-t-8 border-red-800 bg-white shadow rounded-lg p-4">
                 <span class="text-xs font-bold uppercase bg-red-800 text-white px-6 py-1 rounded-full inline-block mb-4">Prioridade</span>
-                <div class="my-3 text-4xl">⚠️</div>
+                <div class="my-3 flex justify-center text-red-800"><?= icone('warning', 'h-10 w-10') ?></div>
                 <h3 class="text-sm font-bold text-gray-800">Denúncias em Aberto</h3>
                 <p class="text-xs text-text-muted">5 alertas de segurança</p>
             </div>
@@ -51,7 +52,7 @@
             <!-- Card 3 -->
             <div class="card-padrao text-center border-t-8 border-blue-600 bg-white shadow rounded-lg p-4">
                 <span class="text-xs font-bold uppercase bg-blue-600 text-white px-6 py-1 rounded-full inline-block mb-4">Monitorar</span>
-                <div class="my-3 text-4xl">🤍</div>
+                <div class="my-3 flex justify-center text-blue-600"><?= icone('heart', 'h-10 w-10') ?></div>
                 <h3 class="text-sm font-bold text-gray-800">Adoções Concluídas no Mês</h3>
                 <p class="text-xs text-text-muted">45 matches de sucesso</p>
             </div>
@@ -82,7 +83,7 @@
             <!-- Atalho 1 -->
             <div class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl text-green-500">✅</span>
+                    <span class="text-green-500"><?= icone('check-circle', 'h-7 w-7') ?></span>
                     <div>
                         <strong class="block text-sm text-gray-800">Aprovar cadastros pendentes</strong>
                         <span class="text-xs text-text-muted">12 ONGs aguardando</span>
@@ -90,14 +91,14 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="<?= URL_BASE ?>/admin/validacao-cadastros" class="text-xs text-gray-600 font-bold hover:underline">Filtrar por data de envio</a>
-                    <span class="text-gray-400">🔍 📄</span>
+                    <span class="text-gray-400 inline-flex items-center gap-1"><?= icone('search', 'h-4 w-4') ?> <?= icone('document', 'h-4 w-4') ?></span>
                 </div>
             </div>
 
             <!-- Atalho 2 -->
             <div class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl text-amber-500">⚠️</span>
+                    <span class="text-amber-500"><?= icone('warning', 'h-7 w-7') ?></span>
                     <div>
                         <strong class="block text-sm text-gray-800">Tratar denúncias em aberto</strong>
                         <span class="text-xs text-text-muted">5 alertas de segurança</span>
@@ -105,14 +106,14 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="<?= URL_BASE ?>/admin/denuncias" class="text-xs text-gray-600 font-bold hover:underline">Priorizar casos críticos</a>
-                    <span class="text-gray-400">🔍 📄</span>
+                    <span class="text-gray-400 inline-flex items-center gap-1"><?= icone('search', 'h-4 w-4') ?> <?= icone('document', 'h-4 w-4') ?></span>
                 </div>
             </div>
 
             <!-- Atalho 3 -->
             <div class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl text-gray-600">📊</span>
+                    <span class="text-gray-600"><?= icone('chart', 'h-7 w-7') ?></span>
                     <div>
                         <strong class="block text-sm text-gray-800">Acompanhar adoções do mês</strong>
                         <span class="text-xs text-text-muted">45 concluídas</span>
@@ -120,7 +121,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="<?= URL_BASE ?>/admin/adocoes" class="text-xs text-gray-600 font-bold hover:underline">Comparar com mês anterior</a>
-                    <span class="text-gray-400">🔍 📄</span>
+                    <span class="text-gray-400 inline-flex items-center gap-1"><?= icone('search', 'h-4 w-4') ?> <?= icone('document', 'h-4 w-4') ?></span>
                 </div>
             </div>
         </div>

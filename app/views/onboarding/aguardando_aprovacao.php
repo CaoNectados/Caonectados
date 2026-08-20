@@ -33,8 +33,8 @@ require_once __DIR__ . '/../templates/header.php';
             <p class="text-sm text-text-dark dark:text-white font-medium italic">"<?= htmlspecialchars($motivoRecusa ?? 'Documento ilegível ou dados divergentes.') ?>"</p>
         </div>
 
-        <a href="<?= URL_BASE . $rotaEdicao ?>" class="btn-primario w-full py-3 rounded-xl mb-4 text-center block font-bold text-white shadow-md">
-            ✏️ Corrigir e Enviar Novamente
+        <a href="<?= URL_BASE . $rotaEdicao ?>" class="btn-primario w-full py-3 rounded-xl mb-4 text-center inline-flex items-center justify-center gap-2 font-bold text-white shadow-md">
+            <?= icone('pencil', 'h-5 w-5') ?> Corrigir e Enviar Novamente
         </a>
 
     <?php else: ?>
@@ -45,8 +45,8 @@ require_once __DIR__ . '/../templates/header.php';
 
         <h1 class="font-shantell text-2xl font-bold text-text-dark dark:text-white mb-2">Aguardando Aprovação</h1>
 
-        <p class="text-sm text-text-dark dark:text-white font-medium mb-1">
-            Parabéns por dar esse passo! 🐾
+        <p class="text-sm text-text-dark dark:text-white font-medium mb-1 inline-flex items-center gap-1.5">
+            Parabéns por dar esse passo! <?= icone('paw', 'h-4 w-4') ?>
         </p>
         <p class="text-sm text-text-muted mb-6">
             Sua solicitação já está com a nossa equipe. Assim que for validada, você receberá um e-mail e terá acesso completo para começar a transformar a vida de muitos animais.

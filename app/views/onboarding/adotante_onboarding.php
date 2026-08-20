@@ -71,7 +71,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para Preferências</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta flex items-center justify-center text-white hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -104,7 +104,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta flex items-center justify-center text-white hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -149,7 +149,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta flex items-center justify-center text-white hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -195,7 +195,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para Preferências</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta flex items-center justify-center text-white hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -294,7 +294,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ler os Termos</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta flex items-center justify-center text-white hover:bg-rosa-2 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 
@@ -323,7 +323,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para o Feed</span>
-            <button type="button" onclick="submeterFormularioAdotante()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-3 transition">&rarr;</button>
+            <button type="button" onclick="submeterFormularioAdotante()" class="w-12 h-12 rounded-full bg-rosaAlerta flex items-center justify-center text-white hover:bg-rosa-3 transition"><?= icone('arrow-right', 'h-5 w-5') ?></button>
         </div>
     </div>
 </form>

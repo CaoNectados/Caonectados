@@ -39,8 +39,6 @@ if ($tipoPerfil === 'administrador') {
 
     // Se estiver validado (1/true), exibe todas as opções do painel
     if ($validado === true || $validado === 1 || $validado === '1') {
-        // Feed ainda não implementado nesta etapa (rota desligada em index.php) — item
-        // mantido no header a pedido, só pra já apresentar a navegação final do produto.
         $menuItens[] = ['url' => URL_BASE . '/feed',                 'label' => 'Feed',                   'icone' => 'dashboard.svg',        'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
@@ -55,8 +53,6 @@ if ($tipoPerfil === 'administrador') {
 
 // ---------------- PERFIL: ADOTANTE ----------------
 } elseif ($tipoPerfil === 'adotante') {
-    // Feed ainda não implementado nesta etapa (rota desligada em index.php) — item
-    // mantido no header a pedido, só pra já apresentar a navegação final do produto.
     $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];

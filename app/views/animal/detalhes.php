@@ -90,8 +90,8 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
                     Editar
                 </a>
             <?php endif; ?>
-            <a href="<?= URL_BASE ?>/<?= $podeEditar ? 'animal' : 'feed' ?>" class="font-poppins text-sm font-medium text-text-muted dark:text-branco/60 hover:text-rosaAlerta dark:hover:text-branco transition-colors underline">
-                &larr; Voltar
+            <a href="<?= URL_BASE ?>/<?= $podeEditar ? 'animal' : 'feed' ?>" class="inline-flex items-center gap-1.5 font-poppins text-sm font-medium text-text-muted dark:text-branco/60 hover:text-rosaAlerta dark:hover:text-branco transition-colors underline">
+                <?= icone('arrow-left', 'h-4 w-4') ?> Voltar
             </a>
         </div>
     </div>

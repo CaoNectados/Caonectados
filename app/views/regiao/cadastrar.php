@@ -22,9 +22,9 @@ require_once __DIR__ . '/../templates/header.php';
             </div>
 
             <div class="flex items-center justify-between pt-4">
-                <a href="<?= URL_BASE ?>/admin/regiao" 
-                   class="text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
-                    ← Voltar
+                <a href="<?= URL_BASE ?>/admin/regiao"
+                   class="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+                    <?= icone('arrow-left', 'h-4 w-4') ?> Voltar
                 </a>
                 <button type="submit" 
                         class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition">

@@ -4,7 +4,7 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-text-dark dark:text-white flex items-center gap-2">
-                <span class="text-3xl hidden sm:inline">🐾</span> Espécies Cadastradas
+                <span class="hidden sm:inline"><?= icone('paw', 'h-8 w-8') ?></span> Espécies Cadastradas
             </h1>
             <p class="text-sm text-text-muted mt-1">Gerencie as categorias raiz do sistema para cruzamento de raças.</p>
         </div>
@@ -23,7 +23,7 @@
     <!-- Botão de Acesso Rápido / Alternância entre Espécies e Raças -->
     <div class="mb-6 flex items-center gap-3">
         <a href="<?= URL_BASE ?>/admin/gerenciar-especies-racas" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface dark:bg-preto2 border border-rosa-2/60 text-text-dark dark:text-white text-xs sm:text-sm font-semibold shadow-sm hover:bg-rosa-1/50 dark:hover:bg-preto3 transition">
-            <span>📊</span> Gerenciar Espécies e Raças (Dashboard)
+            <?= icone('chart', 'h-5 w-5') ?> Gerenciar Espécies e Raças (Dashboard)
         </a>
     </div>
     <!-- Filtros de Status e Busca -->
@@ -40,7 +40,7 @@
 
             <!-- Busca instantânea -->
             <div class="relative w-full sm:w-72">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted">🔍</span>
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted"><?= icone('search', 'h-4 w-4') ?></span>
                 <input type="text" id="busca-especie" placeholder="Pesquisar espécie..." class="input-padrao pl-10 py-1.5 text-sm w-full bg-branco dark:bg-preto2 text-text-dark dark:text-white border-cinzaMarrom/40" onkeyup="filtrarEspecies()">
             </div>
         </form>
@@ -49,7 +49,7 @@
     <!-- Informativo "Atenção" -->
     <div class="mb-8 p-4 rounded-xl border-l-4 border-aviso bg-amarelo/20 text-text-dark dark:text-white">
         <h4 class="font-poppins font-bold text-sm mb-1 flex items-center gap-2">
-            <span class="bg-aviso text-white text-[10px] px-2 py-0.5 rounded shadow-sm">⚠️ Importante</span>
+            <span class="bg-aviso text-white text-[10px] px-2 py-0.5 rounded shadow-sm inline-flex items-center gap-1"><?= icone('warning', 'h-3 w-3') ?> Importante</span>
             Atenção
         </h4>
         <p class="text-xs">As Espécies aprovadas/ativas ficarão visíveis para os tutores nos filtros de busca e cadastro de pets imediatamente.</p>
@@ -70,13 +70,13 @@
                     $nome = strtolower($e->getNome());
                     if (strpos($nome, 'cão') !== false || strpos($nome, 'cachorro') !== false || strpos($nome, 'canina') !== false) {
                         $badgeBg = 'bg-amarelo/25 dark:bg-amarelo/30 text-laranja-2 dark:text-amarelo border-amarelo/40';
-                        $iconEsp = '🐶';
+                        $iconEsp = icone('paw', 'h-4 w-4');
                     } elseif (strpos($nome, 'gato') !== false || strpos($nome, 'felin') !== false) {
                         $badgeBg = 'bg-azul/25 dark:bg-azul/30 text-azulEscuro dark:text-azul border-azul/40';
-                        $iconEsp = '🐱';
+                        $iconEsp = icone('paw', 'h-4 w-4');
                     } else {
                         $badgeBg = 'bg-roxinhoFofo/25 dark:bg-roxinhoFofo/30 text-primary dark:text-roxinhoFofo border-roxinhoFofo/40';
-                        $iconEsp = '🐾';
+                        $iconEsp = icone('paw', 'h-4 w-4');
                     }
                 ?>
                 <div class="card-especie-item rounded-2xl border border-rosa-3/60 bg-rosa-1/60 dark:bg-preto2 shadow-sm overflow-hidden flex flex-col justify-between transform hover:-translate-y-1 hover:shadow-lg hover:bg-rosa-1 dark:hover:bg-preto3 transition-all duration-300 p-5">
@@ -94,7 +94,7 @@
 
                     <div class="flex items-center gap-2 pt-3 border-t border-cinzaMarrom/20 mt-2">
                         <a href="<?= URL_BASE ?>/admin/especie/editar?id=<?= $e->getId(); ?>" class="flex-grow flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amarelo/20 dark:bg-amarelo/20 text-text-dark dark:text-white font-bold text-xs hover:bg-amarelo/40 transition shadow-sm border border-amarelo/30">
-                            ✏️ Editar
+                            <?= icone('pencil', 'h-4 w-4') ?> Editar
                         </a>
 
                         <?php if ($e->isAtivo()): ?>
@@ -111,7 +111,7 @@
             <?php endforeach; ?>
         <?php else: ?>
             <div class="col-span-full p-10 text-center border-2 border-dashed border-cinzaMarrom/30 rounded-2xl bg-surface dark:bg-surface">
-                <span class="text-4xl block mb-2 opacity-50">🐾</span>
+                <span class="flex justify-center mb-2 opacity-50"><?= icone('paw', 'h-10 w-10') ?></span>
                 <p class="text-text-muted font-poppins">Nenhuma espécie encontrada.</p>
             </div>
         <?php endif; ?>

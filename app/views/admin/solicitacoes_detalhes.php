@@ -50,7 +50,7 @@ if (!empty($fotoNomeDet)) {
                 </div>
                 <a href="<?= URL_BASE ?>/admin/solicitacoes" class="self-start sm:self-center px-4 py-2 border-2 border-preto dark:border-cinzaMarrom rounded-xl text-xs sm:text-sm font-bold text-text-dark hover:bg-preto hover:text-white dark:hover:bg-primary transition flex items-center gap-2">
                     <span>Voltar para lista</span>
-                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <?= icone('chevron-right', 'h-3 w-3') ?>
                 </a>
             </div>
 
@@ -64,7 +64,7 @@ if (!empty($fotoNomeDet)) {
                             <iframe src="<?= $caminhoDoc ?>" class="w-full h-96 rounded-xl border-0 bg-white" title="Visualizador do PDF"></iframe>
                         <?php else: ?>
                             <div class="py-8 text-text-dark">
-                                <i class="fa-solid fa-file-lines text-5xl text-primary dark:text-roxinhoFofo mb-3"></i>
+                                <div class="flex justify-center text-primary dark:text-roxinhoFofo mb-3"><?= icone('document', 'h-12 w-12') ?></div>
                                 <p class="font-bold">Documento anexado no cadastro</p>
                                 <a href="<?= $caminhoDoc ?>" target="_blank" class="mt-3 btn-primario text-xs">
                                     Abrir Documento em Nova Aba
@@ -87,7 +87,7 @@ if (!empty($fotoNomeDet)) {
                     </div>
                     <?php if ($caminhoDoc): ?>
                         <a href="<?= $caminhoDoc ?>" download class="text-xs font-bold text-primary dark:text-roxinhoFofo hover:underline flex items-center gap-1.5">
-                            <i class="fa-solid fa-download"></i> Baixar
+                            <?= icone('download', 'h-3.5 w-3.5') ?> Baixar
                         </a>
                     <?php endif; ?>
                 </div>
@@ -105,10 +105,10 @@ if (!empty($fotoNomeDet)) {
                             <img src="<?= $caminhoFotoDet ?>" 
                                  alt="Perfil" 
                                  class="w-14 h-14 rounded-2xl object-cover border border-cinzaMarrom/30 shrink-0 bg-white"
-                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo border border-rosa-2/40\'><i class=\'fa-solid fa-building text-2xl\'></i></div>';">
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo border border-rosa-2/40\'>' + <?= e(json_encode(icone('building', 'h-7 w-7'))) ?> + '</div>';">
                         <?php else: ?>
                             <div class="w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo border border-rosa-2/40">
-                                <i class="fa-solid fa-building text-2xl"></i>
+                                <?= icone('building', 'h-7 w-7') ?>
                             </div>
                         <?php endif; ?>
                         <div class="flex-1">
@@ -121,7 +121,7 @@ if (!empty($fotoNomeDet)) {
                     <!-- Status Atual -->
                     <div class="flex items-start gap-4 pt-3">
                         <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo">
-                            <i class="fa-solid fa-circle-info text-2xl"></i>
+                            <?= icone('info', 'h-7 w-7') ?>
                         </div>
                         <div class="flex-1">
                             <h4 class="font-bold text-text-dark text-sm sm:text-base">Status Atual</h4>
@@ -138,7 +138,7 @@ if (!empty($fotoNomeDet)) {
                     <!-- Data do Registro -->
                     <div class="flex items-start gap-4 pt-3">
                         <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo">
-                            <i class="fa-regular fa-calendar-days text-2xl"></i>
+                            <?= icone('calendar', 'h-7 w-7') ?>
                         </div>
                         <div class="flex-1">
                             <h4 class="font-bold text-text-dark text-sm sm:text-base">Data da Solicitação</h4>
@@ -216,8 +216,8 @@ if (!empty($fotoNomeDet)) {
             </div>
         <?php else: ?>
             <div class="p-4 rounded-2xl text-center <?= ($solicitacao['status'] === 'aprovado') ? 'bg-sucesso/10 border border-sucesso/30 text-sucesso' : 'bg-erro/10 border border-erro/30 text-erro' ?>">
-                <p class="font-bold text-sm sm:text-base">
-                    <i class="fa-solid <?= ($solicitacao['status'] === 'aprovado') ? 'fa-check-circle' : 'fa-times-circle' ?> mr-1.5"></i>
+                <p class="font-bold text-sm sm:text-base flex items-center justify-center gap-1.5">
+                    <?= icone(($solicitacao['status'] === 'aprovado') ? 'check-circle' : 'x-circle', 'h-4 w-4') ?>
                     Esta solicitação já foi <?= ($solicitacao['status'] === 'aprovado') ? 'Aprovada' : 'Recusada' ?>.
                 </p>
             </div>

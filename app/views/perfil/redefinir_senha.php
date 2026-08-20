@@ -5,12 +5,12 @@
 <div class="max-w-md mx-auto bg-background min-h-screen pb-20 flex flex-col">
 
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem]">
-        <a href="<?= URL_BASE ?>/perfil/editar" class="text-2xl hover:scale-110 transition-transform text-text-dark">&larr;</a>
+        <a href="<?= URL_BASE ?>/perfil/editar" class="hover:scale-110 transition-transform text-text-dark"><?= icone('arrow-left', 'h-6 w-6') ?></a>
     </div>
 
     <div class="px-6 flex-1 flex flex-col justify-center text-center">
-        <div class="w-20 h-20 bg-roxinhoFofo/20 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
-            🔑
+        <div class="w-20 h-20 bg-roxinhoFofo/20 text-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <?= icone('key', 'h-9 w-9') ?>
         </div>
 
         <h2 class="text-xl font-bold text-text-dark mb-2">Alteração Segura de Senha</h2>
@@ -21,8 +21,8 @@
 
         <!-- ETAPA 1 -->
         <form action="<?= URL_BASE ?>/perfil/redefinir-senha/enviar-codigo" method="POST" id="form-enviar-codigo-senha" class="space-y-4">
-            <button type="submit" class="btn-primario w-full">
-                ✉️ Enviar Código para E-mail
+            <button type="submit" class="btn-primario w-full inline-flex items-center justify-center gap-2">
+                <?= icone('mail', 'h-5 w-5') ?> Enviar Código para E-mail
             </button>
         </form>
 

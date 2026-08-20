@@ -10,7 +10,7 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-extrabold text-zinc-800 dark:text-zinc-100 tracking-wide flex items-center gap-2">
-                    <span class="text-3xl">📍</span> Regiões Cadastradas
+                    <?= icone('map-pin', 'h-8 w-8') ?> Regiões Cadastradas
                 </h1>
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Gerencie os bairros e áreas de atuação disponíveis.</p>
             </div>
@@ -23,7 +23,7 @@ require_once __DIR__ . '/../templates/header.php';
         <!-- Busca -->
         <div class="mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
             <div class="relative w-full">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">🔍</span>
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400"><?= icone('search', 'h-4 w-4') ?></span>
                 <input type="text" 
                        id="busca-regiao" 
                        placeholder="Buscar região pelo nome..." 

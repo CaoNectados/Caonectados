@@ -24,7 +24,7 @@ if (!$animal) {
         
         <div class="bg-rosa-1/20 dark:bg-rosaAlerta/10 border-2 border-dashed border-rosaAlerta rounded-[1.5rem] p-6 mb-8 text-left max-w-xl w-full">
             <h2 class="text-rosaAlerta font-shantell font-bold text-xl flex items-center gap-2 mb-3">
-                ⚠️ Atenção!
+                <?= icone('warning', 'h-6 w-6') ?> Atenção!
             </h2>
             <p class="font-poppins text-text-dark dark:text-branco/90 text-base leading-relaxed mb-3">
                 Você tem certeza que deseja desativar o cadastro do animal <strong class="font-bold text-lg"><?= htmlspecialchars($animal->getNome()) ?></strong>?
