@@ -33,7 +33,7 @@ require_once __DIR__ . '/../templates/header.php';
                        placeholder="Buscar por nome da ONG, CNPJ ou cidade..." 
                        class="w-full bg-branco dark:bg-preto2 border-2 border-preto dark:border-cinzaMarrom rounded-2xl pl-5 pr-14 py-3.5 text-sm sm:text-base text-text-dark placeholder:text-text-muted focus:outline-none focus:border-primary transition">
                 <button type="submit" aria-label="Buscar" class="absolute right-2.5 top-2.5 bottom-2.5 w-11 bg-preto dark:bg-primary text-white rounded-xl flex items-center justify-center hover:opacity-90 transition">
-                    <?= icone('search', 'h-4 w-4') ?>
+                    <i class="fa-solid fa-magnifying-glass text-base"></i>
                 </button>
             </form>
             <p class="text-xs text-text-muted mt-2 ml-1">Dica: digite para filtrar a lista</p>
@@ -49,7 +49,7 @@ require_once __DIR__ . '/../templates/header.php';
         <div id="containerSolicitacoes" class="divide-y divide-cinzaMarrom/20">
             <?php if (empty($solicitacoes)): ?>
                 <div class="py-16 text-center">
-                    <span class="flex justify-center mb-3 opacity-40"><?= icone('folder', 'h-14 w-14') ?></span>
+                    <span class="text-5xl block mb-3 opacity-40">📂</span>
                     <p class="text-text-muted text-base font-semibold">Nenhuma solicitação encontrada nesta categoria.</p>
                 </div>
             <?php else: ?>
@@ -76,10 +76,10 @@ require_once __DIR__ . '/../templates/header.php';
                                 <img src="<?= $caminhoFoto ?>" 
                                      alt="Perfil" 
                                      class="w-12 h-12 rounded-full object-cover border-2 border-rosa-3 dark:border-preto3 shrink-0 shadow-sm bg-white"
-                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center text-primary dark:text-roxinhoFofo shrink-0 shadow-sm\'>' + <?= e(json_encode(icone('home', 'h-6 w-6'))) ?> + '</div>';">
+                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center text-primary dark:text-roxinhoFofo text-xl shrink-0 shadow-sm\'><i class=\'fa-solid fa-house\'></i></div>';">
                             <?php else: ?>
-                                <div class="w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center text-primary dark:text-roxinhoFofo shrink-0 shadow-sm">
-                                    <?= icone('home', 'h-6 w-6') ?>
+                                <div class="w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center text-primary dark:text-roxinhoFofo text-xl shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-house"></i>
                                 </div>
                             <?php endif; ?>
 
@@ -102,10 +102,10 @@ require_once __DIR__ . '/../templates/header.php';
                                class="text-xs sm:text-sm font-bold text-primary dark:text-roxinhoFofo underline hover:text-accent transition">
                                 Clique para detalhes
                             </a>
-                            <span class="text-text-muted select-none"><?= icone('document', 'h-4 w-4') ?></span>
-                            <a href="<?= URL_BASE ?>/admin/solicitacoes/detalhes?id=<?= $solic['protetor_id'] ?? '' ?>"
+                            <span class="text-text-muted text-sm select-none">📄</span>
+                            <a href="<?= URL_BASE ?>/admin/solicitacoes/detalhes?id=<?= $solic['protetor_id'] ?? '' ?>" 
                                class="w-8 h-8 rounded-full bg-rosa-1/40 dark:bg-preto2 flex items-center justify-center text-text-muted hover:text-text-dark dark:hover:text-white transition">
-                                <?= icone('search', 'h-3.5 w-3.5') ?>
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
                             </a>
                         </div>
                     </div>

@@ -4,8 +4,7 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
     $nome = $_SESSION['boas_vindas_nome'];
     
     if ($tipo === 'adotante') {
-        $saudacao = "Oba, " . e($nome) . "!";
-        $iconeSaudacao = icone('sparkles', 'h-6 w-6 inline-block text-primary');
+        $saudacao = "Oba, " . e($nome) . "! 🎉";
         $mensagemCurta = "Seu cadastro foi realizado com sucesso! Você tem <strong class='text-rosaAlerta'>10 petiscos por dia</strong> para demonstrar interesse nos animais.";
         $dicas = [
             "Use o catálogo para encontrar seu novo melhor amigo.",
@@ -13,8 +12,7 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
             "Lembre-se: a adoção é um ato de amor e responsabilidade para a vida toda!"
         ];
     } else {
-        $saudacao = "Parabéns, " . e($nome) . "!";
-        $iconeSaudacao = icone('paw', 'h-6 w-6 inline-block text-primary');
+        $saudacao = "Parabéns, " . e($nome) . "! 🐾";
         $mensagemCurta = "Sua conta foi <strong>validada e aprovada</strong> pelo nosso painel administrativo!";
         $dicas = [
             "Acesse seu Dashboard para cadastrar animais.",
@@ -33,11 +31,11 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
         <img src="<?= URL_BASE ?>/assets/img/solicitacao-aprovada.gif" alt="" class="mx-auto mb-6 h-24 w-24 object-contain" onerror="this.style.display='none'; document.getElementById('selo-check-fallback').classList.remove('hidden');">
 
         <div id="selo-check-fallback" class="hidden mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-sucesso/20 mb-6">
-            <span class="text-sucesso"><?= icone('check', 'h-8 w-8') ?></span>
+            <span class="text-sucesso text-3xl font-bold">✓</span>
         </div>
 
-        <h2 class="text-2xl font-bold mb-2 font-shantell text-text-dark inline-flex items-center justify-center gap-2 w-full">
-            <?= $saudacao ?> <?= $iconeSaudacao ?>
+        <h2 class="text-2xl font-bold mb-2 font-shantell text-text-dark">
+            <?= $saudacao ?>
         </h2>
         
         <p class="text-text-muted mb-4 font-poppins text-sm md:text-base">

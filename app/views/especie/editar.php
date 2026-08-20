@@ -6,7 +6,7 @@ $especie = $especie ?? new \app\models\Especie();
 <main class="mx-auto max-w-lg p-4 sm:p-6 min-h-[80vh] flex flex-col justify-center">
     <div class="card-padrao border border-rosa-3 shadow-xl rounded-2xl bg-rosa-1 dark:bg-preto2 p-6 sm:p-8">
         <h1 class="mb-2 text-text-dark dark:text-white flex items-center gap-2">
-            <?= icone('pencil', 'h-8 w-8') ?> Editar Espécie
+            <span class="text-3xl">✏️</span> Editar Espécie
         </h1>
         <p class="text-sm text-text-muted mb-6">Altere os dados da espécie selecionada.</p>
 

@@ -5,13 +5,13 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-text-dark dark:text-white flex items-center gap-2">
-                <?= icone('users', 'h-8 w-8') ?> Gerenciar Usuários
+                <span class="text-3xl">👥</span> Gerenciar Usuários
             </h1>
             <p class="text-sm text-text-muted mt-1">Controle global de contas e status individual de perfis.</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="<?= URL_BASE ?>/admin/dashboard" class="btn-secundario text-xs sm:text-sm whitespace-nowrap inline-flex items-center gap-1.5">
-                <?= icone('arrow-left', 'h-4 w-4') ?> Voltar ao Painel
+            <a href="<?= URL_BASE ?>/admin/dashboard" class="btn-secundario text-xs sm:text-sm whitespace-nowrap">
+                &larr; Voltar ao Painel
             </a>
         </div>
     </div>
@@ -19,19 +19,19 @@
     <!-- Filtros Rápidos (Estilo Figma - Cards Rosa Pastel) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <a href="?perfil=adotante" class="p-4 rounded-2xl border border-rosa-3 bg-rosa-1/60 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <span class="flex justify-center mb-1"><?= icone('users', 'h-6 w-6') ?></span>
+            <span class="text-2xl block mb-1">👨‍👩‍👧</span>
             <span class="text-xs font-bold text-text-dark dark:text-white">Adotantes</span>
         </a>
         <a href="?perfil=ong" class="p-4 rounded-2xl border border-rosa-3 bg-rosa-1/60 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <span class="flex justify-center mb-1"><?= icone('building', 'h-6 w-6') ?></span>
+            <span class="text-2xl block mb-1">🏥</span>
             <span class="text-xs font-bold text-text-dark dark:text-white">ONGs</span>
         </a>
         <a href="?perfil=protetor" class="p-4 rounded-2xl border border-rosa-3 bg-rosa-1/60 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <span class="flex justify-center mb-1"><?= icone('paw', 'h-6 w-6') ?></span>
+            <span class="text-2xl block mb-1">🐾</span>
             <span class="text-xs font-bold text-text-dark dark:text-white">Protetores</span>
         </a>
         <a href="?status=inativo" class="p-4 rounded-2xl border border-rosaAlerta/40 bg-rosaAlerta/10 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <span class="flex justify-center mb-1"><?= icone('ban', 'h-6 w-6') ?></span>
+            <span class="text-2xl block mb-1">🚫</span>
             <span class="text-xs font-bold text-rosaAlerta">Banidos</span>
         </a>
     </div>
@@ -40,7 +40,7 @@
     <div class="card-padrao mb-6 border border-rosa-1 dark:border-preto3 p-4 bg-surface dark:bg-surface">
         <form method="GET" action="<?= URL_BASE ?>/admin/gerenciar-usuarios" class="space-y-4">
             <div class="relative w-full">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-text-muted"><?= icone('search', 'h-4 w-4') ?></span>
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-text-muted">🔍</span>
                 <input type="text" name="busca" value="<?= htmlspecialchars($filtros['busca'] ?? '') ?>" placeholder="Buscar por nome, e-mail ou instituição..." class="input-padrao pl-11 py-2.5 text-sm w-full bg-branco dark:bg-preto2 text-text-dark dark:text-white border-cinzaMarrom/40">
             </div>
 
@@ -84,7 +84,7 @@
     <div class="bg-surface dark:bg-surface rounded-2xl border border-rosa-3/60 shadow-sm overflow-hidden divide-y divide-cinzaMarrom/20">
         <?php if (empty($usuarios)): ?>
             <div class="p-10 text-center">
-                <span class="flex justify-center mb-2 opacity-50"><?= icone('users', 'h-10 w-10') ?></span>
+                <span class="text-4xl block mb-2 opacity-50">👥</span>
                 <p class="text-text-muted font-poppins">Nenhum usuário encontrado com os filtros selecionados.</p>
             </div>
         <?php else: ?>
@@ -143,8 +143,8 @@
                             <strong class="text-text-dark dark:text-white"><?= date('d/m/Y', strtotime($u['criado_em'] ?? 'now')) ?></strong>
                         </div>
 
-                        <button type="button" onclick="abrirModalGerenciar(<?= $u['usuario_id'] ?>)" class="btn-primario text-xs py-2 px-3.5 whitespace-nowrap inline-flex items-center gap-1.5">
-                            <?= icone('cog', 'h-4 w-4') ?> Gerenciar
+                        <button type="button" onclick="abrirModalGerenciar(<?= $u['usuario_id'] ?>)" class="btn-primario text-xs py-2 px-3.5 whitespace-nowrap">
+                            ⚙️ Gerenciar
                         </button>
                     </div>
                 </div>
@@ -189,7 +189,7 @@
 <!-- MODAL CONFIRMAÇÃO DE AÇÃO -->
 <div id="modal-confirmacao" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
     <div class="card-padrao bg-surface dark:bg-surface rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-rosa-3">
-        <div id="confirma-icone" class="flex justify-center mb-2 text-amber-500"><?= icone('warning', 'h-10 w-10') ?></div>
+        <div id="confirma-icone" class="text-4xl mb-2">⚠️</div>
         <h3 id="confirma-titulo" class="font-bold text-lg text-text-dark dark:text-white mb-2">Confirmação</h3>
         <p id="confirma-texto" class="text-xs text-text-muted mb-6">Você tem certeza desta ação?</p>
 
@@ -201,11 +201,6 @@
 </div>
 
 <script>
-    const ICONE_AVISO = <?= json_encode(icone('warning', 'h-10 w-10')) ?>;
-    const ICONE_BAN = <?= json_encode(icone('ban', 'h-10 w-10')) ?>;
-    const ICONE_CHECK = <?= json_encode(icone('check-circle', 'h-10 w-10')) ?>;
-    const ICONE_REFRESH = <?= json_encode(icone('refresh', 'h-10 w-10')) ?>;
-
     let acaoPendente = null;
 
     async function abrirModalGerenciar(usuarioId) {
@@ -287,9 +282,7 @@
 
     function confirmarAlterarUsuario(usuarioId, acao) {
         const isDesativar = (acao === 'desativar');
-        const iconeEl = document.getElementById('confirma-icone');
-        iconeEl.innerHTML = isDesativar ? ICONE_BAN : ICONE_CHECK;
-        iconeEl.className = isDesativar ? 'flex justify-center mb-2 text-rosaAlerta' : 'flex justify-center mb-2 text-sucesso';
+        document.getElementById('confirma-icone').innerText = isDesativar ? '🚫' : '✅';
         document.getElementById('confirma-titulo').innerText = isDesativar ? 'Desativar Usuário?' : 'Reativar Usuário?';
         document.getElementById('confirma-texto').innerText = isDesativar ?
             'Ao desativar este usuário, ele não poderá mais realizar login nem utilizar qualquer funcionalidade na plataforma.' :
@@ -319,9 +312,7 @@
 
     function confirmarAlterarPerfil(usuarioId, tipoPerfil, nomePerfil, acao) {
         const isDesativar = (acao === 'desativar');
-        const iconeEl = document.getElementById('confirma-icone');
-        iconeEl.innerHTML = isDesativar ? ICONE_AVISO : ICONE_REFRESH;
-        iconeEl.className = isDesativar ? 'flex justify-center mb-2 text-amber-500' : 'flex justify-center mb-2 text-primary';
+        document.getElementById('confirma-icone').innerText = isDesativar ? '⚠️' : '🔄';
         document.getElementById('confirma-titulo').innerText = `${isDesativar ? 'Desativar' : 'Reativar'} Perfil ${nomePerfil}?`;
         document.getElementById('confirma-texto').innerText = isDesativar ?
             `O usuário não poderá mais utilizar os recursos deste perfil, mas continuará acessando a plataforma caso possua outros perfis ativos.` :

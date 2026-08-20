@@ -5,7 +5,7 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-text-dark dark:text-white flex items-center gap-2">
-                <?= icone('chart', 'h-8 w-8') ?> Gerenciamento Espécies/Raças
+                <span class="text-3xl">📊</span> Gerenciamento Espécies/Raças
             </h1>
             <p class="text-sm text-text-muted mt-1">Aprove, edite ou gerencie as espécies e raças cadastradas no sistema.</p>
         </div>
@@ -22,10 +22,10 @@
     <!-- Abas Principais -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <a href="?aba=sugestoes" class="flex items-center justify-center gap-3 p-4 rounded-2xl <?= (isset($_GET['aba']) && $_GET['aba'] === 'sugestoes') ? 'bg-primary text-white shadow-md' : 'bg-surface dark:bg-preto2 border border-cinzaMarrom/30 text-text-dark dark:text-white hover:bg-rosa-1/40' ?> font-poppins font-semibold transition">
-            <?= icone('lightbulb', 'h-5 w-5') ?> Sugestões da API
+            <span class="text-xl">💡</span> Sugestões da API
         </a>
         <a href="?aba=ativos" class="flex items-center justify-center gap-3 p-4 rounded-2xl <?= (!isset($_GET['aba']) || $_GET['aba'] === 'ativos') ? 'bg-verdeMusgo text-white shadow-md' : 'bg-surface dark:bg-preto2 border border-cinzaMarrom/30 text-text-dark dark:text-white hover:bg-rosa-1/40' ?> font-poppins font-semibold transition">
-            <?= icone('check-circle', 'h-5 w-5') ?> Ativos no Banco
+            <span class="text-xl">✅</span> Ativos no Banco
         </a>
     </div>
 
@@ -35,12 +35,12 @@
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h3 class="text-lg font-bold text-text-dark dark:text-white flex items-center gap-2">
-                        <?= icone('globe', 'h-5 w-5') ?> Sugestões Externas (TheDogAPI & TheCatAPI)
+                        <span>🌐</span> Sugestões Externas (TheDogAPI & TheCatAPI)
                     </h3>
                     <p class="text-sm text-text-muted mt-1">Essas sugestões só são buscadas quando você clicar no botão — a página não faz nenhuma chamada externa sozinha.</p>
                 </div>
-                <button type="button" id="btn-buscar-sugestoes" onclick="buscarSugestoesApi()" class="btn-primario text-xs sm:text-sm whitespace-nowrap self-start sm:self-auto inline-flex items-center gap-1.5">
-                    <?= icone('search', 'h-4 w-4') ?> Buscar Sugestões da API
+                <button type="button" id="btn-buscar-sugestoes" onclick="buscarSugestoesApi()" class="btn-primario text-xs sm:text-sm whitespace-nowrap self-start sm:self-auto">
+                    🔎 Buscar Sugestões da API
                 </button>
             </div>
 
@@ -59,10 +59,10 @@
         <h4 class="text-text-dark dark:text-white mb-3">Atalhos de Listagem</h4>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a href="<?= URL_BASE ?>/admin/especie" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-branco dark:bg-preto1 border border-cinzaMarrom/30 text-text-dark dark:text-white font-medium hover:border-primary transition">
-                <?= icone('paw', 'h-4 w-4') ?> Listar Espécies
+                🐾 Listar Espécies
             </a>
             <a href="<?= URL_BASE ?>/admin/raca" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-branco dark:bg-preto1 border border-cinzaMarrom/30 text-text-dark dark:text-white font-medium hover:border-primary transition">
-                <?= icone('paw', 'h-4 w-4') ?> Listar Raças
+                🐶 Listar Raças
             </a>
         </div>
     </div>
@@ -75,14 +75,14 @@
                     <div>
                         <div class="flex items-center justify-between pb-3 border-b border-rosa-2/50 dark:border-preto3 mb-4">
                             <div class="flex items-center gap-2">
-                                <span class="text-primary dark:text-roxinhoFofo"><?= icone('paw', 'h-6 w-6') ?></span>
+                                <span class="text-2xl">🐾</span>
                                 <h2 class="text-xl font-bold text-text-dark dark:text-white">
                                     <?= htmlspecialchars($item['especie']->getNome()) ?>
                                 </h2>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <a href="<?= URL_BASE ?>/admin/especie/editar?id=<?= $item['especie']->getId(); ?>" title="Editar Espécie" class="text-text-muted hover:text-primary dark:hover:text-roxinhoFofo transition"><?= icone('pencil', 'h-4 w-4') ?></a>
-                                <a href="<?= URL_BASE ?>/admin/especie/excluir?id=<?= $item['especie']->getId(); ?>" title="Desativar/Excluir" class="text-text-muted hover:text-rosaAlerta transition"><?= icone('trash', 'h-4 w-4') ?></a>
+                            <div class="flex items-center gap-2">
+                                <a href="<?= URL_BASE ?>/admin/especie/editar?id=<?= $item['especie']->getId(); ?>" title="Editar Espécie" class="text-text-muted hover:text-primary dark:hover:text-roxinhoFofo transition">✏️</a>
+                                <a href="<?= URL_BASE ?>/admin/especie/excluir?id=<?= $item['especie']->getId(); ?>" title="Desativar/Excluir" class="text-text-muted hover:text-rosaAlerta transition">🗑️</a>
                             </div>
                         </div>
 
@@ -119,7 +119,7 @@
             <?php endforeach; ?>
         <?php else: ?>
             <div class="col-span-full p-8 text-center border-2 border-dashed border-cinzaMarrom/30 rounded-2xl bg-surface dark:bg-surface">
-                <span class="flex justify-center mb-2 opacity-50"><?= icone('paw', 'h-10 w-10') ?></span>
+                <span class="text-4xl block mb-2 opacity-50">🐾</span>
                 <p class="text-text-muted font-poppins">Nenhuma espécie ou raça encontrada.</p>
             </div>
         <?php endif; ?>
@@ -127,10 +127,6 @@
 </div>
 
 <script>
-    const ICONE_PAW = <?= json_encode(icone('paw', 'h-5 w-5')) ?>;
-    const ICONE_CHECK_CIRCLE = <?= json_encode(icone('check-circle', 'h-4 w-4')) ?>;
-    const ICONE_REFRESH_BTN = <?= json_encode(icone('refresh', 'h-4 w-4')) ?>;
-
     function toggleAccordion(id) {
         const el = document.getElementById(id);
         if (el.style.display === 'none' || el.style.display === '') {
@@ -185,7 +181,7 @@
             itensHtml = `
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-2">${itensHtml}</div>
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-cinzaMarrom/20">
-                    <button type="submit" class="btn-primario text-xs sm:text-sm inline-flex items-center gap-1.5">${ICONE_CHECK_CIRCLE} Aceitar Espécie e Raças Marcadas</button>
+                    <button type="submit" class="btn-primario text-xs sm:text-sm">✅ Aceitar Espécie e Raças Marcadas</button>
                 </div>`;
         } else {
             itensHtml = '<p class="text-text-muted italic text-xs py-4 text-center">Todas as raças desta espécie já foram importadas para o banco!</p>';
@@ -196,7 +192,7 @@
                 <input type="hidden" name="especie_nome" value="${escaparHtml(grupo.especie)}">
                 <button type="button" onclick="toggleAccordion('acc-${slug}')" class="w-full flex items-center justify-between p-4 bg-rosa-1/50 dark:bg-preto3 text-text-dark dark:text-white font-bold text-left transition">
                     <span class="flex items-center gap-2 text-base">
-                        <span class="text-primary dark:text-roxinhoFofo">${ICONE_PAW}</span> Espécie: ${escaparHtml(grupo.especie)}
+                        <span>${grupo.icon}</span> Espécie: ${escaparHtml(grupo.especie)}
                         <span class="text-xs px-2 py-0.5 rounded-full bg-primary text-white ml-2">${grupo.racas.length} novas raças disponíveis</span>
                     </span>
                     <span class="text-sm">▼</span>
@@ -229,7 +225,7 @@
 
             if (res.status === 'sucesso' && Array.isArray(res.sugestoes)) {
                 container.innerHTML = res.sugestoes.map(renderizarGrupoSugestao).join('');
-                btn.innerHTML = ICONE_REFRESH_BTN + ' Atualizar Sugestões';
+                btn.textContent = '🔄 Atualizar Sugestões';
             } else {
                 container.innerHTML = '<p class="text-erro text-sm text-center py-6">' + (res.mensagem || 'Não foi possível buscar as sugestões agora.') + '</p>';
             }

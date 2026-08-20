@@ -120,7 +120,7 @@ $paginasBotoes = array_chunk($botoes, 6);
                         onclick="document.getElementById('input-foto-direta').click()"
                         class="absolute top-0 right-0 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted hover:bg-rosa-1 transition hover:scale-105 cursor-pointer"
                         title="Alterar foto">
-                    <?= icone('pencil', 'h-4 w-4') ?>
+                    ✏️
                 </button>
                 <input type="file" id="input-foto-direta" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden" onchange="processarSelecaoFoto(event)">
             <?php endif; ?>
@@ -134,7 +134,7 @@ $paginasBotoes = array_chunk($botoes, 6);
         <!-- Container de Ações -->
         <div class="w-full bg-gray-200 dark:bg-preto1 rounded-3xl p-5 shadow-inner relative border border-gray-300 dark:border-preto3">
             <div class="flex items-center justify-center gap-2 mb-4">
-                <span><?= icone('cog', 'h-5 w-5') ?></span>
+                <span class="text-xl">⚙️</span>
                 <h3 class="font-bold text-lg text-text-dark dark:text-white"><?= htmlspecialchars($tituloCabecalho) ?></h3>
             </div>
 

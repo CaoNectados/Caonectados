@@ -122,7 +122,7 @@
                     <tr>
                         <td align="center" style="padding: 30px 0;" class="header-bg">
                             <img src="https://raw.githubusercontent.com/CaoNectados/ModeloProjetoIntegrador/refs/heads/main/public/assets/img/logo.png" alt="CãoNectados" width="130" style="display: block; border: 0; margin: 0 auto 10px auto;" />
-                            <h1 class="title-font" style="color: #ffffff; font-size: 22px; margin: 0; font-weight: normal;">CãoNectados</h1>
+                            <h1 class="title-font" style="color: #ffffff; font-size: 22px; margin: 0; font-weight: normal;">CãoNectados 🐾</h1>
                         </td>
                     </tr>
 

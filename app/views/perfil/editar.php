@@ -12,7 +12,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
     <!-- CABEÇALHO -->
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem] mb-6">
-        <a href="<?= URL_BASE ?>/perfil" class="hover:scale-110 transition-transform text-text-dark dark:text-white"><?= icone('arrow-left', 'h-6 w-6') ?></a>
+        <a href="<?= URL_BASE ?>/perfil" class="text-2xl hover:scale-110 transition-transform text-text-dark dark:text-white">&larr;</a>
     </div>
 
     <div class="px-4">
@@ -42,7 +42,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                     <!-- Lápis flutuante APENAS se NÃO for administrador -->
                     <?php if ($tipoPerfil !== 'administrador'): ?>
                         <div class="absolute bottom-1 right-1 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted group-hover:bg-rosa-1 transition">
-                            <?= icone('pencil', 'h-4 w-4') ?>
+                            ✏️
                         </div>
                     <?php endif; ?>
                 </div>
@@ -58,7 +58,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <!-- ACORDEÃO 1: SOBRE MIM -->
             <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                 <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-sobre')">
-                    <span class="font-bold text-lg text-text-dark dark:text-white inline-flex items-center gap-2"><?= icone('user', 'h-5 w-5') ?> Dados Principais</span>
+                    <span class="font-bold text-lg text-text-dark dark:text-white">👤 Dados Principais</span>
                     <span id="icon-acc-sobre" class="text-text-muted transition-transform duration-300">▼</span>
                 </button>
                 <div id="acc-sobre" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -97,11 +97,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                             <div class="flex justify-between items-center mb-1">
                                 <label class="label-padrao mb-0"><?= $labelDoc ?></label>
                                 <button type="button" onclick="toggleEditarDocumento()" id="btn-trava-doc" class="text-xs text-roxinhoFofo font-bold flex items-center gap-1 hover:underline cursor-pointer">
-                                    <span id="icone-trava" class="inline-flex">
-                                        <span id="icone-trava-fechado"><?= icone('lock-closed', 'h-3.5 w-3.5') ?></span>
-                                        <span id="icone-trava-aberto" class="hidden"><?= icone('lock-open', 'h-3.5 w-3.5') ?></span>
-                                    </span>
-                                    <span id="texto-trava">Alterar documento</span>
+                                    <span id="icone-trava">🔒</span> <span id="texto-trava">Alterar documento</span>
                                 </button>
                             </div>
 
@@ -117,7 +113,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
                         <div id="container-novo-comprovante" class="hidden p-3 bg-aviso/10 border border-aviso/30 rounded-xl space-y-2">
                             <p class="text-xs font-semibold text-aviso flex items-center gap-1">
-                                <?= icone('warning', 'h-4 w-4 shrink-0') ?> <strong>Atenção:</strong> Ao alterar o documento, é obrigatório enviar o novo comprovante e sua conta entrará em análise novamente.
+                                ⚠️ <strong>Atenção:</strong> Ao alterar o documento, é obrigatório enviar o novo comprovante e sua conta entrará em análise novamente.
                             </p>
                             <div>
                                 <label class="block text-xs font-bold text-text-dark dark:text-white mb-1">Novo Comprovante de Atividade (PDF ou Imagem) *</label>
@@ -138,7 +134,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <?php if ($tipoPerfil !== 'administrador'): ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-local')">
-                        <span class="font-bold text-lg text-text-dark dark:text-white inline-flex items-center gap-2"><?= icone('map-pin', 'h-5 w-5') ?> Localização</span>
+                        <span class="font-bold text-lg text-text-dark dark:text-white">📍 Localização</span>
                         <span id="icon-acc-local" class="text-text-muted transition-transform duration-300">▼</span>
                     </button>
                     <div id="acc-local" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -217,7 +213,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-pref')">
-                        <span class="font-bold text-lg text-text-dark dark:text-white inline-flex items-center gap-2"><?= icone('home', 'h-5 w-5') ?> Sua Casa e Preferências</span>
+                        <span class="font-bold text-lg text-text-dark dark:text-white">🏠 Sua Casa e Preferências</span>
                         <span id="icon-acc-pref" class="text-text-muted transition-transform duration-300">▼</span>
                     </button>
                     <div id="acc-pref" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -334,7 +330,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <?php elseif (in_array($tipoPerfil, ['ong', 'protetor'])): ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-pref')">
-                        <span class="font-bold text-lg text-text-dark dark:text-white inline-flex items-center gap-2"><?= icone('heart', 'h-5 w-5') ?> Doações e Redes</span>
+                        <span class="font-bold text-lg text-text-dark dark:text-white">❤️ Doações e Redes</span>
                         <span id="icon-acc-pref" class="text-text-muted transition-transform duration-300">▼</span>
                     </button>
                     <div id="acc-pref" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -357,23 +353,23 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <!-- ACORDEÃO 4: SEGURANÇA -->
             <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                 <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-seguranca')">
-                    <span class="font-bold text-lg text-text-dark dark:text-white inline-flex items-center gap-2"><?= icone('lock-closed', 'h-5 w-5') ?> Segurança</span>
+                    <span class="font-bold text-lg text-text-dark dark:text-white">🔒 Segurança</span>
                     <span id="icon-acc-seguranca" class="text-text-muted transition-transform duration-300">▼</span>
                 </button>
                 <div id="acc-seguranca" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
                     <div>
                         <label class="label-padrao">E-mail Atual</label>
                         <p class="text-sm font-bold text-text-dark dark:text-white mb-2"><?= htmlspecialchars($emailMascarado ?? '') ?></p>
-                        <a href="<?= URL_BASE ?>/perfil/trocar-email" class="inline-flex items-center gap-1.5 bg-roxinhoFofo text-primary py-2 px-4 rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
-                            <?= icone('mail', 'h-4 w-4') ?> Trocar E-mail
+                        <a href="<?= URL_BASE ?>/perfil/trocar-email" class="inline-block bg-roxinhoFofo text-primary py-2 px-4 rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
+                            ✉️ Trocar E-mail
                         </a>
                     </div>
                     <hr class="border-rosa-2 dark:border-preto3 my-2">
                     <div>
                         <label class="label-padrao">Senha de Acesso</label>
                         <p class="text-xs text-text-muted mb-3">Para garantir sua segurança, a troca de senha exige verificação por e-mail.</p>
-                        <a href="<?= URL_BASE ?>/perfil/redefinir-senha" class="inline-flex items-center gap-1.5 bg-roxinhoFofo text-primary py-2 px-5 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-sm">
-                            <?= icone('key', 'h-4 w-4') ?> Redefinir Senha
+                        <a href="<?= URL_BASE ?>/perfil/redefinir-senha" class="inline-block bg-roxinhoFofo text-primary py-2 px-5 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-sm">
+                            🔑 Redefinir Senha
                         </a>
                     </div>
                 </div>
@@ -436,8 +432,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
     function toggleEditarDocumento() {
         const inputDoc = document.getElementById('codigo_documento');
         const containerComprovante = document.getElementById('container-novo-comprovante');
-        const iconeTravaFechado = document.getElementById('icone-trava-fechado');
-        const iconeTravaAberto = document.getElementById('icone-trava-aberto');
+        const iconeTrava = document.getElementById('icone-trava');
         const textoTrava = document.getElementById('texto-trava');
 
         if (inputDoc.hasAttribute('readonly')) {
@@ -445,8 +440,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             inputDoc.classList.remove('bg-surface/50', 'text-text-muted', 'cursor-not-allowed');
             inputDoc.classList.add('bg-surface', 'text-text-dark', 'dark:text-white', 'border-roxinhoFofo', 'ring-2', 'ring-roxinhoFofo/20');
             containerComprovante.classList.remove('hidden');
-            iconeTravaFechado.classList.add('hidden');
-            iconeTravaAberto.classList.remove('hidden');
+            iconeTrava.innerText = '🔓';
             textoTrava.innerText = 'Cancelar alteração';
             inputDoc.focus();
         } else {
@@ -454,8 +448,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             inputDoc.classList.add('bg-surface/50', 'text-text-muted', 'cursor-not-allowed');
             inputDoc.classList.remove('bg-surface', 'text-text-dark', 'dark:text-white', 'border-roxinhoFofo', 'ring-2', 'ring-roxinhoFofo/20');
             containerComprovante.classList.add('hidden');
-            iconeTravaFechado.classList.remove('hidden');
-            iconeTravaAberto.classList.add('hidden');
+            iconeTrava.innerText = '🔒';
             textoTrava.innerText = 'Alterar documento';
 
             const docAtual = document.querySelector('input[name="codigo_documento_atual"]');
