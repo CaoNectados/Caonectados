@@ -10,7 +10,7 @@
         <form action="<?= URL_BASE ?>/admin/raca/salvar" method="POST" class="space-y-5">
             <div>
                 <label for="especie_id" class="label-padrao">Espécie Pertencente <span class="text-rosaAlerta">*</span></label>
-                <select id="especie_id" name="especie_id" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40" required>
+                <select id="especie_id" name="especie_id" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
                     <option value="">-- Selecione uma Espécie --</option>
                     <?php if (!empty($especies)): ?>
                         <?php foreach ($especies as $e): ?>
@@ -22,7 +22,7 @@
 
             <div>
                 <label for="nome" class="label-padrao">Nome da Raça <span class="text-rosaAlerta">*</span></label>
-                <input type="text" id="nome" name="nome" placeholder="Ex: Poodle, Siamês..." class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40" required>
+                <input type="text" id="nome" name="nome" placeholder="Ex: Poodle, Siamês..." class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
             </div>
 
             <div class="pt-6 flex flex-col sm:flex-row gap-3">

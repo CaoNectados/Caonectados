@@ -29,8 +29,7 @@ require_once __DIR__ . '/../templates/header.php';
                 <input type="text" 
                        id="nome_regiao" 
                        name="nome_regiao" 
-                       value="<?= htmlspecialchars($regiao->getNomeRegiao()); ?>" 
-                       required 
+                       value="<?= htmlspecialchars($regiao->getNomeRegiao()); ?>"
                        class="w-full px-4 py-2.5 rounded-xl border-2 border-zinc-900 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400">
             </div>
 

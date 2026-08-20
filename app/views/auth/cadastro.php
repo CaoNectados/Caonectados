@@ -14,12 +14,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
         <form action="<?= URL_BASE ?>/cadastro" method="POST" class="space-y-5">
 
             <div>
-                <input type="email" name="email" id="email" required placeholder="E-mail" class="input-padrao">
+                <input type="email" name="email" id="email" placeholder="E-mail" class="input-padrao">
             </div>
 
             <div>
                 <div class="relative">
-                    <input type="password" name="senha" id="senha" required placeholder="Crie uma senha" class="input-padrao pr-12">
+                    <input type="password" name="senha" id="senha" placeholder="Crie uma senha" class="input-padrao pr-12">
                     <button type="button" onclick="togglePassword('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none" aria-label="Mostrar senha">
                         <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5">
                     </button>
@@ -28,7 +28,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
             <div>
                 <div class="relative">
-                    <input type="password" name="senha_confirmacao" id="senha_confirmacao" required placeholder="Confirme sua senha" class="input-padrao pr-12">
+                    <input type="password" name="senha_confirmacao" id="senha_confirmacao" placeholder="Confirme sua senha" class="input-padrao pr-12">
                     <button type="button" onclick="togglePassword('senha_confirmacao', this)" class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none" aria-label="Mostrar senha">
                         <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5">
                     </button>

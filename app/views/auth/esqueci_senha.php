@@ -12,7 +12,7 @@
     <form action="<?= URL_BASE ?>/esqueci-senha/processar" method="POST" class="space-y-5 text-left">
         <div>
             <label for="email" class="label-padrao">Seu E-mail</label>
-            <input type="email" name="email" id="email" required placeholder="exemplo@gmail.com"
+            <input type="email" name="email" id="email" placeholder="exemplo@gmail.com"
                    class="input-padrao">
         </div>
 

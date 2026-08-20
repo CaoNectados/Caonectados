@@ -18,7 +18,7 @@ $especie = $especie ?? new \app\models\Especie();
 
             <div>
                 <label for="nome" class="label-padrao">Nome da Espécie <span class="text-rosaAlerta">*</span></label>
-                <input type="text" id="nome" name="nome" value="<?= htmlspecialchars($especie->getNome()); ?>" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40" required>
+                <input type="text" id="nome" name="nome" value="<?= htmlspecialchars($especie->getNome()); ?>" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
             </div>
 
             <div class="pt-6 flex flex-col sm:flex-row gap-3">

@@ -66,7 +66,7 @@ $fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_pri
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
-                <input type="text" id="nome" name="nome" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" value="<?= htmlspecialchars($nome) ?>" placeholder="Ex: Thor" maxlength="120" required>
+                <input type="text" id="nome" name="nome" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" value="<?= htmlspecialchars($nome) ?>" placeholder="Ex: Thor" maxlength="120">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -76,7 +76,7 @@ $fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_pri
                 </div>
                 <div>
                     <label for="sexo" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sexo <span class="text-rosaAlerta">*</span></label>
-                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="macho" class="dark:bg-preto2" <?= $sexo === 'macho' ? 'selected' : '' ?>>Macho</option>
                         <option value="femea" class="dark:bg-preto2" <?= $sexo === 'femea' ? 'selected' : '' ?>>Fêmea</option>
@@ -87,7 +87,7 @@ $fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_pri
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="porte" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Porte <span class="text-rosaAlerta">*</span></label>
-                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="pequeno" class="dark:bg-preto2" <?= $porte === 'pequeno' ? 'selected' : '' ?>>Pequeno</option>
                         <option value="medio" class="dark:bg-preto2" <?= $porte === 'medio' ? 'selected' : '' ?>>Médio</option>
@@ -96,7 +96,7 @@ $fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_pri
                 </div>
                 <div>
                     <label for="status" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Status <span class="text-rosaAlerta">*</span></label>
-                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
                         <option value="disponivel" class="dark:bg-preto2" <?= $status === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
                         <option value="em_analise" class="dark:bg-preto2" <?= $status === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
                         <option value="adotado" class="dark:bg-preto2" <?= $status === 'adotado' ? 'selected' : '' ?>>Adotado</option>
@@ -134,7 +134,7 @@ $fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_pri
 
             <div>
                 <label for="descricao" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sobre/Mais <span class="text-rosaAlerta">*</span></label>
-                <textarea id="descricao" name="descricao" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none resize-y transition-colors" rows="3" placeholder="História e detalhes..." required><?= htmlspecialchars($descricao ?? '') ?></textarea>
+                <textarea id="descricao" name="descricao" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none resize-y transition-colors" rows="3" placeholder="História e detalhes..."><?= htmlspecialchars($descricao ?? '') ?></textarea>
             </div>
 
             <div class="flex flex-col items-center gap-4 mt-8">

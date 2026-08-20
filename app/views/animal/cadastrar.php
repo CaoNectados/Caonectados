@@ -33,14 +33,14 @@ unset($_SESSION['old']);
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
-                <input type="text" id="nome" name="nome" placeholder="Ex: Thor" maxlength="120" value="<?= htmlspecialchars($old['nome'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
+                <input type="text" id="nome" name="nome" placeholder="Ex: Thor" maxlength="120" value="<?= htmlspecialchars($old['nome'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <!-- Select de Espécie -->
                 <div class="col-md-6 mb-3">
                     <label for="especie_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Espécie <span class="text-rosaAlerta">*</span></label>
-                    <select id="especie_id" name="especie_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="especie_id" name="especie_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
                         <option value="">Selecione uma espécie</option>
                         <?php foreach ($especies as $especie): ?>
                             <?php 
@@ -57,7 +57,7 @@ unset($_SESSION['old']);
                 <!-- Select de Raça -->
                 <div class="col-md-6 mb-3">
                     <label for="raca_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Raça <span class="text-rosaAlerta">*</span></label>
-                    <select id="raca_id" name="raca_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" disabled required>
+                    <select id="raca_id" name="raca_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" disabled>
                         <option value="">Selecione primeiro a espécie</option>
                     </select>
                 </div>
@@ -71,7 +71,7 @@ unset($_SESSION['old']);
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="sexo" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sexo <span class="text-rosaAlerta">*</span></label>
-                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="sexo" name="sexo" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="macho" class="dark:bg-preto2" <?= ($old['sexo'] ?? '') === 'macho' ? 'selected' : '' ?>>Macho</option>
                         <option value="femea" class="dark:bg-preto2" <?= ($old['sexo'] ?? '') === 'femea' ? 'selected' : '' ?>>Fêmea</option>
@@ -79,7 +79,7 @@ unset($_SESSION['old']);
                 </div>
                 <div>
                     <label for="porte" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Porte <span class="text-rosaAlerta">*</span></label>
-                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="porte" name="porte" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
                         <option value="" class="dark:bg-preto2">Escolha</option>
                         <option value="pequeno" class="dark:bg-preto2" <?= ($old['porte'] ?? '') === 'pequeno' ? 'selected' : '' ?>>Pequeno</option>
                         <option value="medio" class="dark:bg-preto2" <?= ($old['porte'] ?? '') === 'medio' ? 'selected' : '' ?>>Médio</option>
@@ -91,7 +91,7 @@ unset($_SESSION['old']);
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="status" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Status <span class="text-rosaAlerta">*</span></label>
-                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" required>
+                    <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
                         <option value="disponivel" class="dark:bg-preto2" <?= ($old['status'] ?? 'disponivel') === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
                         <option value="em_analise" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
                         <option value="adotado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'adotado' ? 'selected' : '' ?>>Adotado</option>
@@ -117,7 +117,7 @@ unset($_SESSION['old']);
 
             <div>
                 <label for="descricao" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Sobre/Mais <span class="text-rosaAlerta">*</span></label>
-                <textarea id="descricao" name="descricao" rows="4" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none resize-y transition-colors" placeholder="História e detalhes..." required><?= htmlspecialchars($old['descricao'] ?? '') ?></textarea>
+                <textarea id="descricao" name="descricao" rows="4" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none resize-y transition-colors" placeholder="História e detalhes..."><?= htmlspecialchars($old['descricao'] ?? '') ?></textarea>
             </div>
 
             <div class="flex items-center gap-8 mt-2">

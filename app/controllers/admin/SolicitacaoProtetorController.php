@@ -74,6 +74,10 @@ class SolicitacaoProtetorController extends AdminBaseController
             $this->redirecionarComMensagem('erro', 'ID de solicitação inválido.', '/admin/solicitacoes');
         }
 
+        if ($motivo === '') {
+            $this->redirecionarComMensagem('erro', 'Informe o motivo da recusa.', '/admin/solicitacoes/detalhes?id=' . $id);
+        }
+
         if ($this->solicitacaoService->recusarSolicitacao($id, $motivo)) {
             $this->redirecionarComMensagem('sucesso', 'Solicitação recusada com sucesso. O e-mail foi enviado.', '/admin/solicitacoes');
         }

@@ -14,13 +14,13 @@
         <input type="hidden" name="codigo" value="<?= htmlspecialchars($codigo ?? '') ?>">
         <div>
             <label for="senha" class="label-padrao">Nova Senha</label>
-            <input type="password" name="senha" id="senha" required minlength="8" placeholder="Digite sua nova senha"
+            <input type="password" name="senha" id="senha" minlength="8" placeholder="Digite sua nova senha"
                 class="input-padrao">
         </div>
 
         <div>
             <label for="senha_confirmacao" class="label-padrao">Confirme a Nova Senha</label>
-            <input type="password" name="senha_confirmacao" id="senha_confirmacao" required minlength="8" placeholder="Repita a senha"
+            <input type="password" name="senha_confirmacao" id="senha_confirmacao" minlength="8" placeholder="Repita a senha"
                 class="input-padrao">
         </div>
 

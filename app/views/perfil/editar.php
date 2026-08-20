@@ -89,7 +89,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                         <hr class="border-rosa-2 dark:border-preto3 my-2">
                         <div>
                             <label class="label-padrao"><?= $isOng ? 'Nome da Instituição (ONG) *' : 'Nome Fantasia / Atuação *' ?></label>
-                            <input type="text" name="nome_fantasia" id="nome_fantasia" value="<?= htmlspecialchars($especifico['nome_fantasia'] ?? '') ?>" required class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                            <input type="text" name="nome_fantasia" id="nome_fantasia" value="<?= htmlspecialchars($especifico['nome_fantasia'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                         </div>
 
                         <!-- CAMPO DE DOCUMENTO COM CHAVE DE DESBLOQUEIO -->
@@ -168,11 +168,11 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                         <div class="grid grid-cols-3 gap-3">
                             <div class="col-span-2">
                                 <label class="label-padrao">Logradouro *</label>
-                                <input type="text" name="logradouro" id="logradouro" value="<?= htmlspecialchars($usuario['logradouro'] ?? '') ?>" required class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                                <input type="text" name="logradouro" id="logradouro" value="<?= htmlspecialchars($usuario['logradouro'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                             </div>
                             <div class="col-span-1">
                                 <label class="label-padrao">Número *</label>
-                                <input type="text" name="numero" id="numero" value="<?= htmlspecialchars($usuario['numero'] ?? '') ?>" required class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                                <input type="text" name="numero" id="numero" value="<?= htmlspecialchars($usuario['numero'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                             </div>
                         </div>
                     </div>
