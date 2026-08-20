@@ -4,6 +4,7 @@ namespace app\core;
 
 use RuntimeException;
 use app\repositories\UsuarioRepository;
+use app\repositories\ProtetorRepository;
 class Controller
 {
     public function view(string $view, ?array $data = null): void
@@ -67,6 +68,8 @@ class Controller
             $this->redirecionarComMensagem('aviso', 'Você precisa estar logado para acessar esta página.', '/login');
         }
 
+        $this->sincronizarSessaoComBanco((int)$_SESSION['usuario_id']);
+
         $tipoUsuario = $_SESSION['tipo_perfil'] ?? 'usuario';
         $validado = $_SESSION['validado'] ?? false;
         $uriAtual = $this->getUriLimpa();
@@ -122,26 +125,38 @@ class Controller
     }
 
 
-    public function exigirLogin(): void
+    // Usado por: autenticacaoRequired() — mantém a sessão alinhada com o banco a cada
+    // requisição autenticada. A sessão só era preenchida no login (AuthService::iniciarSessao)
+    // e nunca era revalidada depois disso, então uma conta/perfil desativado pelo admin (ou
+    // editado direto no banco) só tinha efeito quando o usuário deslogava e logava de novo.
+    private function sincronizarSessaoComBanco(int $usuarioId): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        $usuarioRepo = new UsuarioRepository();
+        $usuario = $usuarioRepo->buscarPorId($usuarioId);
 
-        if (!isset($_SESSION['usuario']) || empty($_SESSION['usuario']['id'])) {
-            $this->redirect('/login');
-        }
+        $statusInvalido = ['inativo', 'bloqueado', 'rejeitado', 'bloqueada', 'desativado'];
+        $statusConta = strtolower((string)($usuario['status_conta'] ?? ''));
 
-        // Validação em tempo de execução: expulsa usuário se desativado após login
-        $repo = new UsuarioRepository();
-        $usuario = $repo->buscarPorId((int)$_SESSION['usuario']['id']);
-
-        if (!$usuario || (int)$usuario['ativo'] !== 1) {
-            unset($_SESSION['usuario'], $_SESSION['perfis'], $_SESSION['perfil_ativo']);
+        if (!$usuario || in_array($statusConta, $statusInvalido, true)) {
+            session_unset();
             session_destroy();
-            session_start();
-            $_SESSION['flash_error'] = 'Sua conta foi desativada durante a sessão.';
-            $this->redirect('/login');
+            $this->redirecionarComMensagem('erro', 'Sua conta foi desativada. Entre em contato com o suporte se acredita que isso é um engano.', '/login');
+            return;
+        }
+
+        $tipoAtual = strtolower((string)($usuario['tipo_atual'] ?? 'usuario'));
+        $perfisAtivos = array_values(array_filter(array_map('trim', explode(',', strtolower((string)($usuario['perfis_ativos'] ?? ''))))));
+
+        $_SESSION['tipo_perfil']   = $tipoAtual;
+        $_SESSION['perfis_ativos'] = $perfisAtivos;
+        $_SESSION['status_conta']  = $statusConta;
+
+        if (in_array($tipoAtual, ['ong', 'protetor'], true)) {
+            $protetorRepo = new ProtetorRepository();
+            $protetor = $protetorRepo->buscarPorUsuarioId($usuarioId);
+            $_SESSION['validado'] = $protetor ? (bool)$protetor['validado'] : false;
+        } else {
+            $_SESSION['validado'] = true;
         }
     }
 }
