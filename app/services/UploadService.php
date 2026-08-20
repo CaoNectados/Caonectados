@@ -49,14 +49,22 @@ class UploadService
                 return null;
             }
 
-            $dadosLimpos = substr($arquivoOuBase64, strpos($arquivoOuBase64, ',') + 1);
-            $dadosDecodificados = base64_decode($dadosLimpos);
+            // Extensão declarada no cabeçalho do Data URI não é confiável (o cliente a controla),
+            // por isso é validada contra a mesma whitelist do upload tradicional antes de usá-la
+            // para nomear o arquivo no servidor.
+            $extensao = strtolower($match[1]);
+            $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
+            if (!in_array($extensao, $extensoesPermitidas, true)) {
+                throw new Exception("Formato de imagem inválido. Use JPG, PNG ou WEBP.");
+            }
 
-            if ($dadosDecodificados === false) {
+            $dadosLimpos = substr($arquivoOuBase64, strpos($arquivoOuBase64, ',') + 1);
+            $dadosDecodificados = base64_decode($dadosLimpos, true);
+
+            if ($dadosDecodificados === false || @getimagesizefromstring($dadosDecodificados) === false) {
                 return null;
             }
 
-            $extensao = strtolower($match[1]);
             $nomeUnico = md5(uniqid((string)rand(), true)) . '.' . $extensao;
             $caminhoCompleto = $diretorioDestino . $nomeUnico;
 
@@ -78,6 +86,12 @@ class UploadService
 
             if (!in_array($extensao, $extensoesPermitidas, true)) {
                 throw new Exception("Formato de arquivo inválido. Use JPG, PNG, WEBP ou PDF.");
+            }
+
+            // Confere o conteúdo real do arquivo (não só a extensão do nome) para barrar
+            // um executável renomeado com extensão de imagem.
+            if ($extensao !== 'pdf' && @getimagesize($arquivoOuBase64['tmp_name']) === false) {
+                throw new Exception("O arquivo enviado não é uma imagem válida.");
             }
 
             $nomeUnico = md5(uniqid((string)rand(), true)) . '.' . $extensao;

@@ -35,11 +35,10 @@ class AnimalController extends Controller
         try {
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
             $statusFiltro = $_GET['status'] ?? 'todos';
-            $repository = new AnimalRepository($this->db);
 
             $protetorId = $this->obterProtetorIdAutenticado();
 
-            $animais = $repository->listarComFiltros($tipoPerfil, $protetorId, $statusFiltro);
+            $animais = $this->service->listarComFiltros($tipoPerfil, $protetorId, $statusFiltro);
 
             $this->view('animal/index', [
                 'titulo'  => 'Gerenciar Animais',
@@ -81,7 +80,7 @@ class AnimalController extends Controller
 
     public function store(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $data = $_POST;
             $protetorId = $this->obterProtetorIdAutenticado();
@@ -97,6 +96,11 @@ class AnimalController extends Controller
 
             $this->service->cadastrarAnimal($animal);
 
+            $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
+            if (!empty($fotoEnviada)) {
+                $this->service->salvarFoto($fotoEnviada, (int) $animal->getAnimalId());
+            }
+
             $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
         } catch (Exception $e) {
             $_SESSION['old'] = $_POST;
@@ -107,11 +111,13 @@ class AnimalController extends Controller
 
     public function show(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        // Perfil público do animal: qualquer usuário autenticado (inclusive adotantes
+        // navegando pelo Feed) pode visualizar — só as ações de gestão (editar/excluir/
+        // status) permanecem restritas ao protetor dono ou ao administrador.
+        $this->autenticacaoRequired();
         try {
             $id = $this->getIdFromRequest();
-            $repository = new AnimalRepository($this->db);
-            $animal = $repository->buscarPorId($id);
+            $animal = $this->service->buscarPorId($id);
 
             if ($animal === null) {
                 $this->redirecionarComMensagem('aviso', 'Animal não encontrado.', '/animal');
@@ -142,7 +148,7 @@ class AnimalController extends Controller
 
     public function update(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = (int)($_POST['id'] ?? 0);
             $animalExistente = $this->carregarEValidarPropriedade($id);
@@ -154,6 +160,11 @@ class AnimalController extends Controller
             $animal = $this->buildAnimalFromArray($data);
             $animal->setAnimalId($id);
             $this->service->editarAnimal($animal);
+
+            $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
+            if (!empty($fotoEnviada)) {
+                $this->service->salvarFoto($fotoEnviada, $id);
+            }
 
             unset($_SESSION['animal']);
             $this->redirecionarComMensagem('sucesso', 'Animal atualizado com sucesso!', '/animal');
@@ -167,7 +178,7 @@ class AnimalController extends Controller
 
     public function status(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = $this->getIdFromRequest();
             $this->carregarEValidarPropriedade($id);
@@ -187,7 +198,7 @@ class AnimalController extends Controller
 
     public function reativar(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = $this->getIdFromRequest();
             $this->carregarEValidarPropriedade($id);
@@ -204,7 +215,7 @@ class AnimalController extends Controller
 
     public function destroy(): void
     {
-        //$this->autenticacaoRequired(['protetor']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
             $this->carregarEValidarPropriedade($id);
@@ -221,8 +232,7 @@ class AnimalController extends Controller
 
     private function carregarEValidarPropriedade(int $animalId): Animal
     {
-        $repository = new AnimalRepository($this->db);
-        $animal = $repository->buscarPorId($animalId);
+        $animal = $this->service->buscarPorId($animalId);
 
         if (!$animal) {
             throw new Exception('Animal não encontrado.');
@@ -270,7 +280,8 @@ class AnimalController extends Controller
         $animal->setProtetorId((int) ($data['protetor_id'] ?? 0));
         $animal->setRacaId((int) ($data['raca_id'] ?? 0));
         $animal->setNome((string) ($data['nome'] ?? ''));
-        $animal->setDtNasc($data['dt_nasc'] ?? null);
+        $dtNasc = trim((string) ($data['dt_nasc'] ?? ''));
+        $animal->setDtNasc($dtNasc === '' ? null : $dtNasc);
         $animal->setSexo((string) ($data['sexo'] ?? ''));
         $animal->setPorte((string) ($data['porte'] ?? ''));
         $animal->setStatus((string) ($data['status'] ?? 'disponivel'));

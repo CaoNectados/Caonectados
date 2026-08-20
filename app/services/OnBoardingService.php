@@ -133,12 +133,18 @@ class OnboardingService
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
             $_SESSION['tipo_perfil']  = 'adotante';
-            $_SESSION['status_conta'] = 'ativo'; 
+            $_SESSION['status_conta'] = 'ativo';
             $_SESSION['adotante_id']  = $adotanteId;
             $_SESSION['usuario_nome'] = trim($dados['nome_usuario']);
             $_SESSION['validado']     = true;
             $_SESSION['boas_vindas_tipo'] = 'adotante';
             $_SESSION['boas_vindas_nome'] = trim($dados['nome_usuario']);
+
+            $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
+            if (!in_array('adotante', $perfisAtivos, true)) {
+                $perfisAtivos[] = 'adotante';
+            }
+            $_SESSION['perfis_ativos'] = $perfisAtivos;
 
         } catch (Exception $e) {
             $conexao->rollBack();
@@ -154,26 +160,36 @@ class OnboardingService
         $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
 
         if ($tipoDoc === 'cnpj') {
-            if (empty($dados['data_abertura_cnpj'])) {
-                throw new Exception("A data de abertura do CNPJ é obrigatória.");
+            if (empty($dados['data_abertura_cnpj']) || !ValidationService::validarDataNaoFutura($dados['data_abertura_cnpj'])) {
+                throw new Exception("A data de abertura do CNPJ é obrigatória e não pode ser uma data futura.");
             }
         } else {
             ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
         }
 
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
-        if (empty($telefoneLimpo)) { 
-            throw new Exception("O telefone é obrigatório."); 
+        if (empty($telefoneLimpo)) {
+            throw new Exception("O telefone é obrigatório.");
         }
-        
-        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero']);
+
+        ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero', 'cnpj_cpf']);
+
+        $documentoLimpo = preg_replace('/[^0-9]/', '', trim((string) $dados['cnpj_cpf']));
+
+        if ($tipoDoc === 'cnpj') {
+            if (!ValidationService::validarCnpj($documentoLimpo)) {
+                throw new Exception("O CNPJ informado é inválido.");
+            }
+        } else {
+            if (!ValidationService::validarCpf($documentoLimpo)) {
+                throw new Exception("O CPF informado é inválido.");
+            }
+        }
 
         $conexao = ConnectionFactory::getConnection();
 
         try {
             $conexao->beginTransaction();
-
-            $documentoLimpo = preg_replace('/[^0-9]/', '', $dados['cnpj_cpf']);
 
             $usuario = new Usuario();
             $usuario->setUsuarioId($usuarioId);
@@ -244,6 +260,19 @@ class OnboardingService
                 $this->paginaRepo->salvar($pagina);
             }
 
+            $instagram = trim($dados['instagram'] ?? '');
+            $facebook = trim($dados['facebook'] ?? '');
+
+            if ($instagram !== '' && !ValidationService::validarLinkRedeSocial($instagram, 'instagram')) {
+                throw new Exception("O link do Instagram informado é inválido.");
+            }
+
+            if ($facebook !== '' && !ValidationService::validarLinkRedeSocial($facebook, 'facebook')) {
+                throw new Exception("O link do Facebook informado é inválido.");
+            }
+
+            $this->redeRepo->sincronizarRedes($protetorId, $instagram ?: null, $facebook ?: null);
+
             $conexao->commit();
 
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
@@ -253,6 +282,12 @@ class OnboardingService
             $_SESSION['usuario_nome'] = trim($dados['nome_fantasia']);
             $_SESSION['validado']     = false;
             $_SESSION['recusado']     = false;
+
+            $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
+            if (!in_array($tipoPerfil, $perfisAtivos, true)) {
+                $perfisAtivos[] = $tipoPerfil;
+            }
+            $_SESSION['perfis_ativos'] = $perfisAtivos;
 
         } catch (Exception $e) {
             $conexao->rollBack();

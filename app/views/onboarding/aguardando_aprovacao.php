@@ -12,18 +12,18 @@ $rotaEdicao = ($tipoDoc === 'cnpj') ? '/onboarding/ong' : '/onboarding/protetor'
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
-<div class="max-w-md mx-auto p-6 text-center mt-10 bg-surface dark:bg-preto1 rounded-3xl shadow-sm border border-rosa-2 dark:border-preto3 transition-colors">
-    
+<div class="max-w-md mx-auto p-6 text-center mt-10 bg-surface dark:bg-preto1 rounded-3xl shadow-md border border-rosa-2 dark:border-preto3 transition-colors">
+
     <?php if ($recusado): ?>
         <!-- ESTADO: RECUSADO -->
-        <div class="w-20 h-20 bg-erro/10 text-erro rounded-full flex items-center justify-center mx-auto mb-5 text-3xl">
-            <i class="fa-solid fa-circle-xmark"></i>
-        </div>
+        <!-- Caminho reservado para a imagem/gif de "recusado" — troque o arquivo em
+             public/assets/img/solicitacao-recusada.gif quando tiver um pronto. -->
+        <img src="<?= URL_BASE ?>/assets/img/solicitacao-recusada.gif" alt="" class="w-32 h-32 mx-auto mb-4 object-contain" onerror="this.style.display='none';">
 
         <h1 class="font-shantell text-2xl font-bold text-text-dark dark:text-white mb-2">Solicitação Recusada</h1>
-        
+
         <p class="text-sm text-text-muted mb-6">
-            Infelizmente sua solicitação para perfil de Protetor/ONG não pôde ser aprovada no momento.
+            Não desanime! Estamos quase lá — só precisamos ajustar alguns detalhes para liberar o seu acesso.
         </p>
 
         <div class="bg-erro/5 border border-erro/20 rounded-2xl p-4 mb-6 text-left">
@@ -32,19 +32,22 @@ require_once __DIR__ . '/../templates/header.php';
         </div>
 
         <a href="<?= URL_BASE . $rotaEdicao ?>" class="btn-primario w-full py-3 rounded-xl mb-4 text-center block font-bold text-white shadow-md">
-            <i class="fa-solid fa-pen-to-square mr-1"></i> Corrigir e Enviar Novamente
+            ✏️ Corrigir e Enviar Novamente
         </a>
 
     <?php else: ?>
         <!-- ESTADO: PENDENTE EM ANÁLISE -->
-        <div class="w-20 h-20 bg-laranja-1/10 text-laranja-1 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl">
-            <i class="fa-solid fa-hourglass-half"></i>
-        </div>
+        <!-- Caminho reservado para a imagem/gif de "aguardando" — troque o arquivo em
+             public/assets/img/aguardando-aprovacao.gif quando tiver um pronto. -->
+        <img src="<?= URL_BASE ?>/assets/img/aguardando-aprovacao.gif" alt="" class="w-36 h-36 mx-auto mb-4 object-contain" onerror="this.style.display='none';">
 
         <h1 class="font-shantell text-2xl font-bold text-text-dark dark:text-white mb-2">Aguardando Aprovação</h1>
-        
+
+        <p class="text-sm text-text-dark dark:text-white font-medium mb-1">
+            Parabéns por dar esse passo! 🐾
+        </p>
         <p class="text-sm text-text-muted mb-6">
-            Sua solicitação está em análise pela equipe administrativa. Assim que for validada, você receberá um e-mail e terá acesso completo.
+            Sua solicitação já está com a nossa equipe. Assim que for validada, você receberá um e-mail e terá acesso completo para começar a transformar a vida de muitos animais.
         </p>
 
         <div class="bg-branco dark:bg-preto2 border border-rosa-2 dark:border-preto3 rounded-2xl p-4 mb-6 text-xs text-text-muted text-left space-y-1.5 shadow-inner">

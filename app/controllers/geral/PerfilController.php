@@ -3,7 +3,6 @@
 namespace app\controllers\geral;
 
 use app\core\Controller;
-use app\database\ConnectionFactory;
 use app\repositories\UsuarioRepository;
 use app\repositories\RegiaoRepository;
 use app\repositories\AdotanteRepository;
@@ -347,24 +346,27 @@ class PerfilController extends Controller
         $tipo = strtolower(trim($_POST['tipo'] ?? ''));
         $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
 
-        // Garante que o tipo informado seja estritamente um dos 4 permitidos
-        $perfisPermitidos = ['adotante', 'protetor', 'ong', 'administrador', 'admin'];
-        if (!in_array($tipo, $perfisPermitidos, true)) {
+        // RN 20 não é violada aqui: 'administrador' só entra em perfis_ativos via back-office
+        // (nunca por auto-cadastro/onboarding), então a segunda checagem abaixo
+        // (in_array($tipo, $perfisAtivos)) já garante que só quem JÁ é administrador legítimo
+        // consegue alternar para esse perfil — ninguém consegue se autopromover por aqui.
+        $perfisPermitidos = ['adotante', 'protetor', 'ong', 'administrador'];
+        if (
+            $tipo === '' ||
+            !in_array($tipo, $perfisPermitidos, true) ||
+            !in_array($tipo, $perfisAtivos, true)
+        ) {
             $this->redirecionarComMensagem('erro', 'Tipo de perfil inválido.', '/perfil');
             return;
         }
 
         $usuarioId = (int)$_SESSION['usuario_id'];
-        $db = ConnectionFactory::getConnection();
 
         // Persiste o tipo_atual no banco
-        $stmt = $db->prepare("UPDATE USUARIO SET tipo_atual = :tipo WHERE usuario_id = :id");
-        $stmt->bindValue(':tipo', $tipo);
-        $stmt->bindValue(':id', $usuarioId, \PDO::PARAM_INT);
-        $stmt->execute();
+        $this->usuarioRepo->atualizarTipoAtual($usuarioId, $tipo);
 
-        // Normaliza para os papéis oficiais
-        $tipoSession = ($tipo === 'admin') ? 'administrador' : $tipo;
+        // $tipo já foi validado contra a lista de perfis permitidos e ativos do usuário
+        $tipoSession = $tipo;
 
         // Busca a foto correspondente ao perfil exato que está sendo ativado
         $fotoPerfilAtiva = null;

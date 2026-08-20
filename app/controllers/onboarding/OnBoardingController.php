@@ -73,8 +73,9 @@ class OnboardingController extends Controller
                 }
             }
 
-            if ($uriAtual !== '/feed') {
-                $this->redirect('/feed');
+            // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+            if ($uriAtual !== '/perfil') {
+                $this->redirect('/perfil');
             }
         }
     }
@@ -106,7 +107,8 @@ class OnboardingController extends Controller
                 $this->json(200, [
                     'status'       => 'sucesso',
                     'mensagem'     => 'Perfil de adotante criado com sucesso!',
-                    'redirect_url' => URL_BASE . '/feed'
+                    // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+                    'redirect_url' => URL_BASE . '/perfil'
                 ]);
             } catch (Exception $e) {
                 $this->json(200, [
@@ -212,7 +214,8 @@ class OnboardingController extends Controller
         if ($validado && !$recusado) {
             $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
             $_SESSION['boas_vindas_nome'] = $_SESSION['usuario_nome'] ?? 'Protetor';
-            $this->redirect('/feed');
+            // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+            $this->redirect('/perfil');
         }
 
         $dadosProtetor = $this->onboardingService->obterDadosPreenchidosProtetor($usuarioId);

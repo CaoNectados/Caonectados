@@ -46,6 +46,7 @@ $animais = $animais ?? [];
                     <thead class="bg-corFundo-claro dark:bg-corFundo-escuro border-b border-msgRespondida-claro dark:border-msgRespondida-escuro uppercase text-xs tracking-wider opacity-75">
                         <tr>
                             <th class="px-6 py-3.5">ID</th>
+                            <th class="px-6 py-3.5">Foto</th>
                             <th class="px-6 py-3.5">Nome</th>
                             <th class="px-6 py-3.5">Sexo</th>
                             <th class="px-6 py-3.5">Porte</th>
@@ -60,6 +61,13 @@ $animais = $animais ?? [];
                                 <tr class="hover:bg-corFundo-claro/50 dark:hover:bg-corFundo-escuro/50 transition-colors">
                                     <td class="px-6 py-4 font-mono text-xs opacity-70">
                                         #<?= $animal->getAnimalId(); ?>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <?php if ($animal->getFotoPrincipal()): ?>
+                                            <img src="<?= URL_BASE ?>/<?= htmlspecialchars($animal->getFotoPrincipal()) ?>" alt="" class="w-10 h-10 object-cover rounded-lg">
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-corFundo-claro dark:bg-corFundo-escuro text-xs opacity-50">—</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-4 font-semibold">
                                         <?= htmlspecialchars($animal->getNome()); ?>
@@ -112,7 +120,7 @@ $animais = $animais ?? [];
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="px-6 py-8 text-center opacity-60">
+                                <td colspan="8" class="px-6 py-8 text-center opacity-60">
                                     Nenhum animal encontrado para o filtro selecionado.
                                 </td>
                             </tr>

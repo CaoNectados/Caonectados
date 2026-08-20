@@ -25,15 +25,17 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
-<form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4 bg-surface dark:bg-preto1 rounded-3xl border border-rosa-2 dark:border-preto3 shadow-sm my-6 text-text-dark">
+<form id="form-onboarding-protetor" action="<?= URL_BASE ?>/onboarding/salvar-protetor" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4 text-text-dark">
 
     <input type="hidden" name="tipo_documento" id="tipo_documento" value="<?= htmlspecialchars($tipo_perfil, ENT_QUOTES, 'UTF-8') ?>">
     <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
     <input type="hidden" name="foto_fundo_cortada" id="foto_fundo_cortada">
 
     <!-- BARRA DE PROGRESSO -->
+    <!-- Classe base precisa ser bg-gray-300: OnboardingManager.atualizarVisualEtapas() (onboarding.js)
+         alterna especificamente entre bg-gray-300 (pendente) e bg-green-500 (concluída/atual). -->
     <div class="flex justify-center gap-2 mb-6">
-        <div id="progresso-1" class="h-2 w-8 rounded-full bg-primary transition-colors duration-300"></div>
+        <div id="progresso-1" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
         <div id="progresso-2" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
         <div id="progresso-3" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
         <div id="progresso-4" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
@@ -42,13 +44,15 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
     </div>
 
     <!-- BOTÃO VOLTAR -->
-    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-2xl font-bold cursor-pointer transition hover:opacity-75 text-text-dark dark:text-white" title="Voltar">
-        &#129144;
+    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-xl font-bold cursor-pointer transition hover:opacity-75 text-primary" title="Voltar">
+        <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="Voltar" class="w-8 h-8">
     </button>
+
 
     <!-- ETAPA 1: Validação -->
     <div class="etapa-form" id="etapa-1">
         <div class="text-center mb-6">
+            <img src="<?= URL_BASE ?>/assets/img/mascote-validacao.png" alt="" class="w-40 h-40 sm:w-56 sm:h-56 mx-auto mb-5 object-contain" onerror="this.style.display='none';">
             <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white"><?= $titulo_etapa1 ?></h1>
             <p class="text-sm text-text-muted">Para garantir a segurança dos nossos pets e adotantes, <?= $texto_etapa1 ?></p>
         </div>
@@ -84,20 +88,23 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <span class="text-sm font-medium text-text-muted">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
     <!-- ETAPA 2: Localização -->
     <div class="etapa-form hidden" id="etapa-2">
         <div class="text-center mb-6">
+            <div class="relative w-40 h-40 sm:w-56 sm:h-56 mx-auto mb-5">
+                <img src="<?= URL_BASE ?>/assets/img/mascote-localizacao.png" alt="" class="absolute inset-0 w-full h-full object-contain scale-150 pointer-events-none" onerror="this.style.display='none';">
+            </div>
             <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white">Selecione a sua localização</h1>
             <p class="text-sm text-text-muted">Onde fica a sua sede/atuação? Informe a localização para que adotantes da região encontrem seus animais.</p>
         </div>
 
         <div class="mb-4 text-left">
             <label for="input-busca-bairro" class="label-padrao">Pesquise seu Bairro / Região *</label>
-            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" value="<?= htmlspecialchars($d['nome_regiao'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" value="<?= htmlspecialchars($d['nome_regiao'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white">
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -126,7 +133,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -158,13 +165,16 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
     <!-- ETAPA 4: Fotos -->
     <div class="etapa-form hidden" id="etapa-4">
         <div class="text-center mb-6">
+            <div class="relative w-36 h-36 sm:w-48 sm:h-48 mx-auto mb-5">
+                <img src="<?= URL_BASE ?>/assets/img/mascote-foto-perfil.png" alt="" class="absolute inset-0 w-full h-full object-contain scale-150 pointer-events-none" onerror="this.style.display='none';">
+            </div>
             <h2 class="font-shantell text-xl font-bold mb-2 text-text-dark dark:text-white">Personalize sua página</h2>
             <p class="text-sm text-text-muted mb-6">Adicione imagens para identificação.</p>
 
@@ -172,7 +182,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                 <label class="block font-medium mb-2 text-left text-sm text-text-dark dark:text-white">Foto de Perfil (Opcional)</label>
                 <div class="flex justify-center mb-2">
                     <div class="w-32 h-32 rounded-full border-4 border-rosa-2 bg-surface dark:bg-preto2 flex items-center justify-center overflow-hidden relative shadow-sm cursor-pointer" onclick="document.getElementById('input-arquivo-perfil').click()">
-                        <span id="foto-placeholder-perfil" class="text-text-muted text-4xl font-bold <?= !empty($fotoPerfilUrl) ? 'hidden' : '' ?>">&#128247;</span>
+                        <img id="foto-placeholder-perfil" src="<?= URL_BASE ?>/assets/img/perfil-placeholder.png" alt="Adicionar foto de perfil" class="w-full h-full object-cover opacity-60 <?= !empty($fotoPerfilUrl) ? 'hidden' : '' ?>">
                         <img id="preview-foto-perfil" src="<?= htmlspecialchars($fotoPerfilUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Foto de Perfil" class="w-full h-full object-cover <?= empty($fotoPerfilUrl) ? 'hidden' : '' ?>">
                     </div>
                 </div>
@@ -200,16 +210,14 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
     <!-- ETAPA 5: Comprovante -->
     <div class="etapa-form hidden" id="etapa-5">
         <div class="text-center mb-6">
-            <div class="w-20 h-20 rounded-full bg-rosa-1 dark:bg-preto2 text-primary flex items-center justify-center mx-auto mb-4 text-3xl">
-                <i class="fa-solid fa-file-shield"></i>
-            </div>
+            <img src="<?= URL_BASE ?>/assets/img/mascote-comprovante.png" alt="" class="w-40 h-40 sm:w-56 sm:h-56 mx-auto mb-5 object-contain" onerror="this.style.display='none';">
 
             <h1 class="font-shantell text-2xl font-bold mb-2 text-text-dark dark:text-white">Comprove a sua atividade</h1>
             
@@ -220,8 +228,8 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
             <?php endif; ?>
 
             <div class="mb-4">
-                <label for="comprovante_documento" class="btn-primario py-2.5 px-6 rounded-xl cursor-pointer">
-                    <i class="fa-solid fa-upload mr-1.5"></i> <?= $modoEdicao ? 'Substituir documento' : 'Anexar documento' ?>
+                <label for="comprovante_documento" class="btn-primario py-2.5 px-6 rounded-xl cursor-pointer inline-flex items-center gap-2">
+                    <img src="<?= URL_BASE ?>/assets/icons/upload.svg" alt="" class="w-4 h-4"> <?= $modoEdicao ? 'Substituir documento' : 'Anexar documento' ?>
                 </label>
                 <input type="file" name="comprovante_documento" id="comprovante_documento" accept=".pdf, .jpg, .jpeg, .png" onchange="exibirNomeArquivo(this, 'nome-arquivo-selecionado')" class="hidden">
             </div>
@@ -232,7 +240,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center shadow hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -270,7 +278,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         <p class="text-xs text-text-muted mb-4 text-center">Arraste e use o zoom para centralizar.</p>
         
         <div class="w-full h-64 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
-            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
+            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-w-full max-h-full">
         </div>
 
         <div class="flex gap-3 w-full">

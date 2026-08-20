@@ -13,15 +13,29 @@ class UsuarioRepository extends BaseRepository
      */
     public function atualizarOnboarding(Usuario $usuario, string $novoPerfil): bool
     {
-        $sql = "UPDATE USUARIO 
-                SET nome = :nome, 
-                    regiao_id = :regiao_id, 
+        // 'usuario' é apenas o estado transitório pré-onboarding: ao concluir o
+        // onboarding ele é substituído pelo perfil real, nunca mantido na lista.
+        $stmtAtual = $this->db->prepare("SELECT perfis_ativos FROM USUARIO WHERE usuario_id = :usuario_id");
+        $stmtAtual->bindValue(':usuario_id', $usuario->getUsuarioId(), PDO::PARAM_INT);
+        $stmtAtual->execute();
+        $perfisAtuais = (string) ($stmtAtual->fetchColumn() ?: '');
+
+        $listaPerfis = array_filter(
+            array_map('trim', explode(',', $perfisAtuais)),
+            static fn(string $p): bool => $p !== '' && $p !== 'usuario'
+        );
+        $listaPerfis[] = $novoPerfil;
+        $perfisFinal = implode(',', array_unique($listaPerfis));
+
+        $sql = "UPDATE USUARIO
+                SET nome = :nome,
+                    regiao_id = :regiao_id,
                     logradouro = :logradouro,
                     numero = :numero,
                     telefone = :telefone,
                     dt_nasc = :dt_nasc,
                     tipo_atual = :tipo_atual,
-                    perfis_ativos = CONCAT_WS(',', perfis_ativos, :novo_perfil),
+                    perfis_ativos = :perfis_ativos,
                     status_conta = :status_conta
                 WHERE usuario_id = :usuario_id";
 
@@ -33,7 +47,7 @@ class UsuarioRepository extends BaseRepository
         $stmt->bindValue(':telefone', $usuario->getTelefone(), PDO::PARAM_STR);
         $stmt->bindValue(':dt_nasc', $usuario->getDtNasc(), PDO::PARAM_STR);
         $stmt->bindValue(':tipo_atual', $usuario->getTipoAtual(), PDO::PARAM_STR);
-        $stmt->bindValue(':novo_perfil', $novoPerfil, PDO::PARAM_STR);
+        $stmt->bindValue(':perfis_ativos', $perfisFinal, PDO::PARAM_STR);
         $stmt->bindValue(':status_conta', $usuario->getStatusConta(), PDO::PARAM_STR);
         $stmt->bindValue(':usuario_id', $usuario->getUsuarioId(), PDO::PARAM_INT);
 
@@ -64,41 +78,6 @@ class UsuarioRepository extends BaseRepository
 
         $dados = $stmt->fetch(PDO::FETCH_ASSOC);
         return $dados === false ? null : $this->mapUsuario($dados);
-    }
-
-    public function buscarTodos(): array
-    {
-        $sql = "SELECT * FROM USUARIO WHERE deletado_em IS NULL ORDER BY criado_em DESC";
-        $stmt = $this->db->query($sql);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn(array $row) => $this->mapUsuario($row), $rows);
-    }
-
-    public function inativar(int $usuarioId): void
-    {
-        $sql = "UPDATE USUARIO SET status_conta = 'inativo', deletado_em = CURRENT_TIMESTAMP WHERE usuario_id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $usuarioId, PDO::PARAM_INT);
-        $stmt->execute();
-    }
-
-    public function atualizar(Usuario $usuario): void
-    {
-        $sql = "UPDATE USUARIO 
-                SET nome = :nome, 
-                    email = :email, 
-                    status_conta = :status, 
-                    tipo_atual = :tipo_atual 
-                WHERE usuario_id = :id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':nome', $usuario->getNome(), PDO::PARAM_STR);
-        $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
-        $stmt->bindValue(':status', $usuario->getStatusConta(), PDO::PARAM_STR);
-        $stmt->bindValue(':tipo_atual', $usuario->getTipoAtual(), PDO::PARAM_STR);
-        $stmt->bindValue(':id', $usuario->getUsuarioId(), PDO::PARAM_INT);
-        $stmt->execute();
     }
 
     public function buscarPorId(int $usuarioId): ?array
@@ -136,6 +115,15 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute();
     }
 
+    public function atualizarTipoAtual(int $usuarioId, string $tipoAtual): bool
+    {
+        $sql = "UPDATE USUARIO SET tipo_atual = :tipo WHERE usuario_id = :id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':tipo', $tipoAtual, PDO::PARAM_STR);
+        $stmt->bindValue(':id', $usuarioId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
     public function atualizarEmail(int $usuarioId, string $novoEmail): void
     {
         $sql = "UPDATE USUARIO SET email = :email WHERE usuario_id = :usuario_id";
@@ -167,7 +155,6 @@ class UsuarioRepository extends BaseRepository
         return $usuario;
     }
 
-    // ... Métodos de Códigos de Verificação e Senha mantidos iguais
     public function salvarCodigoVerificacao(int $usuarioId, string $codigo, string $expiraEm): void
     {
         $sql = "INSERT INTO CODIGO_VERIFICACAO (usuario_id, codigo, expira_em) VALUES (:usuario_id, :codigo, :expira_em)";
@@ -278,7 +265,6 @@ class UsuarioRepository extends BaseRepository
         $sql = "SELECT COUNT(*) as total FROM usuario u WHERE 1=1";
         $params = [];
 
-        // CORREÇÃO: Parâmetros de busca separados
         if (!empty($busca)) {
             $sql .= " AND (u.nome LIKE :busca_nome OR u.email LIKE :busca_email)";
             $params[':busca_nome'] = "%{$busca}%";
@@ -330,4 +316,3 @@ class UsuarioRepository extends BaseRepository
         ]);
     }
 }
-

@@ -31,6 +31,8 @@ $descricao      = !empty($old['descricao']) ? $old['descricao'] : ($isObj ? $ani
 
 $vacinado = !empty($old) ? !empty($old['vacinado']) : ($isObj ? $animalRaw->isVacinado() : !empty($animalRaw['vacinado']));
 $castrado = !empty($old) ? !empty($old['castrado']) : ($isObj ? $animalRaw->isCastrado() : !empty($animalRaw['castrado']));
+
+$fotoPrincipal = $isObj ? $animalRaw->getFotoPrincipal() : ($animalRaw['foto_principal'] ?? null);
 ?>
 
 <main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -50,9 +52,17 @@ $castrado = !empty($old) ? !empty($old['castrado']) : ($isObj ? $animalRaw->isCa
             </div>
         <?php endif; ?>
 
-        <form action="<?= URL_BASE ?>/animal/editar" method="POST" class="w-full max-w-md flex flex-col gap-6" data-no-autosave>
+        <form action="<?= URL_BASE ?>/animal/editar" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6" data-no-autosave>
             <input type="hidden" name="id" value="<?= htmlspecialchars($animalId) ?>">
             <input type="hidden" name="raca_id" value="<?= htmlspecialchars($racaId) ?>">
+
+            <div>
+                <label for="foto" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Foto do animal</label>
+                <?php if (!empty($fotoPrincipal)): ?>
+                    <img src="<?= URL_BASE ?>/<?= htmlspecialchars($fotoPrincipal) ?>" alt="Foto atual de <?= htmlspecialchars($nome) ?>" class="w-24 h-24 object-cover rounded-xl mb-3 border-2 border-text-dark dark:border-branco/30">
+                <?php endif; ?>
+                <input type="file" id="foto" name="foto" accept="image/png,image/jpeg,image/jpg,image/webp" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors">
+            </div>
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>

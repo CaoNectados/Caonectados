@@ -24,7 +24,12 @@ unset($_SESSION['old']);
             </div>
         <?php endif; ?>
 
-        <form action="<?= URL_BASE ?>/animal" method="POST" class="w-full max-w-md flex flex-col gap-6">
+        <form action="<?= URL_BASE ?>/animal" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6">
+
+            <div>
+                <label for="foto" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Foto do animal</label>
+                <input type="file" id="foto" name="foto" accept="image/png,image/jpeg,image/jpg,image/webp" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+            </div>
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>

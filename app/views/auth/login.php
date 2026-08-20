@@ -1,52 +1,68 @@
-<?php 
-require_once __DIR__ . '/../templates/header.php'; 
+<?php
+require_once __DIR__ . '/../templates/header.php';
+$urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 ?>
-<header class="text-center my-6">
-    <h1 class="text-2xl font-bold font-shantell text-primary">Bem-vindo de volta!</h1>
-    <p class="text-sm text-text-muted">Faça login para acessar o CãoNectados</p>
-</header>
 
-<form action="<?= URL_BASE ?>/login" method="POST" class="max-w-md mx-auto p-4 space-y-4">
-    <div>
-        <label for="email" class="label-padrao">E-mail</label>
-        <input type="email" name="email" id="email" required placeholder="Digite seu e-mail" class="input-padrao">
-    </div>
+<div class="min-h-[75vh] flex flex-col items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md">
+            <div class="flex justify-end gap-6 mt-10 opacity-80">
+            <img src="<?= $urlBase ?>/assets/img/patinha-baixo.png" alt="" class="w-8 h-8 -rotate-12">
+            <img src="<?= $urlBase ?>/assets/img/patinha-cima.png" alt="" class="w-8 h-8 rotate-12 mt-4">
+        </div>
+        <h1 class="text-center text-3xl font-bold font-shantell text-text-dark dark:text-white mb-8">Login</h1>
 
-    <div>
-        <label for="senha" class="label-padrao">Senha</label>
-        <div class="relative">
-            <input type="password" name="senha" id="senha" required placeholder="Digite sua senha" class="input-padrao pr-10">
-            <button type="button" onclick="toggleSenha('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary focus:outline-none" aria-label="Mostrar senha">
-                👁️
-            </button>
+        <form action="<?= URL_BASE ?>/login" method="POST" class="space-y-5">
+            <div>
+                <input type="email" name="email" id="email" required placeholder="E-mail" class="input-padrao">
+            </div>
+
+            <div>
+                <div class="relative">
+                    <input type="password" name="senha" id="senha" required placeholder="Senha" class="input-padrao pr-12">
+                    <button type="button" onclick="togglePassword('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none" aria-label="Mostrar senha">
+                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5">
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-left">
+                <a href="<?= URL_BASE ?>/esqueci-senha" class="text-sm text-informativo hover:underline underline font-medium">Esqueci a senha</a>
+            </div>
+
+            <button type="submit" class="btn-auth-primario text-white">Entrar</button>
+
+            <a href="<?= URL_BASE ?>/cadastro" class="btn-auth-secundario">Criar Conta</a>
+        </form>
+
+        <div class="flex justify-start gap-6 mt-10 opacity-80">
+            <img src="<?= $urlBase ?>/assets/img/patinha-baixo.png" alt="" class="w-8 h-8 -rotate-12">
+            <img src="<?= $urlBase ?>/assets/img/patinha-cima.png" alt="" class="w-8 h-8 rotate-12 mt-4">
         </div>
     </div>
-    
-    <div class="text-right">
-        <a href="<?= URL_BASE ?>/esqueci-senha" class="text-xs text-primary hover:underline font-medium">Esqueceu sua senha?</a>
-    </div>
-
-    <button type="submit" class="btn-primario w-full">Entrar</button>
-</form>
-
-<div class="text-center mt-4">
-    <p class="text-sm text-text-muted">Ainda não tem uma conta? <a href="<?= URL_BASE ?>/cadastro" class="text-primary font-bold hover:underline">Cadastre-se Aqui!</a></p>
 </div>
 
 <script>
-function toggleSenha(inputId, btn) {
+function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
+    const img = btn.querySelector('img');
+    const olhoAberto = '<?= $urlBase ?>/assets/icons/olho-aberto.svg';
+    const olhoFechado = '<?= $urlBase ?>/assets/icons/olho-fechado.svg';
+
     if (input.type === 'password') {
         input.type = 'text';
-        btn.textContent = '🙈';
+        img.src = olhoFechado;
+        img.alt = 'Ocultar senha';
+        btn.setAttribute('aria-label', 'Ocultar senha');
     } else {
         input.type = 'password';
-        btn.textContent = '👁️';
+        img.src = olhoAberto;
+        img.alt = 'Mostrar senha';
+        btn.setAttribute('aria-label', 'Mostrar senha');
     }
 }
 
 document.querySelector('form').addEventListener('submit', async function(event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
     const form = event.target;
     const formData = new FormData(form);
@@ -63,7 +79,7 @@ document.querySelector('form').addEventListener('submit', async function(event) 
         if (result.status === 'erro') {
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = btnTextoOriginal;
-            mostrarModalFeedback('erro', result.mensagem); 
+            mostrarModalFeedback('erro', result.mensagem);
         } else if (result.status === 'sucesso') {
             if (typeof limparAutoSave === 'function') limparAutoSave();
             window.location.href = result.redirect_url;
@@ -77,6 +93,6 @@ document.querySelector('form').addEventListener('submit', async function(event) 
 </script>
 <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
 
-<?php 
-require_once __DIR__ . '/../templates/footer.php'; 
+<?php
+require_once __DIR__ . '/../templates/footer.php';
 ?>

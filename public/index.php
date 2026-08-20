@@ -52,9 +52,11 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 
 
 // ==========================================
-// 3. ROTAS GERAIS (FEED E PERFIL)
+// 3. ROTAS GERAIS (PERFIL)
 // ==========================================
-$router->get('/feed', 'geral/FeedController@feed');
+// Feed temporariamente removido desta etapa do projeto (controller/view/repository
+// mantidos no código para reativação futura — só a rota está desligada).
+// $router->get('/feed', 'geral/FeedController@feed');
 
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
@@ -165,6 +167,7 @@ $router->post('/admin/raca/atualizar', 'admin/RacaController@update');
 $router->post('/admin/raca/deletar', 'admin/RacaController@destroy');
 $router->post('/admin/raca/importar', 'admin/RacaController@importar');
 $router->get('/admin/raca/json', 'admin/RacaController@buscarJson');
+$router->get('/admin/raca/sugestoes-json', 'admin/RacaController@sugestoesJson');
 
 // Rota pública/compartilhada para AJAX de raças
 $router->get('/raca/json', 'admin\RacaController@buscarJson');

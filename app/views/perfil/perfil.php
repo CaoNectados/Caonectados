@@ -30,8 +30,19 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     $srcFoto = $urlBase . '/assets/img/perfil-placeholder.png';
 }
 
+// 'usuario' é um estado transitório (antes do onboarding) e nunca deve aparecer
+// visualmente — um usuário nesse estado é tratado/exibido como "Adotante".
+$labelsPerfil = [
+    'usuario'       => 'Adotante',
+    'adotante'      => 'Adotante',
+    'protetor'      => 'Protetor',
+    'ong'           => 'ONG',
+    'administrador' => 'Administrador',
+    'admin'         => 'Administrador',
+];
+
 $tituloCabecalho = 'Perfil';
-$badgeTexto = ucfirst($tipoPerfil);
+$badgeTexto = $labelsPerfil[$tipoPerfil] ?? ucfirst($tipoPerfil);
 $botoes = [];
 
 if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
@@ -52,7 +63,6 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Relatórios',       'icone' => 'relatorios.svg',    'url' => '/relatorios'],
         ['label' => 'Gerenciar Animais','icone' => 'patinha.svg',       'url' => '/animal'],
         ['label' => 'Solicitações',     'icone' => 'solicitacoes.svg',  'url' => '/solicitacoes'],
-        ['label' => 'Quero adotar!',    'icone' => 'quero-adotar.svg',  'url' => '/feed'],
         ['label' => 'Excluir Conta',    'icone' => 'excluir.svg',       'url' => '/perfil/excluir'],
         ['label' => 'Sair',             'icone' => 'sair.svg',          'url' => '/logout'],
         ['label' => 'Denunciar',        'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
@@ -77,27 +87,29 @@ $paginasBotoes = array_chunk($botoes, 6);
 <div class="max-w-md mx-auto bg-background min-h-screen pb-20">
     <div class="px-6 -mt-4 pt-10 flex flex-col items-center">
         
-        <!-- Badge de Perfil Atual -->
-        <div class="bg-rosa-3 dark:bg-primary text-text-dark dark:text-white font-shantell font-bold text-xl px-12 py-1.5 rounded-full relative mb-6 shadow-sm border border-rosa-2">
-            <span class="absolute -left-3 -top-1 text-xl">🐾</span>
-            <?= htmlspecialchars($badgeTexto) ?>
-            <span class="absolute -right-3 -top-1 text-xl">🐾</span>
+        <!-- Badge de Perfil Atual (formato de fita/banner, como no protótipo) -->
+        <div class="relative flex items-center justify-center mb-6">
+            <img src="<?= URL_BASE ?>/assets/icons/geral/patinha-coracao.svg" class="absolute -left-5 z-10 h-10 w-10 object-contain" alt="">
+            <div class="ribbon-perfil bg-roxo2 dark:bg-primary text-white font-shantell font-bold text-xl px-12 py-2 shadow-sm">
+                <?= htmlspecialchars($badgeTexto) ?>
+            </div>
+            <img src="<?= URL_BASE ?>/assets/icons/geral/patinha-coracao.svg" class="absolute -right-5 z-10 h-10 w-10 object-contain" alt="">
         </div>
 
         <!-- Foto de Perfil -->
         <div class="relative mb-4">
-            <div class="w-32 h-32 rounded-full border-[5px] border-rosa-3 dark:border-preto3 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow-md">
-                <img src="<?= htmlspecialchars($srcFoto) ?>" 
-                     id="foto-perfil-display" 
-                     alt="Foto de perfil" 
+            <div class="w-32 h-32 rounded-full border-[6px] border-roxoApagado dark:border-preto3 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow-md">
+                <img src="<?= htmlspecialchars($srcFoto) ?>"
+                     id="foto-perfil-display"
+                     alt="Foto de perfil"
                      class="w-full h-full rounded-full <?= ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') ? 'object-contain p-2 bg-white' : 'object-cover' ?>"
                      onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
             </div>
-            
+
             <?php if (!in_array($tipoPerfil, ['administrador', 'admin'], true)): ?>
-                <button type="button" 
-                        onclick="document.getElementById('input-foto-direta').click()" 
-                        class="absolute bottom-1 right-0 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted hover:bg-rosa-1 transition hover:scale-105 cursor-pointer"
+                <button type="button"
+                        onclick="document.getElementById('input-foto-direta').click()"
+                        class="absolute top-0 right-0 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted hover:bg-rosa-1 transition hover:scale-105 cursor-pointer"
                         title="Alterar foto">
                     ✏️
                 </button>
@@ -111,7 +123,7 @@ $paginasBotoes = array_chunk($botoes, 6);
         </h2>
 
         <!-- Container de Ações -->
-        <div class="w-full bg-surface dark:bg-preto1 rounded-3xl p-5 shadow-inner relative border border-rosa-2 dark:border-preto3">
+        <div class="w-full bg-gray-200 dark:bg-preto1 rounded-3xl p-5 shadow-inner relative border border-gray-300 dark:border-preto3">
             <div class="flex items-center justify-center gap-2 mb-4">
                 <span class="text-xl">⚙️</span>
                 <h3 class="font-bold text-lg text-text-dark dark:text-white"><?= htmlspecialchars($tituloCabecalho) ?></h3>
@@ -123,14 +135,14 @@ $paginasBotoes = array_chunk($botoes, 6);
                     <div class="min-w-full snap-center grid grid-cols-3 gap-3 auto-rows-max">
                         <?php foreach ($pagina as $botao): ?>
                             <?php if (isset($botao['action'])): ?>
-                                <button type="button" onclick="<?= htmlspecialchars($botao['action']) ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-24 cursor-pointer border border-rosa-2 dark:border-preto3 w-full">
-                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-8 w-8 mb-2 object-contain">
-                                    <span class="text-[10px] font-bold leading-tight text-text-dark dark:text-white"><?= htmlspecialchars($botao['label']) ?></span>
+                                <button type="button" onclick="<?= htmlspecialchars($botao['action']) ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-28 cursor-pointer border border-rosa-2 dark:border-preto3 w-full">
+                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-11 w-11 mb-2 object-contain">
+                                    <span class="text-xs font-bold leading-tight text-text-dark dark:text-white"><?= htmlspecialchars($botao['label']) ?></span>
                                 </button>
                             <?php else: ?>
-                                <a href="<?= $urlBase . $botao['url'] ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-24 border border-rosa-2 dark:border-preto3">
-                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-8 w-8 mb-2 object-contain">
-                                    <span class="text-[10px] font-bold leading-tight text-text-dark dark:text-white"><?= htmlspecialchars($botao['label']) ?></span>
+                                <a href="<?= $urlBase . $botao['url'] ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-28 border border-rosa-2 dark:border-preto3">
+                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-11 w-11 mb-2 object-contain">
+                                    <span class="text-xs font-bold leading-tight text-text-dark dark:text-white"><?= htmlspecialchars($botao['label']) ?></span>
                                 </a>
                             <?php endif; ?>
                         <?php endforeach; ?>
@@ -163,15 +175,17 @@ $paginasBotoes = array_chunk($botoes, 6);
         <p class="text-sm font-poppins text-text-muted mb-5">Selecione o perfil desejado para navegar:</p>
 
         <div class="space-y-3">
-            <?php 
-            $perfis = $_SESSION['perfis'] ?? [];
-            if (!empty($perfis)): 
-                foreach ($perfis as $p): 
+            <?php
+            // O pseudo-perfil "usuario" (estado transitório pré-onboarding) nunca é uma
+            // opção real de navegação — filtrado da listagem de troca de perfil.
+            $perfis = array_values(array_filter($_SESSION['perfis'] ?? [], fn($p) => ($p['tipo'] ?? '') !== 'usuario'));
+            if (!empty($perfis)):
+                foreach ($perfis as $p):
                     $isCurrent = (isset($_SESSION['perfil_ativo']['tipo']) && $_SESSION['perfil_ativo']['tipo'] === $p['tipo']);
             ?>
                 <div class="flex items-center justify-between p-4 rounded-xl transition border <?= $isCurrent ? 'bg-rosa-1/40 border-primary dark:bg-preto2' : 'bg-branco dark:bg-preto2 border-cinzaMarrom/30' ?>">
                     <div>
-                        <p class="font-bold text-text-dark dark:text-white capitalize"><?= htmlspecialchars($p['tipo'] === 'ong' ? 'ONG' : ($p['tipo'] === 'administrador' ? 'Administrador' : $p['tipo'])) ?></p>
+                        <p class="font-bold text-text-dark dark:text-white"><?= htmlspecialchars($labelsPerfil[$p['tipo']] ?? ucfirst($p['tipo'])) ?></p>
                     </div>
                     <?php if ($isCurrent): ?>
                         <span class="text-xs bg-primary text-white font-bold px-3 py-1.5 rounded-full shadow-sm">Ativo</span>

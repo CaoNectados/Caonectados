@@ -32,68 +32,25 @@
  <!-- Painel de Sugestões da API com Accordion -->
     <?php if (isset($_GET['aba']) && $_GET['aba'] === 'sugestoes'): ?>
         <div class="card-padrao mb-8 border border-rosa-3 bg-rosa-1/40 dark:bg-preto2 p-6 rounded-2xl">
-            <div class="mb-6">
-                <h3 class="text-lg font-bold text-text-dark dark:text-white flex items-center gap-2">
-                    <span>🌐</span> Sugestões Externas (TheDogAPI & TheCatAPI)
-                </h3>
-                <p class="text-sm text-text-muted mt-1">Raças já cadastradas no seu banco foram filtradas automaticamente. Abra os grupos abaixo, marque ou desmarque as raças desejadas e clique em aceitar.</p>
+            <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h3 class="text-lg font-bold text-text-dark dark:text-white flex items-center gap-2">
+                        <span>🌐</span> Sugestões Externas (TheDogAPI & TheCatAPI)
+                    </h3>
+                    <p class="text-sm text-text-muted mt-1">Essas sugestões só são buscadas quando você clicar no botão — a página não faz nenhuma chamada externa sozinha.</p>
+                </div>
+                <button type="button" id="btn-buscar-sugestoes" onclick="buscarSugestoesApi()" class="btn-primario text-xs sm:text-sm whitespace-nowrap self-start sm:self-auto">
+                    🔎 Buscar Sugestões da API
+                </button>
             </div>
 
-            <div class="space-y-4">
-                <?php foreach (($sugestoesApi ?? []) as $grupo): 
-                    $slug = strtolower($grupo['especie']); 
-                ?>
-                    <!-- O formulário envolve todo o card da espécie para enviar as raças marcadas corretamente -->
-                    <form action="<?= URL_BASE ?>/admin/raca/importar" method="POST" class="border border-rosa-3/60 rounded-xl bg-branco dark:bg-preto1 overflow-hidden shadow-sm">
-                        <input type="hidden" name="especie_nome" value="<?= $grupo['especie'] ?>">
-
-                        <!-- Cabeçalho do Accordion -->
-                        <button type="button" onclick="toggleAccordion('acc-<?= $slug ?>')" class="w-full flex items-center justify-between p-4 bg-rosa-1/50 dark:bg-preto3 text-text-dark dark:text-white font-bold text-left transition">
-                            <span class="flex items-center gap-2 text-base">
-                                <span><?= $grupo['icon'] ?></span> Espécie: <?= $grupo['especie'] ?> 
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-primary text-white ml-2"><?= count($grupo['racas']) ?> novas raças disponíveis</span>
-                            </span>
-                            <span class="text-sm">▼</span>
-                        </button>
-
-                        <!-- Conteúdo do Accordion -->
-                        <div id="acc-<?= $slug ?>" style="display: none;" class="p-4 space-y-3 border-t border-rosa-2/30 dark:border-preto3">
-                            
-                            <!-- Controles Mestre (Marcar/Desmarcar Todas) -->
-                            <div class="flex items-center justify-between bg-surface dark:bg-preto2 p-2.5 rounded-lg border border-cinzaMarrom/20 mb-2">
-                                <label class="flex items-center gap-2 text-sm font-semibold text-text-dark dark:text-white cursor-pointer select-none">
-                                    <input type="checkbox" id="master-<?= $slug ?>" checked onchange="toggleTodas(this, '<?= $slug ?>')" class="rounded text-primary focus:ring-roxinhoFofo">
-                                    Selecionar / Deselecionar Todas
-                                </label>
-                            </div>
-                            
-                            <?php if (!empty($grupo['racas'])): ?>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-2">
-                                    <?php foreach ($grupo['racas'] as $idx => $racaNome): ?>
-                                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-background dark:bg-preto2 border border-cinzaMarrom/20" id="raca-item-<?= $slug ?>-<?= $idx ?>">
-                                            <label class="flex items-center gap-2 text-sm font-medium text-text-dark dark:text-white cursor-pointer flex-grow truncate">
-                                                <input type="checkbox" name="racas_aceitas[]" value="<?= htmlspecialchars($racaNome) ?>" checked class="chk-raca-<?= $slug ?> rounded text-primary focus:ring-roxinhoFofo">
-                                                <span class="truncate" title="<?= htmlspecialchars($racaNome) ?>"><?= htmlspecialchars($racaNome) ?></span>
-                                            </label>
-                                            <button type="button" onclick="removerRaca('raca-item-<?= $slug ?>-<?= $idx ?>', '<?= $slug ?>');" class="text-xs px-2 py-1 rounded bg-rosaAlerta/10 text-rosaAlerta hover:bg-rosaAlerta hover:text-white transition font-semibold ml-2 flex-shrink-0" title="Rejeitar raça">
-                                                Rejeitar
-                                            </button>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-
-                                <div class="pt-3 flex items-center justify-end gap-3 border-t border-cinzaMarrom/20">
-                                    <button type="submit" class="btn-primario text-xs sm:text-sm">
-                                        ✅ Aceitar Espécie e Raças Marcadas
-                                    </button>
-                                </div>
-                            <?php else: ?>
-                                <p class="text-text-muted italic text-xs py-4 text-center">Todas as raças desta espécie já foram importadas para o banco!</p>
-                            <?php endif; ?>
-                        </div>
-                    </form>
-                <?php endforeach; ?>
+            <!-- Estado de carregamento (spinner simples) -->
+            <div id="loading-sugestoes" class="hidden flex flex-col items-center justify-center gap-3 py-10">
+                <div class="w-10 h-10 border-4 border-rosa-3 border-t-primary rounded-full animate-spin"></div>
+                <p class="text-sm text-text-muted">Consultando TheDogAPI e TheCatAPI, aguarde...</p>
             </div>
+
+            <div id="container-sugestoes-api" class="space-y-4"></div>
         </div>
     <?php endif; ?>
 
@@ -188,10 +145,96 @@
 
     function removerRaca(idElemento, slug) {
         document.getElementById(idElemento).remove();
-        
+
         const aindaVisiveis = document.querySelectorAll('.chk-raca-' + slug).length;
         if(aindaVisiveis === 0) {
             document.getElementById('master-' + slug).checked = false;
+        }
+    }
+
+    function escaparHtml(texto) {
+        const div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+    }
+
+    function renderizarGrupoSugestao(grupo) {
+        const slug = grupo.especie.toLowerCase();
+        const urlBase = '<?= URL_BASE ?>';
+
+        let itensHtml = '';
+        if (grupo.racas.length > 0) {
+            grupo.racas.forEach(function (racaNome, idx) {
+                const nomeSeguro = escaparHtml(racaNome);
+                itensHtml += `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-background dark:bg-preto2 border border-cinzaMarrom/20" id="raca-item-${slug}-${idx}">
+                        <label class="flex items-center gap-2 text-sm font-medium text-text-dark dark:text-white cursor-pointer flex-grow truncate">
+                            <input type="checkbox" name="racas_aceitas[]" value="${nomeSeguro}" checked class="chk-raca-${slug} rounded text-primary focus:ring-roxinhoFofo">
+                            <span class="truncate" title="${nomeSeguro}">${nomeSeguro}</span>
+                        </label>
+                        <button type="button" onclick="removerRaca('raca-item-${slug}-${idx}', '${slug}');" class="text-xs px-2 py-1 rounded bg-rosaAlerta/10 text-rosaAlerta hover:bg-rosaAlerta hover:text-white transition font-semibold ml-2 flex-shrink-0" title="Rejeitar raça">
+                            Rejeitar
+                        </button>
+                    </div>`;
+            });
+
+            itensHtml = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-2">${itensHtml}</div>
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-cinzaMarrom/20">
+                    <button type="submit" class="btn-primario text-xs sm:text-sm">✅ Aceitar Espécie e Raças Marcadas</button>
+                </div>`;
+        } else {
+            itensHtml = '<p class="text-text-muted italic text-xs py-4 text-center">Todas as raças desta espécie já foram importadas para o banco!</p>';
+        }
+
+        return `
+            <form action="${urlBase}/admin/raca/importar" method="POST" class="border border-rosa-3/60 rounded-xl bg-branco dark:bg-preto1 overflow-hidden shadow-sm">
+                <input type="hidden" name="especie_nome" value="${escaparHtml(grupo.especie)}">
+                <button type="button" onclick="toggleAccordion('acc-${slug}')" class="w-full flex items-center justify-between p-4 bg-rosa-1/50 dark:bg-preto3 text-text-dark dark:text-white font-bold text-left transition">
+                    <span class="flex items-center gap-2 text-base">
+                        <span>${grupo.icon}</span> Espécie: ${escaparHtml(grupo.especie)}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-primary text-white ml-2">${grupo.racas.length} novas raças disponíveis</span>
+                    </span>
+                    <span class="text-sm">▼</span>
+                </button>
+                <div id="acc-${slug}" style="display: none;" class="p-4 space-y-3 border-t border-rosa-2/30 dark:border-preto3">
+                    <div class="flex items-center justify-between bg-surface dark:bg-preto2 p-2.5 rounded-lg border border-cinzaMarrom/20 mb-2">
+                        <label class="flex items-center gap-2 text-sm font-semibold text-text-dark dark:text-white cursor-pointer select-none">
+                            <input type="checkbox" id="master-${slug}" checked onchange="toggleTodas(this, '${slug}')" class="rounded text-primary focus:ring-roxinhoFofo">
+                            Selecionar / Deselecionar Todas
+                        </label>
+                    </div>
+                    ${itensHtml}
+                </div>
+            </form>`;
+    }
+
+    async function buscarSugestoesApi() {
+        const btn = document.getElementById('btn-buscar-sugestoes');
+        const loading = document.getElementById('loading-sugestoes');
+        const container = document.getElementById('container-sugestoes-api');
+
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+        loading.classList.remove('hidden');
+        container.innerHTML = '';
+
+        try {
+            const resp = await fetch('<?= URL_BASE ?>/admin/raca/sugestoes-json');
+            const res = await resp.json();
+
+            if (res.status === 'sucesso' && Array.isArray(res.sugestoes)) {
+                container.innerHTML = res.sugestoes.map(renderizarGrupoSugestao).join('');
+                btn.textContent = '🔄 Atualizar Sugestões';
+            } else {
+                container.innerHTML = '<p class="text-erro text-sm text-center py-6">' + (res.mensagem || 'Não foi possível buscar as sugestões agora.') + '</p>';
+            }
+        } catch (e) {
+            container.innerHTML = '<p class="text-erro text-sm text-center py-6">Erro de conexão ao buscar sugestões externas.</p>';
+        } finally {
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            loading.classList.add('hidden');
         }
     }
 </script>

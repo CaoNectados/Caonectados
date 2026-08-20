@@ -9,18 +9,20 @@ require_once __DIR__ . '/../templates/header.php';
     <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
 
     <!-- BARRA DE PROGRESSO GLOBAL (6 ETAPAS) -->
+    <!-- Classe base precisa ser bg-gray-300: OnboardingManager.atualizarVisualEtapas() (onboarding.js)
+         alterna especificamente entre bg-gray-300 (pendente) e bg-green-500 (concluída/atual). -->
     <div class="flex justify-center gap-2 mb-6">
-        <div id="progresso-1" class="h-2 w-8 rounded-full bg-primary/20 transition-colors duration-300"></div>
-        <div id="progresso-2" class="h-2 w-8 rounded-full bg-primary/20 transition-colors duration-300"></div>
-        <div id="progresso-3" class="h-2 w-8 rounded-full bg-primary/20 transition-colors duration-300"></div>
-        <div id="progresso-4" class="h-2 w-8 rounded-full bg-primary/20 transition-colors duration-300"></div>
-        <div id="progresso-5" class="h-2 w-8 rounded-full bg-primary/20 transition-colors duration-300"></div>
-        <div id="progresso-6" class="h-2 w-8 rounded-full bg-primary/20 transition-colors duration-300"></div>
+        <div id="progresso-1" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-2" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-3" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-4" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-5" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
+        <div id="progresso-6" class="h-2 w-8 rounded-full bg-gray-300 dark:bg-preto3 transition-colors duration-300"></div>
     </div>
 
     <!-- BOTÃO VOLTAR -->
-    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-2xl font-bold cursor-pointer transition hover:opacity-75 text-primary" title="Voltar">
-        &#129144;
+    <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-xl font-bold cursor-pointer transition hover:opacity-75 text-primary" title="Voltar">
+        <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="Voltar" class="w-8 h-8">
     </button>
 
     <!-- ETAPA 1: Como podemos te chamar? -->
@@ -31,11 +33,11 @@ require_once __DIR__ . '/../templates/header.php';
             <div class="flex flex-col items-center mb-6 mt-4">
                 <div class="relative cursor-pointer group" onclick="document.getElementById('input-arquivo-perfil').click()">
                     <div class="w-28 h-28 rounded-full border-4 border-rosa-3 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow">
-                        <span id="foto-placeholder-adotante" class="text-text-muted text-3xl font-bold">&#128247;</span>
+                        <img id="foto-placeholder-adotante" src="<?= URL_BASE ?>/assets/img/perfil-placeholder.png" alt="Adicionar foto de perfil" class="w-full h-full object-cover opacity-60">
                         <img id="preview-foto-perfil" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
                     </div>
-                    <div class="absolute bottom-0 right-0 bg-surface dark:bg-preto1 p-1.5 rounded-full shadow border border-rosa-2 text-text-muted text-xs group-hover:bg-rosa-1">
-                        ✏️
+                    <div class="absolute bottom-0 right-0 bg-surface dark:bg-preto1 p-1.5 rounded-full shadow border border-rosa-2 group-hover:bg-rosa-1">
+                        <img src="<?= URL_BASE ?>/assets/icons/perfil/editar-perfil.svg" alt="Editar foto" class="w-4 h-4">
                     </div>
                 </div>
                 <span class="text-xs text-text-muted mt-2">Toque para escolher e ajustar sua foto</span>
@@ -67,7 +69,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para Preferências</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-xl font-bold flex items-center justify-center text-white hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -81,7 +83,7 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="space-y-4 mb-6 text-left">
             <div>
                 <label class="label-padrao">Possui filhos ou crianças em casa? *</label>
-                <select name="possui_criancas" id="possui_criancas" class="input-padrao bg-surface dark:bg-preto2 text-sm">
+                <select name="possui_criancas" id="possui_criancas" class="input-padrao bg-surface dark:bg-preto2 text-sm appearance-none bg-no-repeat pr-10 bg-[right_0.75rem_center] bg-[length:1.1rem] bg-[url('data:image/svg+xml,%3Csvg_xmlns=%27http://www.w3.org/2000/svg%27_viewBox=%270_0_24_24%27_fill=%27none%27_stroke=%27%23716C93%27_stroke-width=%272.5%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27%3E%3Cpath_d=%27m6_9_6_6_6-6%27/%3E%3C/svg%3E')]">
                     <option value="" disabled selected>Escolha</option>
                     <option value="sim">Sim</option>
                     <option value="nao">Não</option>
@@ -90,7 +92,7 @@ require_once __DIR__ . '/../templates/header.php';
 
             <div>
                 <label class="label-padrao">Possui outros pets? *</label>
-                <select name="possui_outros_pets" id="possui_outros_pets" class="input-padrao bg-surface dark:bg-preto2 text-sm">
+                <select name="possui_outros_pets" id="possui_outros_pets" class="input-padrao bg-surface dark:bg-preto2 text-sm appearance-none bg-no-repeat pr-10 bg-[right_0.75rem_center] bg-[length:1.1rem] bg-[url('data:image/svg+xml,%3Csvg_xmlns=%27http://www.w3.org/2000/svg%27_viewBox=%270_0_24_24%27_fill=%27none%27_stroke=%27%23716C93%27_stroke-width=%272.5%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27%3E%3Cpath_d=%27m6_9_6_6_6-6%27/%3E%3C/svg%3E')]">
                     <option value="" disabled selected>Escolha</option>
                     <option value="sim">Sim</option>
                     <option value="nao">Não</option>
@@ -100,7 +102,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-xl font-bold flex items-center justify-center text-white hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -114,7 +116,7 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="space-y-4 mb-6 text-left">
             <div>
                 <label for="tipo_moradia" class="label-padrao">Tipo de moradia *</label>
-                <select name="tipo_moradia" id="tipo_moradia" class="input-padrao bg-surface dark:bg-preto2 text-sm">
+                <select name="tipo_moradia" id="tipo_moradia" class="input-padrao bg-surface dark:bg-preto2 text-sm appearance-none bg-no-repeat pr-10 bg-[right_0.75rem_center] bg-[length:1.1rem] bg-[url('data:image/svg+xml,%3Csvg_xmlns=%27http://www.w3.org/2000/svg%27_viewBox=%270_0_24_24%27_fill=%27none%27_stroke=%27%23716C93%27_stroke-width=%272.5%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27%3E%3Cpath_d=%27m6_9_6_6_6-6%27/%3E%3C/svg%3E')]">
                     <option value="" disabled selected>Escolha</option>
                     <option value="casa">Casa</option>
                     <option value="apartamento">Apartamento</option>
@@ -124,7 +126,7 @@ require_once __DIR__ . '/../templates/header.php';
             </div>
             <div>
                 <label for="espaco_interior" class="label-padrao">Espaço interior *</label>
-                <select name="espaco_interior" id="espaco_interior" class="input-padrao bg-surface dark:bg-preto2 text-sm">
+                <select name="espaco_interior" id="espaco_interior" class="input-padrao bg-surface dark:bg-preto2 text-sm appearance-none bg-no-repeat pr-10 bg-[right_0.75rem_center] bg-[length:1.1rem] bg-[url('data:image/svg+xml,%3Csvg_xmlns=%27http://www.w3.org/2000/svg%27_viewBox=%270_0_24_24%27_fill=%27none%27_stroke=%27%23716C93%27_stroke-width=%272.5%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27%3E%3Cpath_d=%27m6_9_6_6_6-6%27/%3E%3C/svg%3E')]">
                     <option value="" disabled selected>Escolha</option>
                     <option value="pequeno">Pequeno</option>
                     <option value="medio">Médio</option>
@@ -133,7 +135,7 @@ require_once __DIR__ . '/../templates/header.php';
             </div>
             <div>
                 <label for="espaco_externo" class="label-padrao">Espaço externo *</label>
-                <select name="espaco_externo" id="espaco_externo" class="input-padrao bg-surface dark:bg-preto2 text-sm">
+                <select name="espaco_externo" id="espaco_externo" class="input-padrao bg-surface dark:bg-preto2 text-sm appearance-none bg-no-repeat pr-10 bg-[right_0.75rem_center] bg-[length:1.1rem] bg-[url('data:image/svg+xml,%3Csvg_xmlns=%27http://www.w3.org/2000/svg%27_viewBox=%270_0_24_24%27_fill=%27none%27_stroke=%27%23716C93%27_stroke-width=%272.5%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27%3E%3Cpath_d=%27m6_9_6_6_6-6%27/%3E%3C/svg%3E')]">
                     <option value="" disabled selected>Escolha</option>
                     <option value="nenhum">Não possui quintal</option>
                     <option value="pequeno">Quintal pequeno</option>
@@ -145,20 +147,23 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-xl font-bold flex items-center justify-center text-white hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
     <!-- ETAPA 4: Região e Localização -->
     <div class="etapa-form hidden" id="etapa-4">
         <div class="text-center mb-6">
+            <div class="relative w-40 h-40 sm:w-56 sm:h-56 mx-auto mb-5">
+                <img src="<?= URL_BASE ?>/assets/img/mascote-localizacao.png" alt="" class="absolute inset-0 w-full h-full object-contain scale-150 pointer-events-none" onerror="this.style.display='none';">
+            </div>
             <h1 class="text-2xl font-bold mb-2 font-shantell text-text-dark dark:text-white">Selecione a sua localização</h1>
             <p class="text-sm text-text-muted">Selecione a sua localização para podermos encontrar os pets mais próximos de você e dar início a um novo match!</p>
         </div>
 
         <div class="mb-4 relative text-left">
             <label for="input-busca-bairro" class="label-padrao">Pesquise seu Bairro / Região *</label>
-            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white">
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -188,7 +193,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para Preferências</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-xl font-bold flex items-center justify-center text-white hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -287,7 +292,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ler os Termos</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-primary text-xl font-bold flex items-center justify-center text-white hover:bg-roxo1 transition">&rarr;</button>
+            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -328,7 +333,7 @@ require_once __DIR__ . '/../templates/header.php';
         <p class="text-xs text-text-muted mb-4 text-center">Arraste e use o zoom para centralizar.</p>
 
         <div class="w-full h-64 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
-            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
+            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-w-full max-h-full">
         </div>
 
         <div class="flex gap-3 w-full">

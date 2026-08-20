@@ -80,8 +80,9 @@ class AuthController extends Controller
                 // Se é ONG/Protetor e ainda não foi validado (0) pelo admin, vai para a espera
                 $urlRedirect = '/aguardando-aprovacao';
             } else {
-                // Adotantes e Protetores validados (1) vão direto para o feed
-                $urlRedirect = '/feed';
+                // Adotantes e Protetores validados (1) vão para o perfil.
+                // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+                $urlRedirect = '/perfil';
             }
 
             $this->json(200, [

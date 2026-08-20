@@ -23,7 +23,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 <input type="hidden" name="foto_cortada" id="foto_cortada_base64">
 
                 <div class="relative <?= $tipoPerfil !== 'administrador' ? 'cursor-pointer group' : '' ?>" <?= $tipoPerfil !== 'administrador' ? 'onclick="abrirSeletorFoto()"' : '' ?>>
-                    <div class="w-32 h-32 rounded-full border-4 border-roxinhoFofo overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow p-1">
+                    <div class="w-32 h-32 rounded-full border-[5px] border-rosa-3 dark:border-preto3 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow p-1">
                         <?php
                         $caminhoDB = $especifico['foto_perfil'] ?? $_SESSION['foto_perfil'] ?? '';
                         if ($tipoPerfil === 'administrador') {
@@ -36,7 +36,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                             $fotoSrc = $urlBase . '/assets/img/perfil-placeholder.png';
                         }
                         ?>
-                        <img src="<?= $fotoSrc ?>" id="preview-foto" alt="Sua foto" class="w-full h-full rounded-full <?= $tipoPerfil === 'administrador' ? 'object-contain' : 'object-cover' ?>" onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
+                        <img src="<?= htmlspecialchars($fotoSrc) ?>" id="preview-foto" alt="Sua foto" class="w-full h-full rounded-full <?= $tipoPerfil === 'administrador' ? 'object-contain' : 'object-cover' ?>" onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
                     </div>
 
                     <!-- Lápis flutuante APENAS se NÃO for administrador -->
@@ -146,7 +146,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                                 $nomeRegiaoAtual = is_array($regiaoAtual) ? ($regiaoAtual['nome_regiao'] ?? '') : $regiaoAtual->getNomeRegiao();
                             }
                             ?>
-                            <input type="text" id="input-busca-bairro" list="lista-regioes" autocomplete="off" class="input-padrao bg-branco dark:bg-preto2 dark:text-white"
+                            <input type="text" id="input-busca-bairro" list="lista-regioes" autocomplete="off" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white"
                                 value="<?= htmlspecialchars($nomeRegiaoAtual) ?>"
                                 oninput="CaonectadosValidator.validarRegiao('input-busca-bairro', 'regiao_id_hidden', 'lista-regioes')">
 
@@ -204,14 +204,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <!-- ACORDEÃO 3: PREFERÊNCIAS / DOAÇÕES -->
             <?php if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario'): ?>
                 <?php
-                $detalhes = json_decode($especifico['detalhes'] ?? '{}', true);
-                $prefEspecieBruta = $detalhes['preferencias_especie'] ?? [];
-                if (!is_array($prefEspecieBruta)) {
-                    $prefEspecieBruta = [];
-                }
-                $prefEspecie = array_map('strval', $prefEspecieBruta);
-                $prefPorte   = $detalhes['preferencias_porte'] ?? [];
-                $prefSexo    = $detalhes['preferencias_sexo'] ?? [];
+                // Os valores já vêm normalizados do PerfilController::editar() (compatível com os
+                // dois formatos históricos de JSON já salvos em ADOTANTE.detalhes: chaves planas
+                // "preferencias_especie" e a estrutura antiga aninhada "preferencias.especie").
+                $prefEspecie = array_map('strval', $especifico['preferencias_especie'] ?? []);
+                $prefPorte   = $especifico['preferencias_porte'] ?? [];
+                $prefSexo    = $especifico['preferencias_sexo'] ?? [];
                 ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-pref')">
@@ -224,17 +222,18 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                             <div>
                                 <label class="label-padrao">Moradia</label>
                                 <select name="tipo_morada" id="tipo_morada" class="input-padrao bg-surface dark:bg-preto2 text-sm">
-                                    <option value="casa" <?= (($especifico['tipo_morada'] ?? '') === 'casa') ? 'selected' : '' ?>>Casa</option>
-                                    <option value="apartamento" <?= (($especifico['tipo_morada'] ?? '') === 'apartamento') ? 'selected' : '' ?>>Apto.</option>
-                                    <option value="sitio" <?= (($especifico['tipo_morada'] ?? '') === 'sitio') ? 'selected' : '' ?>>Sítio / Chácara</option>
+                                    <option value="casa" <?= (($especifico['tipo_moradia'] ?? '') === 'casa') ? 'selected' : '' ?>>Casa</option>
+                                    <option value="apartamento" <?= (($especifico['tipo_moradia'] ?? '') === 'apartamento') ? 'selected' : '' ?>>Apto.</option>
+                                    <option value="sitio" <?= (($especifico['tipo_moradia'] ?? '') === 'sitio') ? 'selected' : '' ?>>Sítio / Chácara</option>
+                                    <option value="outro" <?= (($especifico['tipo_moradia'] ?? '') === 'outro') ? 'selected' : '' ?>>Outro</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="label-padrao">Espaço Interno</label>
                                 <select name="tamanho_interno_morada" id="tamanho_interno_morada" class="input-padrao bg-surface dark:bg-preto2 text-sm">
-                                    <option value="pequeno" <?= (($especifico['tamanho_interno_morada'] ?? '') === 'pequeno') ? 'selected' : '' ?>>Pequeno</option>
-                                    <option value="medio" <?= (($especifico['tamanho_interno_morada'] ?? '') === 'medio') ? 'selected' : '' ?>>Médio</option>
-                                    <option value="grande" <?= (($especifico['tamanho_interno_morada'] ?? '') === 'grande') ? 'selected' : '' ?>>Grande</option>
+                                    <option value="pequeno" <?= (($especifico['tamanho_interno_moradia'] ?? '') === 'pequeno') ? 'selected' : '' ?>>Pequeno</option>
+                                    <option value="medio" <?= (($especifico['tamanho_interno_moradia'] ?? '') === 'medio') ? 'selected' : '' ?>>Médio</option>
+                                    <option value="grande" <?= (($especifico['tamanho_interno_moradia'] ?? '') === 'grande') ? 'selected' : '' ?>>Grande</option>
                                 </select>
                             </div>
                         </div>
@@ -242,10 +241,10 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                         <div>
                             <label class="label-padrao">Espaço Externo / Quintal</label>
                             <select name="espaco_externo" id="espaco_externo" class="input-padrao bg-surface dark:bg-preto2 text-sm">
-                                <option value="nenhum" <?= (($detalhes['espaco_externo'] ?? '') === 'nenhum') ? 'selected' : '' ?>>Não possui quintal</option>
-                                <option value="pequeno" <?= (($detalhes['espaco_externo'] ?? '') === 'pequeno') ? 'selected' : '' ?>>Quintal pequeno</option>
-                                <option value="medio" <?= (($detalhes['espaco_externo'] ?? '') === 'medio') ? 'selected' : '' ?>>Quintal médio</option>
-                                <option value="grande" <?= (($detalhes['espaco_externo'] ?? '') === 'grande') ? 'selected' : '' ?>>Quintal grande</option>
+                                <option value="nenhum" <?= (($especifico['espaco_externo'] ?? '') === 'nenhum') ? 'selected' : '' ?>>Não possui quintal</option>
+                                <option value="pequeno" <?= (($especifico['espaco_externo'] ?? '') === 'pequeno') ? 'selected' : '' ?>>Quintal pequeno</option>
+                                <option value="medio" <?= (($especifico['espaco_externo'] ?? '') === 'medio') ? 'selected' : '' ?>>Quintal médio</option>
+                                <option value="grande" <?= (($especifico['espaco_externo'] ?? '') === 'grande') ? 'selected' : '' ?>>Quintal grande</option>
                             </select>
                         </div>
 
@@ -253,15 +252,15 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                             <div>
                                 <label class="label-padrao">Crianças em casa?</label>
                                 <select name="possui_criancas" id="possui_criancas" class="input-padrao bg-surface dark:bg-preto2 text-sm">
-                                    <option value="sim" <?= (($detalhes['possui_criancas'] ?? '') === 'sim') ? 'selected' : '' ?>>Sim</option>
-                                    <option value="nao" <?= (($detalhes['possui_criancas'] ?? '') === 'nao') ? 'selected' : '' ?>>Não</option>
+                                    <option value="sim" <?= (($especifico['possui_criancas'] ?? '') === 'sim') ? 'selected' : '' ?>>Sim</option>
+                                    <option value="nao" <?= (($especifico['possui_criancas'] ?? '') === 'nao') ? 'selected' : '' ?>>Não</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="label-padrao">Outros pets?</label>
                                 <select name="possui_outros_pets" id="possui_outros_pets" class="input-padrao bg-surface dark:bg-preto2 text-sm">
-                                    <option value="sim" <?= (($detalhes['possui_outros_pets'] ?? '') === 'sim') ? 'selected' : '' ?>>Sim</option>
-                                    <option value="nao" <?= (($detalhes['possui_outros_pets'] ?? '') === 'nao') ? 'selected' : '' ?>>Não</option>
+                                    <option value="sim" <?= (($especifico['possui_outros_pets'] ?? '') === 'sim') ? 'selected' : '' ?>>Sim</option>
+                                    <option value="nao" <?= (($especifico['possui_outros_pets'] ?? '') === 'nao') ? 'selected' : '' ?>>Não</option>
                                 </select>
                             </div>
                         </div>
@@ -390,7 +389,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
         <p class="text-xs text-text-muted mb-4 text-center">Arraste e use o zoom para centralizar.</p>
 
         <div class="w-full h-64 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
-            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-block max-full">
+            <img id="imagem-para-cortar" src="" alt="Cortar" class="max-w-full max-h-full">
         </div>
 
         <div class="flex gap-3 w-full">

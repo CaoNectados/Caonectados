@@ -97,24 +97,26 @@
                     <div class="flex items-center gap-3.5">
                         <?php
                         $fotoNome = $u['foto_perfil'] ?? null;
-                        $caminhoFoto = $fotoNome ? URL_BASE . '/assets/uploads/' . htmlspecialchars($fotoNome) : null;
+                        if (!empty($fotoNome)) {
+                            $fotoLimpa = ltrim(trim($fotoNome), '/');
+                            $fotoLimpa = preg_replace('#^(assets/)?(uploads/)+#', '', $fotoLimpa);
+                            $caminhoFoto = URL_BASE . '/assets/uploads/' . htmlspecialchars($fotoLimpa);
+                        } else {
+                            $caminhoFoto = URL_BASE . '/assets/img/perfil-placeholder.png';
+                        }
                         ?>
-                        <?php if ($caminhoFoto): ?>
-                            <img src="<?= $caminhoFoto ?>"
-                                alt="<?= htmlspecialchars($u['nome'] ?? 'Usuário') ?>"
-                                class="h-12 w-12 rounded-full object-cover border border-rosa-3 flex-shrink-0 bg-white"
-                                onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'h-12 w-12 rounded-full bg-rosa-2/40 dark:bg-preto2 flex items-center justify-center text-xl flex-shrink-0 border border-rosa-3\'>👤</div>';">
-                        <?php else: ?>
-                            <div class="h-12 w-12 rounded-full bg-rosa-2/40 dark:bg-preto2 flex items-center justify-center text-xl flex-shrink-0 border border-rosa-3">
-                                👤
-                            </div>
-                        <?php endif; ?>
+                        <img src="<?= $caminhoFoto ?>"
+                            alt="<?= htmlspecialchars($u['nome'] ?? 'Usuário') ?>"
+                            class="h-12 w-12 rounded-full object-cover border border-rosa-3 flex-shrink-0 bg-white"
+                            onerror="this.onerror=null; this.src='<?= URL_BASE ?>/assets/img/perfil-placeholder.png';">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="font-bold text-base text-text-dark dark:text-white">
                                     <?= htmlspecialchars($u['nome'] ?? 'Sem Nome') ?>
                                 </h3>
-                                <?php if (!$isAtivo): ?>
+                                <?php if ($isAtivo): ?>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sucesso/20 text-sucesso">Ativo</span>
+                                <?php else: ?>
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rosaAlerta/20 text-rosaAlerta">Banido</span>
                                 <?php endif; ?>
                             </div>

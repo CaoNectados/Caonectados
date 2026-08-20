@@ -73,7 +73,7 @@ class Controller
 
         if (!empty($perfisPermitidos)) {
             if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
-                $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/feed');
+                $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/perfil');
             }
         }
 

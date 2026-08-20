@@ -22,6 +22,7 @@ class Animal
     private ?string $deletadoEm = null;
     private ?string $atualizadoEm = null;
     private ?string $racaNome = null;
+    private ?string $fotoPrincipal = null;
 
     public function getAnimalId(): ?int { return $this->animalId; }
     public function setAnimalId(?int $animalId): void { $this->animalId = $animalId; }
@@ -73,4 +74,7 @@ class Animal
 
     public function getRacaNome(): ?string { return $this->racaNome; }
     public function setRacaNome(?string $racaNome): void { $this->racaNome = $racaNome; }
+
+    public function getFotoPrincipal(): ?string { return $this->fotoPrincipal; }
+    public function setFotoPrincipal(?string $fotoPrincipal): void { $this->fotoPrincipal = $fotoPrincipal; }
 }

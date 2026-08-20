@@ -151,6 +151,8 @@ class MailService
             'nome_usuario'    => $nomeDestino,
             'titulo_mensagem' => 'Atualização sobre a validação do cadastro ⚠️',
             'mensagem_corpo'  => "Analisamos a documentação enviada para o seu perfil de Protetor/ONG, mas infelizmente não pudemos aprovar o seu cadastro neste momento.<br><br><strong>Motivo informado:</strong><br><em>{$motivoTexto}</em><br><br>Você pode revisar seus dados e documentos ou entrar em contato com nossa equipe para mais esclarecimentos.",
+            'link_botao'      => URL_BASE . '/aguardando-aprovacao',
+            'texto_botao'     => 'Corrigir Meus Dados',
             'mensagem_rodape' => 'Caso tenha dúvidas, responda diretamente a este e-mail para receber suporte.'
         ]);
     }
