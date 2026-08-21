@@ -38,18 +38,20 @@ class PaginaRepository extends BaseRepository
     }
 
     // Usado por: PerfilService::atualizarPerfil() e OnBoardingService (fluxo de reenvio de protetor)
-    public function atualizarPagina(int $protetorId, ?string $descricao, ?string $chavePix, ?string $fotoPerfil): bool
+    public function atualizarPagina(int $protetorId, ?string $descricao, ?string $chavePix, ?string $fotoPerfil, ?string $fotoFundo = null): bool
     {
-        $sql = "UPDATE PAGINA 
-                SET descricao = :descricao, 
-                    chave_pix = :chave_pix, 
-                    foto_perfil = COALESCE(:foto_perfil, foto_perfil)
+        $sql = "UPDATE PAGINA
+                SET descricao = :descricao,
+                    chave_pix = :chave_pix,
+                    foto_perfil = COALESCE(:foto_perfil, foto_perfil),
+                    foto_fundo = COALESCE(:foto_fundo, foto_fundo)
                 WHERE protetor_id = :protetor_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':descricao', $descricao, $descricao ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindValue(':chave_pix', $chavePix, $chavePix ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindValue(':foto_perfil', $fotoPerfil, $fotoPerfil ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $stmt->bindValue(':foto_fundo', $fotoFundo, $fotoFundo ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
 
         return $stmt->execute();

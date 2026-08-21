@@ -89,7 +89,23 @@ class OnboardingService
     // Usado por: OnBoardingController (pré-preenchimento do formulário de protetor/ONG)
     public function obterDadosPreenchidosProtetor(int $usuarioId): ?array
     {
-        return $this->protetorRepo->buscarPorUsuarioIdCompleto($usuarioId);
+        $dados = $this->protetorRepo->buscarPorUsuarioIdCompleto($usuarioId);
+        if ($dados === null) {
+            return null;
+        }
+
+        // As redes sociais (Instagram/Facebook) ficam em REDE, não em PROTETOR/PAGINA,
+        // então precisam ser buscadas à parte para pré-preencher o formulário de reenvio.
+        $redes = $this->redeRepo->buscarPorProtetorId((int) $dados['protetor_id']);
+        foreach ($redes as $rede) {
+            if ($rede['tipo_rede'] === 'instagram') {
+                $dados['instagram'] = $rede['link_rede'];
+            } elseif ($rede['tipo_rede'] === 'facebook') {
+                $dados['facebook'] = $rede['link_rede'];
+            }
+        }
+
+        return $dados;
     }
 
     // Usado por: OnBoardingController (cadastro de perfil adotante)
@@ -233,11 +249,18 @@ class OnboardingService
                 $caminhoDocumento = $this->uploadService->salvar($arquivos['comprovante_documento'], 'comprovante');
             }
 
+            // Arquivos antigos só são apagados do disco depois que a transação for
+            // confirmada (commit), pra não perder o arquivo caso algo mais abaixo falhe
+            // e a alteração seja revertida no banco.
+            $arquivosAntigosParaRemover = [];
+
             // Verifica se é atualização ou novo cadastro
             $protetorExistente = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
 
             if ($protetorExistente) {
                 $protetorId = (int)$protetorExistente['protetor_id'];
+                $comprovanteAntigo = $protetorExistente['comprovante_documento'] ?? null;
+
                 $this->protetorRepo->atualizarReenvio(
                     $protetorId,
                     trim($dados['nome_fantasia']),
@@ -245,6 +268,10 @@ class OnboardingService
                     $tipoDoc === 'cnpj' ? ($dados['data_abertura_cnpj'] ?? null) : null,
                     $caminhoDocumento
                 );
+
+                if ($caminhoDocumento && $comprovanteAntigo && $comprovanteAntigo !== $caminhoDocumento) {
+                    $arquivosAntigosParaRemover[] = $comprovanteAntigo;
+                }
             } else {
                 if (!$caminhoDocumento) {
                     throw new Exception("O envio do comprovante é obrigatório.");
@@ -273,7 +300,17 @@ class OnboardingService
 
             $paginaExistente = $this->paginaRepo->buscarPorProtetorId($protetorId);
             if ($paginaExistente) {
-                $this->paginaRepo->atualizarPagina($protetorId, $dados['descricao'] ?? null, $dados['chave_pix'] ?? null, $caminhoFotoPerfil);
+                $fotoPerfilAntiga = $paginaExistente['foto_perfil'] ?? null;
+                $fotoFundoAntiga = $paginaExistente['foto_fundo'] ?? null;
+
+                $this->paginaRepo->atualizarPagina($protetorId, $dados['descricao'] ?? null, $dados['chave_pix'] ?? null, $caminhoFotoPerfil, $caminhoFotoFundo);
+
+                if ($caminhoFotoPerfil && $fotoPerfilAntiga && $fotoPerfilAntiga !== $caminhoFotoPerfil) {
+                    $arquivosAntigosParaRemover[] = $fotoPerfilAntiga;
+                }
+                if ($caminhoFotoFundo && $fotoFundoAntiga && $fotoFundoAntiga !== $caminhoFotoFundo) {
+                    $arquivosAntigosParaRemover[] = $fotoFundoAntiga;
+                }
             } else {
                 $pagina = new Pagina();
                 $pagina->setProtetorId($protetorId);
@@ -299,8 +336,12 @@ class OnboardingService
 
             $conexao->commit();
 
+            foreach ($arquivosAntigosParaRemover as $arquivoAntigo) {
+                $this->uploadService->remover($arquivoAntigo);
+            }
+
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
-            
+
             $_SESSION['tipo_perfil']  = $tipoPerfil;
             $_SESSION['protetor_id']  = $protetorId;
             $_SESSION['usuario_nome'] = trim($dados['nome_fantasia']);

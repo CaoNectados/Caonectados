@@ -23,7 +23,7 @@ class UsuarioRepository extends BaseRepository
     // Usado por: Controller::sincronizarSessaoComBanco(), PerfilController e UsuarioAdminService::obterDetalhesUsuario()
     public function buscarPorId(int $usuarioId): ?array
     {
-        $sql = "SELECT usuario_id, regiao_id, logradouro, numero, telefone, email, nome, dt_nasc, tipo_atual, perfis_ativos, status_conta
+        $sql = "SELECT usuario_id, regiao_id, logradouro, numero, telefone, email, nome, dt_nasc, tipo_atual, perfis_ativos, status_conta, criado_em
                 FROM USUARIO
                 WHERE usuario_id = :id AND deletado_em IS NULL
                 LIMIT 1";

@@ -103,10 +103,17 @@ class AnimalService
             return null;
         }
 
+        $animalAtual = $this->animalRepository->buscarPorId($animalId);
+        $fotoAntiga = $animalAtual?->getFotoPrincipal();
+
         $caminhoFoto = $this->uploadService->salvar($arquivoOuBase64, 'animal');
 
         if ($caminhoFoto) {
             $this->animalRepository->salvarFotoPrincipal($animalId, $caminhoFoto);
+
+            if ($fotoAntiga && $fotoAntiga !== $caminhoFoto) {
+                $this->uploadService->remover($fotoAntiga);
+            }
         }
 
         return $caminhoFoto;

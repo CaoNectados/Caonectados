@@ -105,4 +105,27 @@ class UploadService
 
         return null;
     }
+
+    /**
+     * Apaga do disco um arquivo previamente salvo por salvar(), a partir do caminho
+     * relativo armazenado no banco (ex: 'assets/uploads/animais/xxx.png').
+     */
+    // Usado por: AnimalService, OnBoardingService, PerfilService (troca/substituição de fotos e documentos)
+    public function remover(?string $caminhoRelativo): void
+    {
+        if (empty($caminhoRelativo)) {
+            return;
+        }
+
+        if (str_contains($caminhoRelativo, 'placeholder') || str_contains($caminhoRelativo, 'logo.png')) {
+            return;
+        }
+
+        $caminhoRelativoLimpo = preg_replace('#^assets/#', '', ltrim($caminhoRelativo, '/'));
+        $caminhoAbsoluto = __DIR__ . '/../../public/assets/' . $caminhoRelativoLimpo;
+
+        if (file_exists($caminhoAbsoluto) && is_file($caminhoAbsoluto)) {
+            @unlink($caminhoAbsoluto);
+        }
+    }
 }

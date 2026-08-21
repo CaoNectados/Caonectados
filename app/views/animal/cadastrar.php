@@ -27,8 +27,37 @@ unset($_SESSION['old']);
         <form action="<?= URL_BASE ?>/animal" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6">
 
             <div>
-                <label for="foto" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Foto do animal</label>
-                <input type="file" id="foto" name="foto" accept="image/png,image/jpeg,image/jpg,image/webp" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
+                <label class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2 text-center">Foto Principal</label>
+                <input type="hidden" name="foto_cortada" id="foto_cortada_base64" value="<?= htmlspecialchars($old['foto_cortada'] ?? '') ?>">
+                <input type="file" id="input-foto-original" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="iniciarCropperAnimal(event)">
+
+                <div class="flex justify-center">
+                    <div id="container-foto-principal" onclick="document.getElementById('input-foto-original').click()"
+                        class="relative w-40 h-52 sm:w-44 sm:h-56 rounded-2xl border-2 border-dashed border-text-dark/40 dark:border-branco/30 bg-transparent dark:bg-preto2 flex flex-col items-center justify-center gap-2 cursor-pointer overflow-hidden hover:border-rosaAlerta dark:hover:border-rosaAlerta transition-colors">
+                        <img id="preview-foto-principal" src="" alt="Prévia da foto principal" class="hidden absolute inset-0 w-full h-full object-cover">
+                        <div id="placeholder-foto-principal" class="flex flex-col items-center justify-center gap-1 text-text-dark dark:text-branco/70 pointer-events-none">
+                            <span class="text-4xl leading-none font-light">+</span>
+                            <span class="font-poppins text-xs font-bold">Foto Principal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL CROPPER: FOTO PRINCIPAL DO ANIMAL -->
+            <div id="modal-cropper-animal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+                <div class="bg-branco dark:bg-fundoChat-escuro rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl border border-cinzaMarrom/20 dark:border-branco/10">
+                    <h3 class="font-shantell text-xl font-bold mb-1 text-text-dark dark:text-branco">Ajustar Foto</h3>
+                    <p class="text-xs text-text-muted dark:text-branco/60 mb-4 text-center">Arraste e use o zoom para centralizar.</p>
+
+                    <div class="w-full h-80 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
+                        <img id="imagem-para-cortar-animal" src="" alt="Cortar" class="max-w-full max-h-full">
+                    </div>
+
+                    <div class="flex gap-3 w-full">
+                        <button type="button" onclick="fecharModalCropperAnimal()" class="flex-1 bg-cinzaMarrom/30 text-text-dark dark:text-branco py-2.5 rounded-xl font-bold text-sm hover:opacity-80 transition">Cancelar</button>
+                        <button type="button" onclick="salvarRecorteAnimal()" class="flex-1 bg-rosaAlerta text-white py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition">Aplicar</button>
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -47,7 +76,7 @@ unset($_SESSION['old']);
                                 $idEsp = is_array($especie) ? ($especie['especie_id'] ?? $especie['id']) : $especie->getId();
                                 $nomeEsp = is_array($especie) ? $especie['nome'] : $especie->getNome();
                             ?>
-                            <option value="<?= $idEsp ?>">
+                            <option value="<?= $idEsp ?>" <?= (string) ($old['especie_id'] ?? '') === (string) $idEsp ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($nomeEsp) ?>
                             </option>
                         <?php endforeach; ?>
@@ -57,7 +86,7 @@ unset($_SESSION['old']);
                 <!-- Select de Raça -->
                 <div class="col-md-6 mb-3">
                     <label for="raca_id" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Raça <span class="text-rosaAlerta">*</span></label>
-                    <select id="raca_id" name="raca_id" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" disabled>
+                    <select id="raca_id" name="raca_id" data-old-value="<?= htmlspecialchars((string) ($old['raca_id'] ?? '')) ?>" class="form-control w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors" disabled>
                         <option value="">Selecione primeiro a espécie</option>
                     </select>
                 </div>
@@ -145,8 +174,7 @@ unset($_SESSION['old']);
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
 
 <script>
-    document.getElementById('especie_id').addEventListener('change', async function() {
-        const especieId = this.value;
+    async function carregarRacas(especieId, racaIdParaSelecionar) {
         const racaSelect = document.getElementById('raca_id');
 
         racaSelect.innerHTML = '<option value="">Carregando raças...</option>';
@@ -160,7 +188,7 @@ unset($_SESSION['old']);
         try {
             const url = `<?= URL_BASE ?>/raca/json?especie_id=${especieId}`;
             const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            
+
             const textResponse = await response.text();
             let result;
             try {
@@ -181,6 +209,10 @@ unset($_SESSION['old']);
                     racaSelect.appendChild(option);
                 });
                 racaSelect.disabled = false;
+
+                if (racaIdParaSelecionar) {
+                    racaSelect.value = String(racaIdParaSelecionar);
+                }
             } else {
                 racaSelect.innerHTML = '<option value="">Nenhuma raça encontrada</option>';
             }
@@ -188,5 +220,85 @@ unset($_SESSION['old']);
             console.error("Erro no fetch de raças:", error);
             racaSelect.innerHTML = '<option value="">Erro ao carregar raças</option>';
         }
+    }
+
+    document.getElementById('especie_id').addEventListener('change', function() {
+        carregarRacas(this.value, null);
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const especieSelect = document.getElementById('especie_id');
+        const racaSelect = document.getElementById('raca_id');
+        const racaIdAntigo = racaSelect.dataset.oldValue;
+
+        if (especieSelect.value && racaIdAntigo) {
+            carregarRacas(especieSelect.value, racaIdAntigo);
+        }
+
+        const fotoAntiga = document.getElementById('foto_cortada_base64').value;
+        if (fotoAntiga) {
+            const preview = document.getElementById('preview-foto-principal');
+            preview.src = fotoAntiga;
+            preview.classList.remove('hidden');
+            document.getElementById('placeholder-foto-principal').classList.add('hidden');
+        }
+    });
+
+    let cropperAnimal = null;
+
+    function iniciarCropperAnimal(event) {
+        const fileInput = event.target;
+        if (!fileInput.files || fileInput.files.length === 0) return;
+
+        if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, 5)) {
+            if (typeof mostrarModalFeedback === 'function') {
+                mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
+            } else {
+                alert('A imagem é muito grande. Escolha uma de até 5MB.');
+            }
+            fileInput.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagem-para-cortar-animal').src = e.target.result;
+            document.getElementById('modal-cropper-animal').classList.remove('hidden');
+
+            if (cropperAnimal) cropperAnimal.destroy();
+            cropperAnimal = new Cropper(document.getElementById('imagem-para-cortar-animal'), {
+                aspectRatio: 4 / 5,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1
+            });
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    function fecharModalCropperAnimal() {
+        document.getElementById('modal-cropper-animal').classList.add('hidden');
+        if (cropperAnimal) {
+            cropperAnimal.destroy();
+            cropperAnimal = null;
+        }
+        document.getElementById('input-foto-original').value = '';
+    }
+
+    function salvarRecorteAnimal() {
+        if (!cropperAnimal) return;
+
+        const base64String = cropperAnimal.getCroppedCanvas({
+            width: 800,
+            height: 1000
+        }).toDataURL('image/png');
+
+        const preview = document.getElementById('preview-foto-principal');
+        preview.src = base64String;
+        preview.classList.remove('hidden');
+        document.getElementById('placeholder-foto-principal').classList.add('hidden');
+        document.getElementById('foto_cortada_base64').value = base64String;
+
+        fecharModalCropperAnimal();
+    }
 </script>

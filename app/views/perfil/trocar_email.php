@@ -53,7 +53,80 @@
 </div>
 
 <script>
+    const formSolicitarTroca = document.getElementById('form-solicitar-troca-email');
+    const formConfirmarCodigo = document.getElementById('form-confirmar-codigo-email');
 
+    formSolicitarTroca.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const novoEmail = formSolicitarTroca.querySelector('#novo_email').value.trim();
+        const confirmarEmail = formSolicitarTroca.querySelector('#confirmar_email').value.trim();
+
+        if (!CaonectadosValidator.validarEmail(novoEmail)) {
+            mostrarModalFeedback('aviso', 'Informe um e-mail válido.');
+            return;
+        }
+
+        if (novoEmail !== confirmarEmail) {
+            mostrarModalFeedback('aviso', 'Os e-mails informados não coincidem.');
+            return;
+        }
+
+        const formData = new FormData(formSolicitarTroca);
+        const btnSubmit = formSolicitarTroca.querySelector('button[type="submit"]');
+        const txtBtn = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Enviando...';
+
+        try {
+            const response = await fetch(formSolicitarTroca.action, { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = txtBtn;
+                mostrarModalFeedback('erro', result.mensagem);
+                return;
+            }
+
+            mostrarModalFeedback('sucesso', result.mensagem);
+            formSolicitarTroca.classList.add('hidden');
+            formConfirmarCodigo.classList.remove('hidden');
+        } catch (error) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = txtBtn;
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    });
+
+    formConfirmarCodigo.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(formConfirmarCodigo);
+        const btnSubmit = formConfirmarCodigo.querySelector('button[type="submit"]');
+        const txtBtn = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Confirmando...';
+
+        try {
+            const response = await fetch(formConfirmarCodigo.action, { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = txtBtn;
+                mostrarModalFeedback('erro', result.mensagem);
+                return;
+            }
+
+            mostrarModalFeedback('sucesso', result.mensagem);
+            setTimeout(() => { window.location.href = result.redirect_url; }, 1500);
+        } catch (error) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = txtBtn;
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    });
 </script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

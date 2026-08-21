@@ -52,7 +52,79 @@
 </div>
 
 <script>
-    // (mesmo JavaScript, sem alterações)
+    const formEnviarCodigo = document.getElementById('form-enviar-codigo-senha');
+    const formConfirmarSenha = document.getElementById('form-confirmar-nova-senha');
+
+    formEnviarCodigo.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const btnSubmit = formEnviarCodigo.querySelector('button[type="submit"]');
+        const txtBtn = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Enviando...';
+
+        try {
+            const response = await fetch(formEnviarCodigo.action, { method: 'POST' });
+            const result = await response.json();
+
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = txtBtn;
+                mostrarModalFeedback('erro', result.mensagem);
+                return;
+            }
+
+            mostrarModalFeedback('sucesso', result.mensagem);
+            formEnviarCodigo.classList.add('hidden');
+            formConfirmarSenha.classList.remove('hidden');
+        } catch (error) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = txtBtn;
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    });
+
+    formConfirmarSenha.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const novaSenha = formConfirmarSenha.querySelector('[name="nova_senha"]').value;
+        const confirmarSenha = formConfirmarSenha.querySelector('[name="confirmar_senha"]').value;
+
+        if (!CaonectadosValidator.validarForcaSenha(novaSenha)) {
+            mostrarModalFeedback('aviso', 'A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial.');
+            return;
+        }
+
+        if (novaSenha !== confirmarSenha) {
+            mostrarModalFeedback('aviso', 'As senhas não coincidem.');
+            return;
+        }
+
+        const formData = new FormData(formConfirmarSenha);
+        const btnSubmit = formConfirmarSenha.querySelector('button[type="submit"]');
+        const txtBtn = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = 'Salvando...';
+
+        try {
+            const response = await fetch(formConfirmarSenha.action, { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (result.status === 'erro') {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = txtBtn;
+                mostrarModalFeedback('erro', result.mensagem);
+                return;
+            }
+
+            mostrarModalFeedback('sucesso', result.mensagem);
+            setTimeout(() => { window.location.href = result.redirect_url; }, 1500);
+        } catch (error) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = txtBtn;
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    });
 </script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

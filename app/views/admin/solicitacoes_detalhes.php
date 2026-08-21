@@ -50,7 +50,7 @@ if (!empty($fotoNomeDet)) {
                 </div>
                 <a href="<?= URL_BASE ?>/admin/solicitacoes" class="self-start sm:self-center px-4 py-2 border-2 border-preto dark:border-cinzaMarrom rounded-xl text-xs sm:text-sm font-bold text-text-dark hover:bg-preto hover:text-white dark:hover:bg-primary transition flex items-center gap-2">
                     <span>Voltar para lista</span>
-                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="" class="w-3 h-3 -scale-x-100">
                 </a>
             </div>
 
@@ -64,7 +64,7 @@ if (!empty($fotoNomeDet)) {
                             <iframe src="<?= $caminhoDoc ?>" class="w-full h-96 rounded-xl border-0 bg-white" title="Visualizador do PDF"></iframe>
                         <?php else: ?>
                             <div class="py-8 text-text-dark">
-                                <i class="fa-solid fa-file-lines text-5xl text-primary dark:text-roxinhoFofo mb-3"></i>
+                                <img src="<?= URL_BASE ?>/assets/icons/comprovante.svg" alt="" class="w-12 h-12 mx-auto mb-3">
                                 <p class="font-bold">Documento anexado no cadastro</p>
                                 <a href="<?= $caminhoDoc ?>" target="_blank" class="mt-3 btn-primario text-xs">
                                     Abrir Documento em Nova Aba
@@ -87,7 +87,7 @@ if (!empty($fotoNomeDet)) {
                     </div>
                     <?php if ($caminhoDoc): ?>
                         <a href="<?= $caminhoDoc ?>" download class="text-xs font-bold text-primary dark:text-roxinhoFofo hover:underline flex items-center gap-1.5">
-                            <i class="fa-solid fa-download"></i> Baixar
+                            <img src="<?= URL_BASE ?>/assets/icons/geral/download.svg" alt="" class="w-3.5 h-3.5"> Baixar
                         </a>
                     <?php endif; ?>
                 </div>
@@ -105,10 +105,10 @@ if (!empty($fotoNomeDet)) {
                             <img src="<?= $caminhoFotoDet ?>" 
                                  alt="Perfil" 
                                  class="w-14 h-14 rounded-2xl object-cover border border-cinzaMarrom/30 shrink-0 bg-white"
-                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo border border-rosa-2/40\'><i class=\'fa-solid fa-building text-2xl\'></i></div>';">
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center border border-rosa-2/40\'><img src=\'<?= URL_BASE ?>/assets/icons/geral/casa-rosa.svg\' alt=\'\' class=\'w-8 h-8\'></div>';">
                         <?php else: ?>
-                            <div class="w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo border border-rosa-2/40">
-                                <i class="fa-solid fa-building text-2xl"></i>
+                            <div class="w-14 h-14 bg-rosa-1 dark:bg-preto2 rounded-2xl shrink-0 flex items-center justify-center border border-rosa-2/40">
+                                <img src="<?= URL_BASE ?>/assets/icons/geral/casa-rosa.svg" alt="" class="w-8 h-8">
                             </div>
                         <?php endif; ?>
                         <div class="flex-1">
@@ -119,13 +119,24 @@ if (!empty($fotoNomeDet)) {
                     </div>
 
                     <!-- Status Atual -->
+                    <?php $statusCalculado = $solicitacao['status'] ?? 'pendente'; ?>
+                    <?php
+                        $iconeStatus = 'info.svg';
+                        $pastaIconeStatus = '';
+                        if ($statusCalculado === 'aprovado') {
+                            $iconeStatus = 'aprovado.svg';
+                            $pastaIconeStatus = 'geral/';
+                        } elseif ($statusCalculado === 'recusado') {
+                            $iconeStatus = 'recusado.svg';
+                            $pastaIconeStatus = 'geral/';
+                        }
+                    ?>
                     <div class="flex items-start gap-4 pt-3">
-                        <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo">
-                            <i class="fa-solid fa-circle-info text-2xl"></i>
+                        <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center">
+                            <img src="<?= URL_BASE ?>/assets/icons/<?= $pastaIconeStatus . $iconeStatus ?>" alt="" class="w-7 h-7">
                         </div>
                         <div class="flex-1">
                             <h4 class="font-bold text-text-dark text-sm sm:text-base">Status Atual</h4>
-                            <?php $statusCalculado = $solicitacao['status'] ?? 'pendente'; ?>
                             <p class="text-xs font-bold mt-0.5 <?= $statusCalculado === 'recusado' ? 'text-erro' : ($statusCalculado === 'aprovado' ? 'text-sucesso' : 'text-laranja-1') ?>">
                                 <?= $statusCalculado === 'recusado' ? 'Recusado' : ($statusCalculado === 'aprovado' ? 'Aprovado' : 'Aguardando Análise') ?>
                             </p>
@@ -137,8 +148,8 @@ if (!empty($fotoNomeDet)) {
 
                     <!-- Data do Registro -->
                     <div class="flex items-start gap-4 pt-3">
-                        <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center text-primary dark:text-roxinhoFofo">
-                            <i class="fa-regular fa-calendar-days text-2xl"></i>
+                        <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center">
+                            <img src="<?= URL_BASE ?>/assets/icons/geral/relogio.svg" alt="" class="w-7 h-7">
                         </div>
                         <div class="flex-1">
                             <h4 class="font-bold text-text-dark text-sm sm:text-base">Data da Solicitação</h4>
@@ -216,8 +227,8 @@ if (!empty($fotoNomeDet)) {
             </div>
         <?php else: ?>
             <div class="p-4 rounded-2xl text-center <?= ($solicitacao['status'] === 'aprovado') ? 'bg-sucesso/10 border border-sucesso/30 text-sucesso' : 'bg-erro/10 border border-erro/30 text-erro' ?>">
-                <p class="font-bold text-sm sm:text-base">
-                    <i class="fa-solid <?= ($solicitacao['status'] === 'aprovado') ? 'fa-check-circle' : 'fa-times-circle' ?> mr-1.5"></i>
+                <p class="font-bold text-sm sm:text-base flex items-center justify-center gap-2">
+                    <img src="<?= URL_BASE ?>/assets/icons/geral/<?= ($solicitacao['status'] === 'aprovado') ? 'aprovado.svg' : 'recusado.svg' ?>" alt="" class="w-5 h-5">
                     Esta solicitação já foi <?= ($solicitacao['status'] === 'aprovado') ? 'Aprovada' : 'Recusada' ?>.
                 </p>
             </div>

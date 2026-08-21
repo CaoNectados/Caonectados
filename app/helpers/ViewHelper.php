@@ -9,6 +9,24 @@ if (!function_exists('e')) {
     }
 }
 
+// Usado por: templates/footer.php e views com <script>/<link> próprios — versiona arquivos
+// estáticos (JS/CSS) via query string a partir do horário de modificação do arquivo, para
+// que o navegador busque a versão nova assim que o arquivo é editado em vez de servir uma
+// cópia em cache (ex.: o bug de "CaonectadosValidator.validarEmail is not a function" após
+// validacoes.js ganhar funções novas, mas o browser continuar com o arquivo antigo em cache).
+if (!function_exists('asset')) {
+    function asset(string $caminhoRelativo): string
+    {
+        $baseUrl = defined('URL_BASE') ? URL_BASE : '';
+        $caminhoRelativo = ltrim($caminhoRelativo, '/');
+        $caminhoFisico = __DIR__ . '/../../public/' . $caminhoRelativo;
+
+        $versao = is_file($caminhoFisico) ? filemtime($caminhoFisico) : time();
+
+        return $baseUrl . '/' . $caminhoRelativo . '?v=' . $versao;
+    }
+}
+
 // Usado por: app/views/templates/header.php (itens do menu de navegação)
 function renderIconeMenu(
     string $nomeArquivo,

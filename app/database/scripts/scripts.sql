@@ -486,3 +486,57 @@ VALUES ('Sem Raça Definida (SRD)', 1),
     ('Sem Raça Definida (SRD)', 2),
     ('Siamês', 2),
     ('Persa', 2);
+
+-- ===========================================
+-- USUÁRIOS DE TESTE (2 ONGs, 2 protetores, 2 adotantes)
+-- Senha para todos: Senha123$  (hash gerado com password_hash/PASSWORD_BCRYPT,
+-- o mesmo algoritmo usado por AuthService::registrar())
+-- ===========================================
+
+-- ONG 1 e ONG 2 (pessoa jurídica / CNPJ, já validadas pelo admin)
+INSERT INTO USUARIO (
+    usuario_id, regiao_id, logradouro, numero, telefone, senha,
+    tipo_atual, perfis_ativos, status_conta, email, nome, dt_nasc
+) VALUES
+    (2, 1, 'Rua das Acácias', '250', '45999990001', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'ong', 'ong', 'ativo', 'ong.patinhasfelizes9309@outlook.com', 'ONG Patinhas Felizes', NULL),
+    (3, 2, 'Rua do Porto', '480', '45999990002', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'ong', 'ong', 'ativo', 'ong.focinhosdorio2739@hotmail.com', 'ONG Focinhos do Rio', NULL);
+
+-- Protetor 1 e Protetor 2 (pessoa física / CPF, já validados pelo admin)
+INSERT INTO USUARIO (
+    usuario_id, regiao_id, logradouro, numero, telefone, senha,
+    tipo_atual, perfis_ativos, status_conta, email, nome, dt_nasc
+) VALUES
+    (4, 3, 'Avenida das Cataratas', '1120', '45999990003', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'protetor', 'protetor', 'ativo', 'protetor.carlosmendes9103@outlook.com', 'Carlos Mendes', '1990-05-14'),
+    (5, 4, 'Rua Cidade Nova', '77', '45999990004', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'protetor', 'protetor', 'ativo', 'protetor.julianaalves3425@gmail.com', 'Juliana Alves', '1988-11-02');
+
+-- Adotante 1 e Adotante 2
+INSERT INTO USUARIO (
+    usuario_id, regiao_id, logradouro, numero, telefone, senha,
+    tipo_atual, perfis_ativos, status_conta, email, nome, dt_nasc
+) VALUES
+    (6, 5, 'Rua Itaipu Binacional', '305', '45999990005', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'adotante', 'adotante', 'ativo', 'adotante.marianalima3182@hotmail.com', 'Mariana Lima', '1995-03-21'),
+    (7, 6, 'Rua Itaipu C', '19', '45999990006', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'adotante', 'adotante', 'ativo', 'adotante.pedrosouza8045@yahoo.com', 'Pedro Souza', '1998-07-09');
+
+-- Perfis PROTETOR das duas ONGs e dos dois protetores (CPF/CNPJ com dígitos verificadores válidos)
+INSERT INTO PROTETOR (
+    protetor_id, usuario_id, validado, codigo_documento, tipo_documento,
+    nome_fantasia, data_abertura_cnpj, data_validacao
+) VALUES
+    (2, 2, TRUE, '89189523000131', 'cnpj', 'ONG Patinhas Felizes', '2015-03-10', CURRENT_TIMESTAMP),
+    (3, 3, TRUE, '85443027000101', 'cnpj', 'ONG Focinhos do Rio', '2018-07-22', CURRENT_TIMESTAMP),
+    (4, 4, TRUE, '42914818025', 'cpf', 'Carlos Mendes', NULL, CURRENT_TIMESTAMP),
+    (5, 5, TRUE, '62142463754', 'cpf', 'Juliana Alves', NULL, CURRENT_TIMESTAMP);
+
+-- Páginas institucionais/públicas das ONGs e protetores
+INSERT INTO PAGINA (pagina_id, protetor_id, descricao, chave_pix) VALUES
+    (2, 2, 'ONG dedicada ao resgate e cuidado de cães e gatos em situação de rua.', 'ong.patinhasfelizes9309@outlook.com'),
+    (3, 3, 'Protegemos e encontramos lares para animais abandonados na região do Porto.', 'ong.focinhosdorio2739@hotmail.com'),
+    (4, 4, 'Protetor independente: resgato e cuido de cães até encontrarem um novo lar.', 'protetor.carlosmendes9103@outlook.com'),
+    (5, 5, 'Cuido de gatos resgatados até a adoção responsável.', 'protetor.julianaalves3425@gmail.com');
+
+-- Perfis ADOTANTE
+INSERT INTO ADOTANTE (
+    adotante_id, usuario_id, tipo_moradia, tamanho_interno_moradia, descricao, detalhes
+) VALUES
+    (2, 6, 'apartamento', 'medio', 'Apaixonada por animais, busco um companheiro para minha rotina tranquila.', '{"possui_criancas":"nao","possui_outros_pets":"nao","espaco_externo":"nenhum"}'),
+    (3, 7, 'casa', 'grande', 'Tenho um quintal grande e quero adotar um cão de porte médio.', '{"possui_criancas":"sim","possui_outros_pets":"sim","espaco_externo":"grande"}');

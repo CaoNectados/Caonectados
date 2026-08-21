@@ -346,8 +346,8 @@ require_once __DIR__ . '/../templates/header.php';
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-<script src="<?= e(URL_BASE) ?>/assets/js/onboarding.js"></script>
-<script src="<?= e(URL_BASE) ?>/assets/js/autosave.js"></script>
+<script src="<?= e(asset('assets/js/onboarding.js')) ?>"></script>
+<script src="<?= e(asset('assets/js/autosave.js')) ?>"></script>
 
 <script>
     let cropper = null;

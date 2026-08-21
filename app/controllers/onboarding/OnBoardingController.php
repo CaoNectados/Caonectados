@@ -201,41 +201,52 @@ class OnboardingController extends Controller
 
         $uriAtual = $this->getUriLimpa();
 
-        // Rotas liberadas durante o fluxo de onboarding / edição
-        $rotasPermitidas = [
-            '/aguardando-aprovacao',
-            '/onboarding/aguardando-aprovacao',
-            '/onboarding/salvar-adotante',
-            '/onboarding/salvar-protetor',
+        // Rotas sempre liberadas, independente do estado do perfil
+        $rotasSempreLivres = [
             '/onboarding/especies-ativas',
-            '/onboarding/protetor',
-            '/onboarding/ong',
-            '/onboarding/adotante',
             '/logout'
         ];
 
-        if (in_array($uriAtual, $rotasPermitidas, true)) {
+        if (in_array($uriAtual, $rotasSempreLivres, true)) {
             return;
         }
 
-        if ($this->onboardingService->usuarioJaPossuiPerfil((int)$usuarioId)) {
-            $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
-            $validado = $_SESSION['validado'] ?? false;
-            $recusado = $_SESSION['recusado'] ?? false;
+        $possuiPerfil = $this->onboardingService->usuarioJaPossuiPerfil((int)$usuarioId);
 
-            if (in_array($tipoPerfil, ['protetor', 'ong'], true)) {
-                if (!$validado || $recusado) {
-                    if ($uriAtual !== '/aguardando-aprovacao') {
-                        $this->redirect('/aguardando-aprovacao');
-                    }
-                    return;
-                }
+        if (!$possuiPerfil) {
+            // Ainda não possui nenhum perfil: livre para navegar por todo o fluxo de onboarding.
+            return;
+        }
+
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+        $validado = $_SESSION['validado'] ?? false;
+        $recusado = $_SESSION['recusado'] ?? false;
+
+        // Protetor/ONG com solicitação pendente ou recusada: ainda pode reenviar a
+        // documentação através de /onboarding/protetor ou /onboarding/ong.
+        if (in_array($tipoPerfil, ['protetor', 'ong'], true) && (!$validado || $recusado)) {
+            $rotasReenvio = [
+                '/aguardando-aprovacao',
+                '/onboarding/aguardando-aprovacao',
+                '/onboarding/protetor',
+                '/onboarding/ong',
+                '/onboarding/salvar-protetor'
+            ];
+
+            if (in_array($uriAtual, $rotasReenvio, true)) {
+                return;
             }
 
-            // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
-            if ($uriAtual !== '/perfil') {
-                $this->redirect('/perfil');
-            }
+            $this->redirect('/aguardando-aprovacao');
+            return;
+        }
+
+        // Onboarding concluído (adotante, ou protetor/ong já validado): as rotas de
+        // onboarding (inclusive /onboarding, /onboarding/adotante, /onboarding/protetor
+        // e /onboarding/ong) ficam bloqueadas e o usuário é enviado de volta ao perfil.
+        // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+        if ($uriAtual !== '/perfil') {
+            $this->redirect('/perfil');
         }
     }
 }

@@ -226,19 +226,6 @@ class PerfilService
     // Usado por: removerFotoAntigaDoPerfil()
     private function removerArquivoAntigo(?string $caminhoRelativo): void
     {
-        if (empty($caminhoRelativo)) {
-            return;
-        }
-
-        if (str_contains($caminhoRelativo, 'placeholder') || str_contains($caminhoRelativo, 'logo.png')) {
-            return;
-        }
-
-        $caminhoRelativoLimpo = preg_replace('#^assets/#', '', ltrim($caminhoRelativo, '/'));
-        $caminhoAbsoluto = __DIR__ . '/../../public/assets/' . $caminhoRelativoLimpo;
-
-        if (file_exists($caminhoAbsoluto) && is_file($caminhoAbsoluto)) {
-            @unlink($caminhoAbsoluto);
-        }
+        (new UploadService())->remover($caminhoRelativo);
     }
 }

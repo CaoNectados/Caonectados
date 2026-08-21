@@ -33,9 +33,16 @@
 
 <script>
 document.querySelector('form').addEventListener('submit', async function(event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
     const form = event.target;
+    const email = form.querySelector('#email').value.trim();
+
+    if (!CaonectadosValidator.validarEmail(email)) {
+        mostrarModalFeedback('aviso', 'Informe um e-mail válido.');
+        return;
+    }
+
     const formData = new FormData(form);
     const btnSubmit = form.querySelector('button[type="submit"]');
     const btnTextoOriginal = btnSubmit.innerHTML;
@@ -64,6 +71,6 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     }
 });
 </script>
-<script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
+<script src="<?= e(asset('assets/js/autosave.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

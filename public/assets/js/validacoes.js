@@ -163,6 +163,24 @@ const CaonectadosValidator = {
         return numeros.length === 10 || numeros.length === 11;
     },
 
+    // Usado por: auth/cadastro.php, auth/redefinir_senha.php e perfil/trocar_email.php — equivalente
+    // client-side de ValidationService::validarEmail() no back-end
+    validarEmail: function(email) {
+        if (!email) return false;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    },
+
+    // Usado por: auth/cadastro.php, auth/redefinir_senha.php e perfil/redefinir_senha.php — equivalente
+    // client-side de ValidationService::validarForcaSenha() no back-end
+    validarForcaSenha: function(senha) {
+        if (!senha || senha.length < 8) return false;
+        if (!/[A-Z]/.test(senha)) return false;
+        if (!/[a-z]/.test(senha)) return false;
+        if (!/[0-9]/.test(senha)) return false;
+        if (!/[\W_]/.test(senha)) return false;
+        return true;
+    },
+
     // Usado por: (não referenciado atualmente) — equivalente client-side de ValidationService::validarDataNaoFutura() no back-end
     validarDataNaoFutura: function(dataStr) {
         if (!dataStr || typeof dataStr !== 'string') return false;

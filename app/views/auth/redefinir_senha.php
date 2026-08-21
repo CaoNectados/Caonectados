@@ -34,9 +34,22 @@
 </div>
 <script>
 document.querySelector('form').addEventListener('submit', async function(event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
     const form = event.target;
+    const senha = form.querySelector('#senha').value;
+    const senhaConfirmacao = form.querySelector('#senha_confirmacao').value;
+
+    if (!CaonectadosValidator.validarForcaSenha(senha)) {
+        mostrarModalFeedback('aviso', 'A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial.');
+        return;
+    }
+
+    if (senha !== senhaConfirmacao) {
+        mostrarModalFeedback('aviso', 'As senhas não coincidem.');
+        return;
+    }
+
     const formData = new FormData(form);
     const btnSubmit = form.querySelector('button[type="submit"]');
     const btnTextoOriginal = btnSubmit.innerHTML;
@@ -65,6 +78,6 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     }
 });
 </script>
-<script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
+<script src="<?= e(asset('assets/js/autosave.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

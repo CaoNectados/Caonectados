@@ -26,14 +26,17 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="mb-8">
             <form method="GET" action="<?= URL_BASE ?>/admin/solicitacoes" class="relative flex items-center">
                 <input type="hidden" name="status" value="<?= htmlspecialchars($statusAtual) ?>">
-                <input type="text" 
+                <span class="absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <img src="<?= URL_BASE ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-4 h-4 opacity-60">
+                </span>
+                <input type="text"
                        id="inputBusca"
-                       name="busca" 
+                       name="busca"
                        value="<?= htmlspecialchars($busca ?? '') ?>"
-                       placeholder="Buscar por nome da ONG, CNPJ ou cidade..." 
-                       class="w-full bg-branco dark:bg-preto2 border-2 border-preto dark:border-cinzaMarrom rounded-2xl pl-5 pr-14 py-3.5 text-sm sm:text-base text-text-dark placeholder:text-text-muted focus:outline-none focus:border-primary transition">
+                       placeholder="Buscar por nome da ONG, CNPJ ou cidade..."
+                       class="w-full bg-branco dark:bg-preto2 border-2 border-preto dark:border-cinzaMarrom rounded-2xl pl-12 pr-14 py-3.5 text-sm sm:text-base text-text-dark placeholder:text-text-muted focus:outline-none focus:border-primary transition">
                 <button type="submit" aria-label="Buscar" class="absolute right-2.5 top-2.5 bottom-2.5 w-11 bg-preto dark:bg-primary text-white rounded-xl flex items-center justify-center hover:opacity-90 transition">
-                    <i class="fa-solid fa-magnifying-glass text-base"></i>
+                    <img src="<?= URL_BASE ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-4 h-4 brightness-0 invert">
                 </button>
             </form>
             <p class="text-xs text-text-muted mt-2 ml-1">Dica: digite para filtrar a lista</p>
@@ -76,10 +79,10 @@ require_once __DIR__ . '/../templates/header.php';
                                 <img src="<?= $caminhoFoto ?>" 
                                      alt="Perfil" 
                                      class="w-12 h-12 rounded-full object-cover border-2 border-rosa-3 dark:border-preto3 shrink-0 shadow-sm bg-white"
-                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center text-primary dark:text-roxinhoFofo text-xl shrink-0 shadow-sm\'><i class=\'fa-solid fa-house\'></i></div>';">
+                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center shrink-0 shadow-sm\'><img src=\'<?= URL_BASE ?>/assets/icons/geral/casa-rosa.svg\' alt=\'\' class=\'w-6 h-6\'></div>';">
                             <?php else: ?>
-                                <div class="w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center text-primary dark:text-roxinhoFofo text-xl shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-house"></i>
+                                <div class="w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center shrink-0 shadow-sm">
+                                    <img src="<?= URL_BASE ?>/assets/icons/geral/casa-rosa.svg" alt="" class="w-6 h-6">
                                 </div>
                             <?php endif; ?>
 
@@ -103,9 +106,9 @@ require_once __DIR__ . '/../templates/header.php';
                                 Clique para detalhes
                             </a>
                             <span class="text-text-muted text-sm select-none">📄</span>
-                            <a href="<?= URL_BASE ?>/admin/solicitacoes/detalhes?id=<?= $solic['protetor_id'] ?? '' ?>" 
-                               class="w-8 h-8 rounded-full bg-rosa-1/40 dark:bg-preto2 flex items-center justify-center text-text-muted hover:text-text-dark dark:hover:text-white transition">
-                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            <a href="<?= URL_BASE ?>/admin/solicitacoes/detalhes?id=<?= $solic['protetor_id'] ?? '' ?>"
+                               class="w-8 h-8 rounded-full bg-rosa-1/40 dark:bg-preto2 flex items-center justify-center hover:bg-rosa-1 dark:hover:bg-preto3 transition">
+                                <img src="<?= URL_BASE ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-3.5 h-3.5">
                             </a>
                         </div>
                     </div>

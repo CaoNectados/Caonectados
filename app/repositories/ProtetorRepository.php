@@ -31,12 +31,14 @@ class ProtetorRepository extends BaseRepository
                     u.logradouro,
                     u.numero,
                     u.regiao_id,
+                    r.nome_regiao,
                     pag.descricao AS pagina_descricao,
                     pag.chave_pix,
                     pag.foto_perfil,
                     pag.foto_fundo
                 FROM PROTETOR p
                 INNER JOIN USUARIO u ON p.usuario_id = u.usuario_id
+                LEFT JOIN REGIAO r ON u.regiao_id = r.regiao_id
                 LEFT JOIN PAGINA pag ON p.protetor_id = pag.protetor_id
                 WHERE p.usuario_id = :usuario_id
                 ORDER BY p.protetor_id DESC
@@ -92,12 +94,14 @@ class ProtetorRepository extends BaseRepository
         }
 
         if (!empty($busca)) {
-            // Reaproveita a mesma chave nomeada (:busca) em todas as cláusulas OR abaixo
+            // A conexão roda com PDO::ATTR_EMULATE_PREPARES = false (prepared statements
+            // nativos do MySQL), que não aceita reutilizar o mesmo parâmetro nomeado em
+            // múltiplas ocorrências na query — por isso cada cláusula OR usa sua própria chave.
             $sql .= " AND (
-                p.nome_fantasia LIKE :busca
-                OR u.nome LIKE :busca
-                OR p.codigo_documento LIKE :busca
-                OR r.nome_regiao LIKE :busca
+                p.nome_fantasia LIKE :busca1
+                OR u.nome LIKE :busca2
+                OR p.codigo_documento LIKE :busca3
+                OR r.nome_regiao LIKE :busca4
             )";
         }
 
@@ -106,7 +110,11 @@ class ProtetorRepository extends BaseRepository
         $stmt = $this->db->prepare($sql);
 
         if (!empty($busca)) {
-            $stmt->bindValue(':busca', "%{$busca}%", PDO::PARAM_STR);
+            $buscaLike = "%{$busca}%";
+            $stmt->bindValue(':busca1', $buscaLike, PDO::PARAM_STR);
+            $stmt->bindValue(':busca2', $buscaLike, PDO::PARAM_STR);
+            $stmt->bindValue(':busca3', $buscaLike, PDO::PARAM_STR);
+            $stmt->bindValue(':busca4', $buscaLike, PDO::PARAM_STR);
         }
 
         $stmt->execute();
@@ -125,6 +133,7 @@ class ProtetorRepository extends BaseRepository
                     p.comprovante_documento,
                     p.criado_em,
                     p.validado,
+                    p.deletado_em,
                     u.nome AS usuario_nome,
                     u.email AS usuario_email,
                     u.telefone AS usuario_telefone,

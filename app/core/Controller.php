@@ -74,6 +74,30 @@ class Controller
         $validado = $_SESSION['validado'] ?? false;
         $uriAtual = $this->getUriLimpa();
 
+        // Usuário logado que ainda não concluiu o onboarding (tipo_atual continua 'usuario'):
+        // é forçado a completar o fluxo antes de acessar qualquer outra página protegida.
+        // As rotas do próprio módulo de onboarding se auto-protegem em OnBoardingController.
+        if ($tipoUsuario === 'usuario') {
+            $rotasOnboardingLivres = [
+                '/onboarding',
+                '/onboarding/adotante',
+                '/onboarding/ong',
+                '/onboarding/protetor',
+                '/onboarding/salvar-adotante',
+                '/onboarding/salvar-protetor',
+                '/onboarding/especies-ativas',
+                '/aguardando-aprovacao',
+                '/onboarding/aguardando-aprovacao',
+                '/raca/json',
+                '/admin/raca/json',
+                '/logout'
+            ];
+
+            if (!in_array($uriAtual, $rotasOnboardingLivres, true)) {
+                $this->redirect('/onboarding');
+            }
+        }
+
         if (!empty($perfisPermitidos)) {
             if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
                 $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/perfil');
@@ -82,12 +106,12 @@ class Controller
 
        // Se for ONG/Protetor e não estiver validado (0)
         if (in_array($tipoUsuario, ['ong', 'protetor'], true) && ($validado === false || $validado === 0 || $validado === '0')) {
-            
+
             $rotasLivres = [
-                '/', 
-                '/home', 
-                '/aguardando-aprovacao', 
-                '/onboarding/aguardando-aprovacao', 
+                '/',
+                '/home',
+                '/aguardando-aprovacao',
+                '/onboarding/aguardando-aprovacao',
                 '/onboarding',
                 '/onboarding/ong',
                 '/onboarding/protetor',
@@ -104,6 +128,47 @@ class Controller
                 $this->redirect('/aguardando-aprovacao');
             }
         }
+    }
+
+    /**
+     * Guarda de sessão inversa: usada pelas telas públicas de autenticação (login, cadastro,
+     * esqueci/redefinir senha) para impedir que um usuário já logado navegue de volta para
+     * elas. Redireciona para o painel correspondente ao estado atual da conta.
+     */
+    // Usado por: AuthController (login, cadastro, esqueci-senha, redefinir-senha)
+    protected function redirecionarSeAutenticado(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (empty($_SESSION['usuario_id'])) {
+            return;
+        }
+
+        $this->sincronizarSessaoComBanco((int)$_SESSION['usuario_id']);
+        $this->redirect($this->resolverDestinoPainel());
+    }
+
+    // Usado por: redirecionarSeAutenticado()
+    private function resolverDestinoPainel(): string
+    {
+        $tipoUsuario = $_SESSION['tipo_perfil'] ?? 'usuario';
+        $validado = $_SESSION['validado'] ?? false;
+
+        if ($tipoUsuario === 'administrador') {
+            return '/admin/dashboard';
+        }
+
+        if ($tipoUsuario === 'usuario') {
+            return '/onboarding';
+        }
+
+        if (in_array($tipoUsuario, ['ong', 'protetor'], true) && ($validado === false || $validado === 0 || $validado === '0')) {
+            return '/aguardando-aprovacao';
+        }
+
+        return '/perfil';
     }
 
     protected function redirecionarComMensagem(string $tipo, string $mensagem, string $rota, ?string $erroDetalhado = null): void

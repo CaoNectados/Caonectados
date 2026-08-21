@@ -24,6 +24,14 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<style>
+    /* Guia de corte circular só quando ajustando a foto de perfil (aspectRatio 1:1);
+       a foto de capa usa 16:9 e continua com o guia retangular padrão do Cropper.js. */
+    #modal-cropper.cropper-redondo .cropper-view-box,
+    #modal-cropper.cropper-redondo .cropper-face {
+        border-radius: 50%;
+    }
+</style>
 
 <!-- min-h + flex centraliza verticalmente a etapa visível do wizard (só uma fica sem "hidden"
      por vez, então o grupo inteiro — progresso, seta de voltar e a etapa atual — centraliza junto) -->
@@ -153,11 +161,11 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
             </div>
             <div>
                 <label for="instagram" class="label-padrao">Link do Instagram</label>
-                <input type="text" name="instagram" id="instagram" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="instagram" id="instagram" value="<?= htmlspecialchars($d['instagram'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
             <div>
                 <label for="facebook" class="label-padrao">Link do Facebook</label>
-                <input type="text" name="facebook" id="facebook" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="facebook" id="facebook" value="<?= htmlspecialchars($d['facebook'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
             <div>
                 <label for="chave_pix" class="label-padrao">Chave PIX para doações</label>
@@ -290,10 +298,10 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
     </div>
 </div>
 
-<script src="<?= URL_BASE ?>/assets/js/onboarding.js"></script>
+<script src="<?= e(asset('assets/js/onboarding.js')) ?>"></script>
 
 <?php if (!$modoEdicao): ?>
-    <script src="<?= URL_BASE ?>/assets/js/autosave.js"></script>
+    <script src="<?= e(asset('assets/js/autosave.js')) ?>"></script>
 <?php endif; ?>
 
 <script>
@@ -331,7 +339,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                 if (cropper) cropper.destroy();
 
                 const isPerfil = (alvo === 'perfil');
-                document.body.classList.toggle('cropper-circular', isPerfil);
+                document.getElementById('modal-cropper').classList.toggle('cropper-redondo', isPerfil);
 
                 cropper = new Cropper(imgModal, {
                     aspectRatio: isPerfil ? 1 / 1 : 16 / 9,
@@ -586,12 +594,5 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         });
     });
 </script>
-
-<style>
-    .cropper-view-box,
-    .cropper-face {
-        border-radius: 50%;
-    }
-</style>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

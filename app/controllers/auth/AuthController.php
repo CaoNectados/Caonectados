@@ -24,6 +24,7 @@ class AuthController extends Controller
     // Usado por: rota GET /login
     public function login()
     {
+        $this->redirecionarSeAutenticado();
         $this->view('auth/login', [
             'titulo'    => 'Login',
             'descricao' => 'Acesse sua conta no CãoNectados.'
@@ -101,6 +102,7 @@ class AuthController extends Controller
     // Usado por: rota GET /cadastro
     public function cadastro()
     {
+        $this->redirecionarSeAutenticado();
         $this->view('auth/cadastro', [
             'titulo'    => 'Cadastre-se',
             'descricao' => 'Crie sua conta no CãoNectados para adotar ou cadastrar pets.'
@@ -309,6 +311,7 @@ class AuthController extends Controller
     // Usado por: rota GET /esqueci-senha
     public function esqueciSenha()
     {
+        $this->redirecionarSeAutenticado();
         $this->view('auth/esqueci_senha', ['titulo' => 'Esqueci minha senha']);
     }
 
@@ -338,6 +341,8 @@ class AuthController extends Controller
     // Usado por: rota GET /redefinir-senha
     public function redefinirSenha()
     {
+        $this->redirecionarSeAutenticado();
+
         $email = $_GET['email'] ?? '';
         $codigo = $_GET['codigo'] ?? '';
 

@@ -49,7 +49,7 @@ $perfis = [
                         </a>
                         <button type="button"
                                 onclick="OnboardingSelecao.toggleInfo('<?= $p['id'] ?>')"
-                                class="px-4 flex items-center justify-center hover:brightness-95 transition cursor-pointer"
+                                class="px-4 text-white flex items-center justify-center hover:brightness-95 transition cursor-pointer"
                                 aria-label="Saiba mais sobre o perfil <?= htmlspecialchars($p['titulo']) ?>">
                             <img src="<?= $urlBase ?>/assets/icons/info.svg" alt="" class="w-5 h-5">
                         </button>
