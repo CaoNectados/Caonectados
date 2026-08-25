@@ -55,9 +55,10 @@ if ($tipoPerfil === 'administrador') {
 
 // ---------------- PERFIL: ADOTANTE ----------------
 } elseif ($tipoPerfil === 'adotante') {
-    // Feed ainda não implementado nesta etapa (rota desligada em index.php) — item
-    // mantido no header a pedido, só pra já apresentar a navegação final do produto.
-    $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg', 'apenas_desktop' => true];
+    // RF 10: Feed já é uma rota real (a própria página do feed também tem uma barra de
+    // navegação inferior específica pra mobile, mas o item aqui garante acesso a partir de
+    // qualquer outra tela via menu hambúrguer).
+    $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg'];
     $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
