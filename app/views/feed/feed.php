@@ -131,10 +131,11 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <?php endforeach; ?>
                             </div>
 
-                            <div class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow">
+                            <a href="<?= $urlBase ?>/pagina?id=<?= (int) $animal['protetor_id'] ?>" onclick="event.stopPropagation()"
+                               class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
                                 <span class="w-7 h-7 rounded-full bg-rosa-1 flex items-center justify-center text-xs">🏠</span>
                                 <span class="text-xs font-bold text-text-dark"><?= htmlspecialchars($animal['nome_fantasia'] ?? 'Protetor independente') ?></span>
-                            </div>
+                            </a>
 
                             <div class="foto-carrossel absolute inset-0">
                                 <?php foreach ($fotos as $idxFoto => $foto): ?>
@@ -509,10 +510,11 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         card.innerHTML = `
             <div class="relative flex-1 bg-black/5">
                 <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5">${segmentosHtml}</div>
-                <div class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow">
+                <a href="${urlBase}/pagina?id=${animal.protetor_id}" onclick="event.stopPropagation()"
+                   class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
                     <span class="w-7 h-7 rounded-full bg-rosa-1 flex items-center justify-center text-xs">🏠</span>
                     <span class="text-xs font-bold text-text-dark">${animal.nome_fantasia || 'Protetor independente'}</span>
-                </div>
+                </a>
                 <div class="foto-carrossel absolute inset-0">${fotosHtml}</div>
                 ${setasHtml}
                 <span class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-erro" title="Denunciar (em breve)">🚩</span>

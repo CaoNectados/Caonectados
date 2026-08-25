@@ -66,7 +66,14 @@ class AnimalController extends Controller
                 return;
             }
 
-            $this->view('animal/detalhes', ['titulo' => 'Detalhes do Animal', 'animal' => $animal]);
+            $protetorRepo = new ProtetorRepository($this->db);
+            $protetor = $protetorRepo->buscarBasicoPorId($animal->getProtetorId());
+
+            $this->view('animal/detalhes', [
+                'titulo'   => 'Detalhes do Animal',
+                'animal'   => $animal,
+                'protetor' => $protetor,
+            ]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }

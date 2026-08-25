@@ -24,7 +24,7 @@ if ($tipoPerfil === null) {
 
 // ---------------- PERFIL: ADMINISTRADOR ----------------
 if ($tipoPerfil === 'administrador') {
-    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/dashboard', 'label' => 'Dashboard', 'icone' => 'dashboard.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/solicitacoes', 'label' => 'Solicitações Ongs e Protetores', 'icone' => 'solicitacoes.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-usuarios', 'label' => 'Gerenciar Usuários', 'icone' => 'usuarios.svg'];
@@ -41,7 +41,7 @@ if ($tipoPerfil === 'administrador') {
     if ($validado === true || $validado === 1 || $validado === '1') {
         // Feed é exclusivo do Adotante (RF 10 depende de adotante_id) — Protetor/ONG que
         // clicasse aqui só seria redirecionado de volta com erro de acesso negado.
-        $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
+        $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg'];
         $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/gerenciar-animais',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
@@ -58,7 +58,7 @@ if ($tipoPerfil === 'administrador') {
     // navegação inferior específica pra mobile, mas o item aqui garante acesso a partir de
     // qualquer outra tela via menu hambúrguer).
     $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg'];
-    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg'];
     $menuItens[] = ['url' => URL_BASE . '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
 

@@ -27,6 +27,19 @@ class ProtetorRepository extends BaseRepository
         return (int) $this->db->query($sql)->fetchColumn();
     }
 
+    // Usado por: AnimalController::show() — nome/validado do responsável, pra linkar a
+    // página pública sem precisar dos JOINs extras de buscarPorProtetorIdCompleto()
+    public function buscarBasicoPorId(int $protetorId): ?array
+    {
+        $sql = "SELECT protetor_id, nome_fantasia, validado, deletado_em FROM PROTETOR WHERE protetor_id = :protetor_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $resultado ?: null;
+    }
+
     // Usado por: AnimalController, PerfilController, OnBoardingService, AuthService, UsuarioAdminService e PerfilService
     public function buscarPorUsuarioId(int $usuarioId): ?array
     {

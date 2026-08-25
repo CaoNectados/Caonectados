@@ -186,6 +186,7 @@ class FeedController extends Controller
 
         return [
             'animal_id'      => (int) $animal['animal_id'],
+            'protetor_id'    => (int) $animal['protetor_id'],
             'nome'           => $animal['nome'],
             'dt_nasc'        => $animal['dt_nasc'],
             'sexo'           => $animal['sexo'],

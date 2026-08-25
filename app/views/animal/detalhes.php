@@ -3,6 +3,7 @@ require_once __DIR__ . '/../templates/header.php';
 
 /** @var \app\models\Animal|null $animal */
 $animal = $animal ?? null;
+$protetor = $protetor ?? null;
 
 if (!$animal) {
     echo "<main class='flex flex-col items-center justify-center p-4'>";
@@ -29,9 +30,17 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
 <main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="w-full max-w-2xl flex flex-col py-10 px-8 relative bg-branco dark:bg-fundoChat-escuro shadow-[0_8px_20px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-cinzaMarrom/20 dark:border-branco/10 transition-colors duration-300">
 
-        <h1 class="font-shantell text-[32px] font-bold text-text-dark dark:text-branco mb-8 transition-colors duration-300">
+        <h1 class="font-shantell text-[32px] font-bold text-text-dark dark:text-branco mb-2 transition-colors duration-300">
             <?= htmlspecialchars($animal->getNome()) ?>
         </h1>
+
+        <?php if ($protetor && (int) $protetor['validado'] === 1 && empty($protetor['deletado_em'])): ?>
+            <a href="<?= URL_BASE ?>/pagina?id=<?= (int) $protetor['protetor_id'] ?>" class="inline-flex items-center gap-1.5 text-sm font-bold text-primary dark:text-roxinhoFofo hover:underline mb-6">
+                🏠 <?= htmlspecialchars($protetor['nome_fantasia']) ?> <span class="text-xs font-normal opacity-70">(ver página)</span>
+            </a>
+        <?php elseif ($protetor): ?>
+            <p class="text-sm font-bold text-text-muted mb-6">🏠 <?= htmlspecialchars($protetor['nome_fantasia']) ?></p>
+        <?php endif; ?>
 
         <?php if (!empty($animal->getFotoPrincipal())): ?>
             <img src="<?= URL_BASE ?>/<?= htmlspecialchars($animal->getFotoPrincipal()) ?>" alt="Foto de <?= htmlspecialchars($animal->getNome()) ?>" class="w-full max-h-80 object-cover rounded-2xl mb-6 border-2 border-cinzaMarrom/20 dark:border-branco/10">

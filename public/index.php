@@ -58,6 +58,10 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 $router->get('/feed', 'geral/FeedController@index');
 $router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
 
+// Pesquisa (diferente por tipo de perfil — ver PesquisaController)
+$router->get('/pesquisar', 'geral/PesquisaController@index');
+$router->get('/pesquisar/buscar', 'geral/PesquisaController@buscar');
+
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
 $router->get('/perfil/editar', 'geral/PerfilController@editar');
