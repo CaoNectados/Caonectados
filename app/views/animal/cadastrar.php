@@ -60,6 +60,21 @@ unset($_SESSION['old']);
                 </div>
             </div>
 
+            <!-- FOTOS ADICIONAIS (galeria, além da principal — FOTO_ANIMAL é 1:N) -->
+            <div>
+                <label class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Fotos adicionais (opcional)</label>
+                <input type="file" id="input-fotos-adicionais" name="fotos_adicionais[]" accept="image/png,image/jpeg,image/jpg,image/webp" multiple class="hidden" onchange="renderizarPreviewFotosAdicionais(event)">
+
+                <div class="flex flex-wrap gap-3 items-center">
+                    <div id="grade-preview-fotos-adicionais" class="flex flex-wrap gap-3"></div>
+                    <div onclick="document.getElementById('input-fotos-adicionais').click()"
+                         class="w-16 h-16 rounded-xl border-2 border-dashed border-text-dark/40 dark:border-branco/30 flex items-center justify-center cursor-pointer hover:border-rosaAlerta transition-colors text-2xl text-text-dark/50 dark:text-branco/50">
+                        +
+                    </div>
+                </div>
+                <p class="text-xs text-text-muted dark:text-branco/50 mt-2">Selecione uma ou mais imagens. Elas aparecem no carrossel de fotos do card do animal no feed.</p>
+            </div>
+
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
                 <input type="text" id="nome" name="nome" placeholder="Ex: Thor" maxlength="120" value="<?= htmlspecialchars($old['nome'] ?? '') ?>" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
@@ -300,5 +315,25 @@ unset($_SESSION['old']);
         document.getElementById('foto_cortada_base64').value = base64String;
 
         fecharModalCropperAnimal();
+    }
+
+    // Só preview local (o upload de verdade acontece no submit do form, via
+    // fotos_adicionais[] no $_FILES) — sem cropper aqui, cada imagem vai como enviada.
+    function renderizarPreviewFotosAdicionais(event) {
+        const arquivos = Array.from(event.target.files || []);
+        const grade = document.getElementById('grade-preview-fotos-adicionais');
+        grade.innerHTML = '';
+
+        arquivos.forEach(function (arquivo) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-16 h-16 object-cover rounded-xl border border-cinzaMarrom/30 dark:border-branco/20';
+                img.alt = 'Prévia de foto adicional';
+                grade.appendChild(img);
+            };
+            reader.readAsDataURL(arquivo);
+        });
     }
 </script>

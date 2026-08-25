@@ -101,6 +101,42 @@ if (!empty($fotoCortadaOld)) {
                 </div>
             </div>
 
+            <!-- GALERIA DE FOTOS ADICIONAIS (FOTO_ANIMAL, além da principal) -->
+            <div>
+                <label class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Fotos adicionais</label>
+
+                <div id="galeria-fotos-adicionais" class="flex flex-wrap gap-3 mb-3">
+                    <?php foreach (($fotosAdicionais ?? []) as $foto): ?>
+                        <div class="relative group" data-foto-id="<?= (int) $foto['foto_id'] ?>">
+                            <img src="<?= URL_BASE . '/' . ltrim($foto['caminho_foto'], '/') ?>"
+                                 alt="Foto adicional"
+                                 class="w-16 h-16 object-cover rounded-xl border border-cinzaMarrom/30 dark:border-branco/20"
+                                 onerror="this.src='<?= URL_BASE ?>/assets/img/perfil-placeholder.png';">
+                            <button type="button" onclick="removerFotoAdicional(<?= (int) $animalId ?>, <?= (int) $foto['foto_id'] ?>, this)"
+                                    title="Remover foto"
+                                    class="absolute -top-2 -right-2 w-5 h-5 bg-erro text-white rounded-full text-xs font-bold flex items-center justify-center shadow hover:opacity-90">
+                                &times;
+                            </button>
+                            <button type="button" onclick="tornarFotoPrincipal(<?= (int) $animalId ?>, <?= (int) $foto['foto_id'] ?>)"
+                                    title="Tornar foto principal"
+                                    class="absolute -bottom-2 -right-2 w-5 h-5 bg-primary text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow hover:opacity-90">
+                                ★
+                            </button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <input type="file" id="input-fotos-adicionais" name="fotos_adicionais[]" accept="image/png,image/jpeg,image/jpg,image/webp" multiple class="hidden" onchange="renderizarPreviewFotosAdicionais(event)">
+                <div class="flex flex-wrap gap-3 items-center">
+                    <div id="grade-preview-fotos-adicionais" class="flex flex-wrap gap-3"></div>
+                    <div onclick="document.getElementById('input-fotos-adicionais').click()"
+                         class="w-16 h-16 rounded-xl border-2 border-dashed border-text-dark/40 dark:border-branco/30 flex items-center justify-center cursor-pointer hover:border-rosaAlerta transition-colors text-2xl text-text-dark/50 dark:text-branco/50">
+                        +
+                    </div>
+                </div>
+                <p class="text-xs text-text-muted dark:text-branco/50 mt-2">Passe o mouse numa foto pra remover (&times;) ou torná-la a principal (★). Novas fotos selecionadas aqui embaixo só são salvas ao clicar em "Continuar".</p>
+            </div>
+
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
                 <input type="text" id="nome" name="nome" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-branco focus:border-rosaAlerta outline-none transition-colors" value="<?= htmlspecialchars($nome) ?>" placeholder="Ex: Thor" maxlength="120">
@@ -243,6 +279,67 @@ if (!empty($fotoCortadaOld)) {
         document.getElementById('foto_cortada_base64').value = base64String;
 
         fecharModalCropperAnimal();
+    }
+
+    // Só preview local (o upload de verdade acontece no submit do form) — sem cropper aqui.
+    function renderizarPreviewFotosAdicionais(event) {
+        const arquivos = Array.from(event.target.files || []);
+        const grade = document.getElementById('grade-preview-fotos-adicionais');
+        grade.innerHTML = '';
+
+        arquivos.forEach(function (arquivo) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-16 h-16 object-cover rounded-xl border border-cinzaMarrom/30 dark:border-branco/20';
+                img.alt = 'Prévia de foto adicional';
+                grade.appendChild(img);
+            };
+            reader.readAsDataURL(arquivo);
+        });
+    }
+
+    async function removerFotoAdicional(animalId, fotoId, botao) {
+        if (!confirm('Remover esta foto?')) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('animal_id', animalId);
+            formData.append('foto_id', fotoId);
+
+            const response = await fetch('<?= URL_BASE ?>/animal/foto/excluir', { method: 'POST', body: formData });
+            const resultado = await response.json();
+
+            if (resultado.status === 'sucesso') {
+                botao.closest('[data-foto-id]').remove();
+                if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', resultado.mensagem);
+            } else {
+                if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('erro', resultado.mensagem || 'Não foi possível remover a foto.');
+            }
+        } catch (erro) {
+            if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
+    }
+
+    async function tornarFotoPrincipal(animalId, fotoId) {
+        try {
+            const formData = new FormData();
+            formData.append('animal_id', animalId);
+            formData.append('foto_id', fotoId);
+
+            const response = await fetch('<?= URL_BASE ?>/animal/foto/principal', { method: 'POST', body: formData });
+            const resultado = await response.json();
+
+            if (resultado.status === 'sucesso') {
+                if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', resultado.mensagem);
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('erro', resultado.mensagem || 'Não foi possível definir a foto principal.');
+            }
+        } catch (erro) {
+            if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
+        }
     }
 </script>
 

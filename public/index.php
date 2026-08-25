@@ -54,9 +54,9 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 // ==========================================
 // 3. ROTAS GERAIS (PERFIL)
 // ==========================================
-// Feed temporariamente removido desta etapa do projeto (controller/view/repository
-// mantidos no código para reativação futura — só a rota está desligada).
-// $router->get('/feed', 'geral/FeedController@feed');
+// Feed / Catálogo de Animais (RF 10) — filtro de raças reaproveita a rota pública /raca/json
+$router->get('/feed', 'geral/FeedController@index');
+$router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
 
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
@@ -196,6 +196,8 @@ $router->get('/animal/cadastrar', 'animal/AnimalController@create');
 $router->get('/animal/editar', 'animal/AnimalController@edit');
 $router->get('/animal/excluir', 'animal/AnimalController@deleteView');
 $router->post('/animal/excluir', 'animal/AnimalController@destroy');
+$router->post('/animal/foto/excluir', 'animal/AnimalController@excluirFoto');
+$router->post('/animal/foto/principal', 'animal/AnimalController@definirFotoPrincipal');
 
 
 // ==========================================

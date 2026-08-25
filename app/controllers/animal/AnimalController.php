@@ -107,6 +107,11 @@ class AnimalController extends Controller
                 $this->service->salvarFoto($fotoEnviada, (int) $animal->getAnimalId());
             }
 
+            $fotosAdicionais = $this->normalizarFotosAdicionais();
+            if (!empty($fotosAdicionais)) {
+                $this->service->salvarFotosAdicionais($fotosAdicionais, (int) $animal->getAnimalId());
+            }
+
             $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
         } catch (Exception $e) {
             $_SESSION['old'] = $_POST;
@@ -126,7 +131,14 @@ class AnimalController extends Controller
 
             $_SESSION['animal'] = $animal;
 
-            $this->view('animal/editar', ['titulo' => 'Editar Animal', 'animal' => $animal]);
+            $this->view('animal/editar', [
+                'titulo'         => 'Editar Animal',
+                'animal'         => $animal,
+                'fotosAdicionais' => array_filter(
+                    $this->service->listarFotos($id),
+                    fn(array $foto) => (int) $foto['foto_principal'] === 0
+                ),
+            ]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
@@ -151,6 +163,11 @@ class AnimalController extends Controller
             $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
             if (!empty($fotoEnviada)) {
                 $this->service->salvarFoto($fotoEnviada, $id);
+            }
+
+            $fotosAdicionais = $this->normalizarFotosAdicionais();
+            if (!empty($fotosAdicionais)) {
+                $this->service->salvarFotosAdicionais($fotosAdicionais, $id);
             }
 
             unset($_SESSION['animal']);
@@ -219,6 +236,40 @@ class AnimalController extends Controller
             $this->redirecionarComMensagem('sucesso', 'Status atualizado com sucesso!', '/animal');
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
+        }
+    }
+
+    // Usado por: rota POST /animal/foto/excluir (galeria de fotos na edição)
+    public function excluirFoto(): void
+    {
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        try {
+            $animalId = (int) ($_POST['animal_id'] ?? 0);
+            $fotoId = (int) ($_POST['foto_id'] ?? 0);
+
+            $this->carregarEValidarPropriedade($animalId);
+            $this->service->removerFoto($fotoId, $animalId);
+
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Foto removida com sucesso!']);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        }
+    }
+
+    // Usado por: rota POST /animal/foto/principal (galeria de fotos na edição)
+    public function definirFotoPrincipal(): void
+    {
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        try {
+            $animalId = (int) ($_POST['animal_id'] ?? 0);
+            $fotoId = (int) ($_POST['foto_id'] ?? 0);
+
+            $this->carregarEValidarPropriedade($animalId);
+            $this->service->definirFotoPrincipal($fotoId, $animalId);
+
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Foto principal atualizada!']);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
     }
 
@@ -305,6 +356,39 @@ class AnimalController extends Controller
         $animal->setHistoricoSaude($data['historico_saude'] ?? null);
 
         return $animal;
+    }
+
+    /**
+     * $_FILES['fotos_adicionais'] chega no formato "invertido" do PHP pra inputs multi-arquivo
+     * (um array por propriedade — name[], tmp_name[], error[] etc. — em vez de um array por
+     * arquivo). Reorganiza pra uma lista de arrays individuais, no formato que
+     * UploadService::salvar() já espera (o mesmo de um upload de arquivo único).
+     */
+    // Usado por: store() e update()
+    private function normalizarFotosAdicionais(): array
+    {
+        if (empty($_FILES['fotos_adicionais']) || !is_array($_FILES['fotos_adicionais']['name'] ?? null)) {
+            return [];
+        }
+
+        $bruto = $_FILES['fotos_adicionais'];
+        $arquivos = [];
+
+        foreach ($bruto['name'] as $indice => $nome) {
+            if (($bruto['error'][$indice] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            $arquivos[] = [
+                'name'     => $nome,
+                'type'     => $bruto['type'][$indice] ?? '',
+                'tmp_name' => $bruto['tmp_name'][$indice] ?? '',
+                'error'    => $bruto['error'][$indice] ?? UPLOAD_ERR_NO_FILE,
+                'size'     => $bruto['size'][$indice] ?? 0,
+            ];
+        }
+
+        return $arquivos;
     }
 
     // Usado por: deleteView(), show(), edit(), status() e reativar()
