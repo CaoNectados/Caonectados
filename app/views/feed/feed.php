@@ -185,8 +185,17 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                     </div>
                 <?php endforeach; ?>
 
-                <!-- Sentinela do scroll infinito: quando entra na tela, carrega a próxima página -->
-                <div id="sentinela-fim-feed" class="shrink-0 w-2 h-2 lg:w-2 lg:h-full"></div>
+                <?php if (empty($temMais)): ?>
+                    <div id="card-fim-feed" class="feed-card is-active shrink-0 w-full lg:w-[400px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 flex flex-col items-center justify-center text-center p-8 gap-4">
+                        <span class="text-5xl">🐾</span>
+                        <p class="font-poppins text-text-dark dark:text-white font-bold">Você já viu todos os animais disponíveis por aqui!</p>
+                        <p class="font-poppins text-text-muted text-sm">Volte outra hora para conferir novidades.</p>
+                        <button type="button" onclick="window.location.href='<?= $urlBase ?>/feed'" class="btn-primario">🔄 Atualizar Feed</button>
+                    </div>
+                <?php else: ?>
+                    <!-- Sentinela do scroll infinito: quando entra na tela, carrega a próxima página -->
+                    <div id="sentinela-fim-feed" class="shrink-0 w-2 h-2 lg:w-2 lg:h-full"></div>
+                <?php endif; ?>
             </div>
 
             <button type="button" id="btn-proximo-animal" aria-label="Próximo animal"
@@ -196,7 +205,6 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         </div>
 
         <div id="loading-mais-animais" class="hidden text-center py-6 text-sm text-text-muted">Carregando mais animais...</div>
-        <div id="fim-do-feed" class="<?= empty($temMais) ? '' : 'hidden' ?> text-center py-6 text-sm text-text-muted">Você já viu todos os animais disponíveis por aqui! Volte outra hora para conferir novidades. 🐾</div>
     <?php endif; ?>
 </div>
 
@@ -429,7 +437,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                 temMais = resultado.temMais;
 
                 if (!temMais) {
-                    document.getElementById('fim-do-feed')?.classList.remove('hidden');
+                    criarCardFimDeFeed();
                 }
             }
         } catch (erro) {
@@ -437,6 +445,29 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         } finally {
             carregando = false;
             document.getElementById('loading-mais-animais')?.classList.add('hidden');
+        }
+    }
+
+    // Substitui a sentinela por um card de "fim de feed" dentro da própria trilha (no lugar
+    // de onde entraria o próximo animal), com botão pra recarregar e ver se surgiu algo novo.
+    function criarCardFimDeFeed() {
+        const sentinela = document.getElementById('sentinela-fim-feed');
+        if (!sentinela || document.getElementById('card-fim-feed')) return;
+
+        const card = document.createElement('div');
+        card.id = 'card-fim-feed';
+        card.className = 'feed-card shrink-0 w-full lg:w-[400px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 flex flex-col items-center justify-center text-center p-8 gap-4';
+        card.innerHTML = `
+            <span class="text-5xl">🐾</span>
+            <p class="font-poppins text-text-dark dark:text-white font-bold">Você já viu todos os animais disponíveis por aqui!</p>
+            <p class="font-poppins text-text-muted text-sm">Volte outra hora para conferir novidades.</p>
+            <button type="button" class="btn-primario">🔄 Atualizar Feed</button>
+        `;
+        card.querySelector('button').addEventListener('click', () => { window.location.href = `${urlBase}/feed`; });
+
+        sentinela.replaceWith(card);
+        if (typeof window.registrarNovoCardParaObservador === 'function') {
+            window.registrarNovoCardParaObservador(card);
         }
     }
 
