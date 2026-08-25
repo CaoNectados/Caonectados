@@ -39,9 +39,8 @@ if ($tipoPerfil === 'administrador') {
 
     // Se estiver validado (1/true), exibe todas as opções do painel
     if ($validado === true || $validado === 1 || $validado === '1') {
-        // Feed ainda não implementado nesta etapa (rota desligada em index.php) — item
-        // mantido no header a pedido, só pra já apresentar a navegação final do produto.
-        $menuItens[] = ['url' => URL_BASE . '/feed',                 'label' => 'Feed',                   'icone' => 'dashboard.svg',        'apenas_desktop' => true];
+        // Feed é exclusivo do Adotante (RF 10 depende de adotante_id) — Protetor/ONG que
+        // clicasse aqui só seria redirecionado de volta com erro de acesso negado.
         $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg',        'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];

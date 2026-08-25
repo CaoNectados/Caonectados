@@ -60,12 +60,18 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     #feed-track::-webkit-scrollbar { display: none; }
     #feed-track { scrollbar-width: none; -ms-overflow-style: none; }
 
-    .feed-card {
-        transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    .feed-card:not(.is-active) {
-        opacity: 0.45;
-        transform: scale(0.92);
+    /* O efeito de "empilhado/esmaecido" nos vizinhos só faz sentido no desktop (cards lado a
+       lado, na horizontal). No mobile é um card por vez ocupando a tela — aplicar esse mesmo
+       scale/opacity ali brigava com o snap-scroll nativo durante o gesto de rolar e dava a
+       sensação de carrossel "estranho"/tremendo que foi reportada. */
+    @media (min-width: 1024px) {
+        .feed-card {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .feed-card:not(.is-active) {
+            opacity: 0.45;
+            transform: scale(0.92);
+        }
     }
 </style>
 
@@ -99,7 +105,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                 &lsaquo;
             </button>
 
-            <div id="feed-track" class="flex flex-col lg:flex-row gap-6 overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto w-full lg:w-auto h-[calc(100vh-13rem)] lg:h-[70vh] items-stretch lg:items-center">
+            <div id="feed-track" class="flex flex-col lg:flex-row gap-6 overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto w-full lg:w-auto h-[70vh] items-stretch lg:items-center">
                 <?php foreach ($animais as $indice => $animal): ?>
                     <?php
                         $fotos = array_values(array_filter(array_map(
@@ -125,7 +131,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <?php endforeach; ?>
                             </div>
 
-                            <div class="absolute top-3 left-3 mt-4 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow">
+                            <div class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow">
                                 <span class="w-7 h-7 rounded-full bg-rosa-1 flex items-center justify-center text-xs">🏠</span>
                                 <span class="text-xs font-bold text-text-dark"><?= htmlspecialchars($animal['nome_fantasia'] ?? 'Protetor independente') ?></span>
                             </div>
@@ -190,7 +196,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         </div>
 
         <div id="loading-mais-animais" class="hidden text-center py-6 text-sm text-text-muted">Carregando mais animais...</div>
-        <div id="fim-do-feed" class="hidden text-center py-6 text-sm text-text-muted">Você viu todos os animais disponíveis no momento. 🐾</div>
+        <div id="fim-do-feed" class="<?= empty($temMais) ? '' : 'hidden' ?> text-center py-6 text-sm text-text-muted">Você já viu todos os animais disponíveis por aqui! Volte outra hora para conferir novidades. 🐾</div>
     <?php endif; ?>
 </div>
 
@@ -257,14 +263,29 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                 </div>
             </div>
 
-            <div>
-                <label class="label-padrao">Região</label>
-                <select name="regiao_id" class="input-padrao">
-                    <option value="">Todas</option>
+            <div class="relative">
+                <label class="label-padrao" for="feed-input-busca-bairro">Bairro / Região</label>
+                <?php
+                    $regiaoNomeAtual = '';
+                    foreach ($regioes as $regiao) {
+                        if ((string) $regiao->getRegiaoId() === (string) ($filtrosAtuais['regiao_id'] ?? '')) {
+                            $regiaoNomeAtual = $regiao->getNomeRegiao();
+                            break;
+                        }
+                    }
+                ?>
+                <!-- Muitos bairros cadastrados — digitável (com autocomplete nativo via
+                     datalist) em vez de <select>, pro adotante achar o dele mais rápido. -->
+                <input type="text" id="feed-input-busca-bairro" list="feed-lista-regioes"
+                       value="<?= htmlspecialchars($regiaoNomeAtual) ?>"
+                       placeholder="Digite o nome do bairro..." autocomplete="off"
+                       class="input-padrao input-com-seta">
+                <datalist id="feed-lista-regioes">
                     <?php foreach ($regioes as $regiao): ?>
-                        <option value="<?= $regiao->getRegiaoId() ?>" <?= (string) ($filtrosAtuais['regiao_id'] ?? '') === (string) $regiao->getRegiaoId() ? 'selected' : '' ?>><?= htmlspecialchars($regiao->getNomeRegiao()) ?></option>
+                        <option data-id="<?= $regiao->getRegiaoId() ?>" value="<?= htmlspecialchars($regiao->getNomeRegiao()) ?>"></option>
                     <?php endforeach; ?>
-                </select>
+                </datalist>
+                <input type="hidden" name="regiao_id" id="feed-regiao-id-hidden" value="<?= htmlspecialchars((string) ($filtrosAtuais['regiao_id'] ?? '')) ?>">
             </div>
 
             <div>
@@ -457,7 +478,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         card.innerHTML = `
             <div class="relative flex-1 bg-black/5">
                 <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5">${segmentosHtml}</div>
-                <div class="absolute top-3 left-3 mt-4 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow">
+                <div class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow">
                     <span class="w-7 h-7 rounded-full bg-rosa-1 flex items-center justify-center text-xs">🏠</span>
                     <span class="text-xs font-bold text-text-dark">${animal.nome_fantasia || 'Protetor independente'}</span>
                 </div>
@@ -491,6 +512,24 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             window.registrarNovoCardParaObservador(card);
         }
     }
+
+    // ---------- Combobox digitável de bairro/região (mesmo padrão do onboarding) ----------
+    const inputBairro = document.getElementById('feed-input-busca-bairro');
+    const hiddenRegiaoId = document.getElementById('feed-regiao-id-hidden');
+
+    function sincronizarRegiaoIdFeed() {
+        if (!inputBairro || !hiddenRegiaoId) return;
+
+        let encontradoId = '';
+        document.querySelectorAll('#feed-lista-regioes option').forEach(function (opcao) {
+            if (opcao.value.trim().toLowerCase() === inputBairro.value.trim().toLowerCase()) {
+                encontradoId = opcao.getAttribute('data-id');
+            }
+        });
+        hiddenRegiaoId.value = encontradoId;
+    }
+
+    inputBairro?.addEventListener('input', sincronizarRegiaoIdFeed);
 
     // ---------- Cascata Espécie -> Raça no modal de filtros ----------
     const selectEspecie = document.getElementById('filtro-especie');
