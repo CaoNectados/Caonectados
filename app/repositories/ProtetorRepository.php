@@ -39,6 +39,42 @@ class ProtetorRepository extends BaseRepository
         return $resultado ?: null;
     }
 
+    /**
+     * Dados completos da página pública (RF 06 / UC 19), já com a checagem de RN 01
+     * embutida na própria query (validado = 1 AND deletado_em IS NULL) — se a linha não
+     * vier, quem chamou sabe que a página não está disponível publicamente, sem precisar
+     * repetir essa regra em cada controller que só busca esses dados.
+     */
+    // Usado por: PaginaController::publica()
+    public function buscarPorProtetorIdCompleto(int $protetorId): ?array
+    {
+        $sql = "SELECT
+                    p.*,
+                    u.nome AS usuario_nome,
+                    u.regiao_id,
+                    r.nome_regiao,
+                    pag.pagina_id,
+                    pag.descricao AS pagina_descricao,
+                    pag.chave_pix,
+                    pag.foto_perfil,
+                    pag.foto_fundo
+                FROM PROTETOR p
+                INNER JOIN USUARIO u ON p.usuario_id = u.usuario_id
+                LEFT JOIN REGIAO r ON u.regiao_id = r.regiao_id
+                LEFT JOIN PAGINA pag ON p.protetor_id = pag.protetor_id
+                WHERE p.protetor_id = :protetor_id
+                  AND p.validado = 1
+                  AND p.deletado_em IS NULL
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $resultado ?: null;
+    }
+
     // Usado por: OnBoardingService::obterDadosPreenchidosProtetor()
     public function buscarPorUsuarioIdCompleto(int $usuarioId): ?array
     {

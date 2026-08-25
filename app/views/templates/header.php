@@ -46,7 +46,7 @@ if ($tipoPerfil === 'administrador') {
         $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/gerenciar-animais',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
         $menuItens[] = ['url' => URL_BASE . '/solicitacoes',         'label' => 'Solicitações Recebidas', 'icone' => 'solicitacoes.png'];
-        $menuItens[] = ['url' => URL_BASE . '/pagina-protetor',      'label' => 'Página',                 'icone' => 'pagina.svg'];
+        $menuItens[] = ['url' => URL_BASE . '/pagina-perfil',        'label' => 'Página',                 'icone' => 'pagina.svg'];
     } else {
         // Se estiver aguardando aprovação, mantém apenas a Home e a tela de status no menu
         $menuItens[] = ['url' => URL_BASE . '/aguardando-aprovacao', 'label' => 'Aguardando Aprovação',   'icone' => 'auditoria.svg'];

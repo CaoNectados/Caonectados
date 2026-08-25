@@ -83,6 +83,13 @@ $router->post('/perfil/excluir', 'geral/PerfilController@excluir');
 // Relatórios e Estatísticas (RF 12) — visão individual da ONG/Protetor
 $router->get('/relatorios', 'geral/RelatorioController@index');
 
+// Página do Protetor/ONG (RF 06) — gestão (autenticado) e visão pública
+$router->get('/pagina-perfil', 'geral/PaginaController@editar');
+$router->post('/pagina-perfil/atualizar', 'geral/PaginaController@atualizar');
+$router->post('/pagina-perfil/rede/adicionar', 'geral/PaginaController@adicionarRede');
+$router->post('/pagina-perfil/rede/remover', 'geral/PaginaController@removerRede');
+$router->get('/pagina', 'geral/PaginaController@publica');
+
 
 // ==========================================
 // 4. ROTAS DE AUTENTICAÇÃO
