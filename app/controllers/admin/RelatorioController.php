@@ -4,18 +4,21 @@ namespace app\controllers\admin;
 
 use app\services\RelatorioService;
 
+/**
+ * Relatórios e estatísticas consolidados de toda a plataforma (RF 12), com
+ * exportação em CSV. Painel do administrador em /admin/relatorios.
+ */
 class RelatorioController extends AdminBaseController
 {
     private RelatorioService $relatorioService;
 
-    // Usado por: instanciado pelo Router para a rota GET /admin/relatorios
     public function __construct()
     {
-        parent::__construct(); // AdminBaseController já restringe a ['administrador']
+        parent::__construct();
         $this->relatorioService = new RelatorioService();
     }
 
-    // Usado por: rota GET /admin/relatorios (RF 12 - dashboard analítico consolidado)
+    /** Exibe o dashboard analítico consolidado do sistema. Usado pela rota GET /admin/relatorios. */
     public function index(): void
     {
         $relatorio = $this->relatorioService->obterRelatorioAdmin($this->filtrosDaRequisicao());
@@ -32,7 +35,6 @@ class RelatorioController extends AdminBaseController
      * filtros = relatório completo) quanto pelo botão equivalente na própria tela de
      * relatórios (que reenvia os filtros ativos via query string).
      */
-    // Usado por: rota GET /admin/relatorios/exportar-csv
     public function exportarCsv(): void
     {
         $relatorio = $this->relatorioService->obterRelatorioAdmin($this->filtrosDaRequisicao());
@@ -89,8 +91,7 @@ class RelatorioController extends AdminBaseController
         exit;
     }
 
-    // Usado por: index() e exportarCsv() (uso interno) — os mesmos 3 filtros em GET
-    // (protetor_id/periodo/status), reaproveitados pela tela e pela exportação.
+    /** Monta os filtros (protetor/período/status) compartilhados por index() e exportarCsv(). */
     private function filtrosDaRequisicao(): array
     {
         return [

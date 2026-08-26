@@ -11,7 +11,6 @@ class Adotante
     private ?string $descricao = null;
     private ?string $tamanho_interno_moradia = null;
     private ?string $detalhes = null;
-    private int $petiscos_diarios = 10;
     private ?string $criado_em = null;
     private ?string $deletado_em = null;
 
@@ -35,9 +34,6 @@ class Adotante
 
     public function getDetalhes(): ?string { return $this->detalhes; }
     public function setDetalhes(?string $detalhes): void { $this->detalhes = $detalhes; }
-
-    public function getPetiscosDiarios(): int { return $this->petiscos_diarios; }
-    public function setPetiscosDiarios(int $petiscos_diarios): void { $this->petiscos_diarios = $petiscos_diarios; }
 
     public function getCriadoEm(): ?string { return $this->criado_em; }
     public function setCriadoEm(?string $criado_em): void { $this->criado_em = $criado_em; }

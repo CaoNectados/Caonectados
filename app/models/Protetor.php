@@ -11,12 +11,11 @@ class Protetor
     private ?string $codigo_documento = null;
     private ?string $tipo_documento = null;
     private ?string $nome_fantasia = null;
-    private ?string $data_abertura_cnpj = null; 
+    private ?string $data_abertura_cnpj = null;
     private ?string $comprovante_documento = null;
     private ?string $criado_em = null;
     private ?string $deletado_em = null;
 
-    // Getters e Setters
     public function getProtetorId(): ?int { return $this->protetor_id; }
     public function setProtetorId(?int $protetor_id): void { $this->protetor_id = $protetor_id; }
 

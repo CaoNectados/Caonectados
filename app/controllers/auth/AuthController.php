@@ -9,6 +9,11 @@ use app\services\ValidationService;
 use app\repositories\UsuarioRepository;
 use Exception;
 
+/**
+ * Autenticação e ciclo de vida da conta: login (com 2FA por e-mail para
+ * administradores), cadastro com verificação de e-mail, logout, recuperação e
+ * redefinição de senha, e troca de e-mail.
+ */
 class AuthController extends Controller
 {
     private AuthService $authService;
@@ -21,7 +26,7 @@ class AuthController extends Controller
         $this->authService = new AuthService();
     }
 
-    // Usado por: rota GET /login
+    /** Exibe a tela de login. Usado pela rota GET /login. */
     public function login()
     {
         $this->redirecionarSeAutenticado();
@@ -31,7 +36,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /login
+    /** Autentica o usuário; administradores são desviados para o fluxo de 2FA por e-mail. Usado pela rota POST /login. */
     public function processarLogin()
     {
         $email = trim($_POST['email'] ?? '');
@@ -44,7 +49,6 @@ class AuthController extends Controller
         try {
             $usuario = $this->authService->autenticar($email, $senha);
 
-            // SE FOR ADMIN: Inicia processo 2FA (reaproveita a tela de verificação)
             if ($usuario->getTipoAtual() === 'administrador') {
                 $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                 $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
@@ -52,15 +56,13 @@ class AuthController extends Controller
                 $usuarioRepo = new UsuarioRepository();
                 $usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
 
-                // Define as sessões para a validação do 2FA
                 $_SESSION['admin_2fa'] = [
                     'usuario_id' => $usuario->getUsuarioId(),
                     'email'      => $usuario->getEmail()
                 ];
-                // Variável usada na view verificar_email.php
+                // Lida também pela view verificar_email.php
                 $_SESSION['email_pendente_verificacao'] = $usuario->getEmail();
 
-                // Envio com o contexto de 2FA do Admin
                 MailService::enviarCodigoVerificacao($usuario->getEmail(), $usuario->getNome() ?? 'Admin', $codigo, 'login_admin');
 
                 $this->json(200, [
@@ -70,20 +72,17 @@ class AuthController extends Controller
                 ]);
             }
 
-            // SE NÃO FOR ADMIN: Inicia a sessão normalmente
             $this->authService->iniciarSessao($usuario);
 
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
-            $validado = $_SESSION['validado'] ?? false; // Puxou da tabela protetor via AuthService
+            $validado = $_SESSION['validado'] ?? false;
 
             $urlRedirect = '/home';
             if ($tipoPerfil === 'usuario') {
                 $urlRedirect = '/onboarding';
             } elseif (in_array($tipoPerfil, ['ong', 'protetor']) && $validado === false) {
-                // Se é ONG/Protetor e ainda não foi validado (0) pelo admin, vai para a espera
                 $urlRedirect = '/aguardando-aprovacao';
             } else {
-                // Adotantes e Protetores validados (1) vão para o perfil.
                 // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
                 $urlRedirect = '/perfil';
             }
@@ -99,7 +98,7 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /cadastro
+    /** Exibe a tela de cadastro. Usado pela rota GET /cadastro. */
     public function cadastro()
     {
         $this->redirecionarSeAutenticado();
@@ -109,7 +108,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /cadastro
+    /** Valida os dados e envia o código de verificação de e-mail para concluir o cadastro. Usado pela rota POST /cadastro. */
     public function processarCadastro()
     {
         $email = trim($_POST['email'] ?? '');
@@ -126,7 +125,6 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
 
-        // TRAVA PRÉVIA: verifica se o e-mail já existe
         $usuarioRepo = new UsuarioRepository();
         if ($usuarioRepo->buscarPorEmail($email) !== null) {
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Este e-mail já está cadastrado em nossa plataforma.']);
@@ -166,7 +164,7 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /logout
+    /** Encerra a sessão do usuário. Usado pela rota GET /logout. */
     public function logout()
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -177,13 +175,16 @@ class AuthController extends Controller
         $this->redirecionarComMensagem('sucesso', 'Sessão encerrada com sucesso.', '/login');
     }
 
-    // Usado por: rota GET /verificar-email
+    /** Exibe a tela de verificação de código por e-mail. Usado pela rota GET /verificar-email. */
     public function telaVerificacao()
     {
         $this->view('auth/verificar_email', ['titulo' => 'Verificação de Segurança']);
     }
 
-    // Usado por: rota POST /verificar-email/validar
+    /**
+     * Valida o código de verificação enviado por e-mail, tanto para o 2FA de administrador
+     * quanto para a confirmação de um novo cadastro. Usado pela rota POST /verificar-email/validar.
+     */
     public function processarVerificacao()
     {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -194,7 +195,6 @@ class AuthController extends Controller
         }
 
         try {
-            // CONTEXTO: 2FA DE ADMINISTRADOR
             if (isset($_SESSION['admin_2fa'])) {
                 $dadosPendente = $_SESSION['admin_2fa'];
                 $usuarioRepo = new UsuarioRepository();
@@ -223,7 +223,6 @@ class AuthController extends Controller
                 return;
             }
 
-            // CONTEXTO: CADASTRO DE NOVO USUÁRIO
             if (isset($_SESSION['pendente_cadastro'])) {
                 $dadosPendentes = $_SESSION['pendente_cadastro'];
 
@@ -267,13 +266,12 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /reenviar-codigo
+    /** Reenvia o código de verificação (2FA de admin ou confirmação de cadastro), sob rate limit. Usado pela rota GET /reenviar-codigo. */
     public function reenviarCodigo()
     {
         try {
             $this->authService->validarRateLimitReenvioCodigo();
 
-            // REENVIO PARA ADMIN 2FA
             if (isset($_SESSION['admin_2fa'])) {
                 $email = $_SESSION['admin_2fa']['email'];
                 $usuarioId = $_SESSION['admin_2fa']['usuario_id'];
@@ -287,9 +285,7 @@ class AuthController extends Controller
                 MailService::enviarCodigoVerificacao($email, 'Administrador', $novoCodigo, 'login_admin');
 
                 $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
-            }
-            // REENVIO PARA CADASTRO NORMAL
-            elseif (isset($_SESSION['pendente_cadastro'])) {
+            } elseif (isset($_SESSION['pendente_cadastro'])) {
                 $novoCodigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                 $_SESSION['pendente_cadastro']['codigo'] = $novoCodigo;
                 $_SESSION['pendente_cadastro']['expira_em'] = date('Y-m-d H:i:s', strtotime('+15 minutes'));
@@ -298,8 +294,7 @@ class AuthController extends Controller
                 MailService::enviarCodigoVerificacao($email, 'Usuário', $novoCodigo, 'cadastro');
 
                 $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
-            }
-            else {
+            } else {
                 $this->json(400, ['status' => 'erro', 'mensagem' => 'Nenhum processo pendente encontrado para reenvio.']);
             }
 
@@ -308,14 +303,14 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /esqueci-senha
+    /** Exibe a tela de solicitação de recuperação de senha. Usado pela rota GET /esqueci-senha. */
     public function esqueciSenha()
     {
         $this->redirecionarSeAutenticado();
         $this->view('auth/esqueci_senha', ['titulo' => 'Esqueci minha senha']);
     }
 
-    // Usado por: rota POST /esqueci-senha/processar
+    /** Envia o link de recuperação de senha por e-mail, sem revelar se o e-mail existe. Usado pela rota POST /esqueci-senha/processar. */
     public function processarEsqueciSenha()
     {
         $email = trim($_POST['email'] ?? '');
@@ -338,7 +333,7 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /redefinir-senha
+    /** Exibe o formulário de definição de nova senha a partir do link de recuperação. Usado pela rota GET /redefinir-senha. */
     public function redefinirSenha()
     {
         $this->redirecionarSeAutenticado();
@@ -357,7 +352,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /redefinir-senha/processar
+    /** Aplica a nova senha após validar o código do link de recuperação. Usado pela rota POST /redefinir-senha/processar. */
     public function processarRedefinirSenha()
     {
         $email = trim($_POST['email'] ?? '');

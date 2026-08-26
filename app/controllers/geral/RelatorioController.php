@@ -7,12 +7,15 @@ use app\repositories\ProtetorRepository;
 use app\services\RelatorioService;
 use Exception;
 
+/**
+ * Relatório individual de desempenho do Protetor/ONG (RF 12), com filtro por
+ * mês/ano. Acessado pelo próprio painel do Protetor/ONG em /relatorios.
+ */
 class RelatorioController extends Controller
 {
     private RelatorioService $relatorioService;
     private ProtetorRepository $protetorRepo;
 
-    // Usado por: instanciado pelo Router para a rota GET /relatorios
     public function __construct()
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -20,7 +23,7 @@ class RelatorioController extends Controller
         $this->protetorRepo = new ProtetorRepository();
     }
 
-    // Usado por: rota GET /relatorios (RF 12 - relatório individual da ONG/Protetor)
+    /** Exibe o relatório do protetor/ONG logado, filtrável por mês/ano. Usado pela rota GET /relatorios. */
     public function index(): void
     {
         try {
@@ -45,9 +48,11 @@ class RelatorioController extends Controller
         }
     }
 
-    // Usado por: index() — resolve o protetor_id a partir da SESSÃO (nunca de input do
-    // usuário), garantindo que cada ONG/Protetor só consiga ver os próprios dados nas
-    // queries do relatório. Mesmo padrão usado em AnimalController::obterProtetorIdAutenticado().
+    /**
+     * Resolve o protetor_id a partir da SESSÃO (nunca de input do usuário), garantindo que
+     * cada ONG/Protetor só consiga ver os próprios dados nas queries do relatório. Mesmo
+     * padrão usado em AnimalController::obterProtetorIdAutenticado().
+     */
     private function obterProtetorIdAutenticado(): int
     {
         if (isset($_SESSION['protetor_id']) && (int) $_SESSION['protetor_id'] > 0) {

@@ -9,12 +9,15 @@ use app\services\RegiaoService;
 use app\database\ConnectionFactory;
 use Exception;
 
+/**
+ * CRUD administrativo de bairros/regiões, usados para segmentar animais e adotantes
+ * geograficamente. Painel do administrador em /admin/regiao.
+ */
 class RegiaoController extends Controller
 {
     private RegiaoService $service;
     private RegiaoRepository $regiaoRepo;
 
-    // Usado por: instanciado pelo Router para todas as rotas /admin/regiao/*
     public function __construct()
     {
         $this->autenticacaoRequired(['administrador']);
@@ -24,7 +27,7 @@ class RegiaoController extends Controller
         $this->service = new RegiaoService($this->regiaoRepo);
     }
 
-    // Usado por: rota GET /admin/regiao
+    /** Lista todos os bairros cadastrados. Usado pela rota GET /admin/regiao. */
     public function index(): void
     {
         try {
@@ -38,7 +41,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/regiao/cadastrar
+    /** Exibe o formulário de cadastro de bairro. Usado pela rota GET /admin/regiao/cadastrar. */
     public function create(): void
     {
         $this->view('regiao/cadastrar', [
@@ -46,7 +49,7 @@ class RegiaoController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /admin/regiao/salvar
+    /** Persiste um novo bairro. Usado pela rota POST /admin/regiao/salvar. */
     public function store(): void
     {
         try {
@@ -62,7 +65,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/regiao/editar
+    /** Exibe o formulário de edição de um bairro. Usado pela rota GET /admin/regiao/editar. */
     public function edit(): void
     {
         try {
@@ -82,7 +85,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: rota POST /admin/regiao/atualizar
+    /** Salva as alterações de um bairro. Usado pela rota POST /admin/regiao/atualizar. */
     public function update(): void
     {
         try {
@@ -100,7 +103,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/regiao/excluir
+    /** Exibe a confirmação de exclusão de um bairro. Usado pela rota GET /admin/regiao/excluir. */
     public function deleteView(): void
     {
         try {
@@ -120,7 +123,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: rota POST /admin/regiao/deletar
+    /** Exclui um bairro. Usado pela rota POST /admin/regiao/deletar. */
     public function destroy(): void
     {
         try {
@@ -134,7 +137,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/regiao/json
+    /** Endpoint AJAX que lista os bairros em JSON. Usado pela rota GET /admin/regiao/json. */
     public function buscarJson(): void
     {
         try {
@@ -145,17 +148,7 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function listarTodas(): array
-    {
-        try {
-            return $this->regiaoRepo->buscarTodas();
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-
-    // Usado por: rota POST /admin/regiao/deletar-multiplos
+    /** Exclui múltiplos bairros de uma vez. Usado pela rota POST /admin/regiao/deletar-multiplos. */
     public function deletarMultiplos(): void
     {
         try {

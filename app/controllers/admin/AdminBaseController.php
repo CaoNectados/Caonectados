@@ -4,9 +4,12 @@ namespace app\controllers\admin;
 
 use app\core\Controller;
 
+/**
+ * Base para controllers restritos ao administrador. Herdada por DashboardController
+ * e SolicitacaoProtetorController.
+ */
 class AdminBaseController extends Controller
 {
-    // Usado por: DashboardController e SolicitacaoProtetorController (heranca)
     public function __construct()
     {
         $this->autenticacaoRequired(['administrador']);

@@ -15,6 +15,11 @@ use app\services\MailService;
 use app\services\ValidationService;
 use Exception;
 
+/**
+ * Tela de perfil do usuário logado: visualização, edição de dados/foto,
+ * segurança (troca de senha/e-mail), alternância entre perfis ativos (RN 20) e
+ * exclusão da própria conta.
+ */
 class PerfilController extends Controller
 {
     private PerfilService $perfilService;
@@ -23,7 +28,6 @@ class PerfilController extends Controller
     private EspecieRepository $especieRepo;
     private ProtetorRepository $protetorRepo;
 
-    // Usado por: instanciado pelo Router para todas as rotas /perfil/*
     public function __construct()
     {
         $this->autenticacaoRequired();
@@ -34,7 +38,7 @@ class PerfilController extends Controller
         $this->protetorRepo = new ProtetorRepository();
     }
 
-    // Usado por: rota GET /perfil
+    /** Exibe a página de perfil do usuário logado. Usado pela rota GET /perfil. */
     public function index(): void
     {
         $usuarioId = (int)$_SESSION['usuario_id'];
@@ -60,13 +64,7 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function perfil(): void
-    {
-        $this->index();
-    }
-
-    // Usado por: rota GET /perfil/editar
+    /** Exibe o formulário de edição do perfil, pré-carregado com os dados específicos do tipo de perfil ativo. Usado pela rota GET /perfil/editar. */
     public function editar(): void
     {
         $usuarioId = (int)$_SESSION['usuario_id'];
@@ -84,12 +82,12 @@ class PerfilController extends Controller
         $redes = [];
         $especiesAtivas = $this->especieRepo->listarAtivas();
 
-      if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
+        if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
             $adotanteRepo = new AdotanteRepository();
             $dadosEspecificos = $adotanteRepo->buscarPorUsuarioId($usuarioId) ?? [];
 
             $detalhes = json_decode($dadosEspecificos['detalhes'] ?? '{}', true) ?: [];
-            
+
             $rawEspecies = $detalhes['preferencias_especie'] ?? $detalhes['preferencias']['especie'] ?? [];
             $rawPorte    = $detalhes['preferencias_porte'] ?? $detalhes['preferencias']['porte'] ?? [];
             $rawSexo     = $detalhes['preferencias_sexo'] ?? $detalhes['preferencias']['sexo'] ?? [];
@@ -140,7 +138,7 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /perfil/atualizar
+    /** Salva as alterações do perfil (dados específicos do tipo ativo). Usado pela rota POST /perfil/atualizar. */
     public function atualizar(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -166,7 +164,7 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/atualizar-foto
+    /** Atualiza apenas a foto de perfil, enviada como base64 (upload direto ou recorte via modal). Usado pela rota POST /perfil/atualizar-foto. */
     public function atualizarFoto(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -176,8 +174,7 @@ class PerfilController extends Controller
         try {
             $usuarioId = (int)$_SESSION['usuario_id'];
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
-            
-            // Aceita tanto 'foto_cortada' (do modal direto) quanto 'foto_perfil'
+
             $base64Data = $_POST['foto_cortada'] ?? $_POST['foto_perfil'] ?? '';
 
             if (empty($base64Data)) {
@@ -199,9 +196,7 @@ class PerfilController extends Controller
         }
     }
 
-    // FLUXOS DE SEGURANÇA (SENHA E E-MAIL)
-
-    // Usado por: rota GET /perfil/redefinir-senha
+    /** Exibe a tela de redefinição de senha a partir do perfil (usuário já logado). Usado pela rota GET /perfil/redefinir-senha. */
     public function telaRedefinirSenha(): void
     {
         $usuario = $this->usuarioRepo->buscarPorId((int)$_SESSION['usuario_id']);
@@ -215,7 +210,7 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /perfil/redefinir-senha/enviar-codigo
+    /** Envia o código de verificação para confirmar a troca de senha. Usado pela rota POST /perfil/redefinir-senha/enviar-codigo. */
     public function enviarCodigoSenha(): void
     {
         try {
@@ -226,7 +221,7 @@ class PerfilController extends Controller
             $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
             $this->usuarioRepo->salvarCodigoVerificacao($usuarioId, $codigo, $expiraEm);
-            
+
             MailService::enviarCodigoVerificacao($usuario['email'], $usuario['nome'] ?? 'Usuário', $codigo, 'redefinir_senha');
 
             $_SESSION['redefinir_senha_usuario_id'] = $usuarioId;
@@ -237,7 +232,7 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/redefinir-senha/confirmar
+    /** Valida o código e aplica a nova senha. Usado pela rota POST /perfil/redefinir-senha/confirmar. */
     public function confirmarNovaSenha(): void
     {
         try {
@@ -272,7 +267,7 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota GET /perfil/trocar-email
+    /** Exibe a tela de troca de e-mail. Usado pela rota GET /perfil/trocar-email. */
     public function telaTrocarEmail(): void
     {
         $usuario = $this->usuarioRepo->buscarPorId((int)$_SESSION['usuario_id']);
@@ -282,7 +277,7 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /perfil/trocar-email/enviar-codigo
+    /** Envia o código de verificação para o NOVO e-mail informado. Usado pela rota POST /perfil/trocar-email/enviar-codigo. */
     public function enviarCodigoTrocaEmail(): void
     {
         try {
@@ -300,7 +295,7 @@ class PerfilController extends Controller
             $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
             $this->usuarioRepo->salvarCodigoVerificacao($usuarioId, $codigo, $expiraEm);
-            
+
             MailService::enviarCodigoVerificacao($novoEmail, 'Usuário', $codigo, 'trocar_email');
 
             $_SESSION['troca_email_pendente'] = [
@@ -314,7 +309,7 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/trocar-email/confirmar
+    /** Valida o código e efetiva a troca de e-mail. Usado pela rota POST /perfil/trocar-email/confirmar. */
     public function confirmarTrocaEmail(): void
     {
         try {
@@ -331,8 +326,7 @@ class PerfilController extends Controller
             }
 
             $this->usuarioRepo->marcarCodigoComoUsado((int)$registro['codigo_id']);
-            
-            // Atualiza o e-mail no banco e na sessão
+
             $this->usuarioRepo->atualizarEmail((int)$dados['usuario_id'], $dados['novo_email']);
 
             $_SESSION['usuario_email'] = $dados['novo_email'];
@@ -348,8 +342,8 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/trocar
-   public function alternar(): void
+    /** Alterna o perfil ativo do usuário (RN 20 — multi-perfil) e ressincroniza a sessão. Usado pela rota POST /perfil/trocar. */
+    public function alternar(): void
     {
         $tipo = strtolower(trim($_POST['tipo'] ?? ''));
         $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
@@ -372,10 +366,8 @@ class PerfilController extends Controller
 
         $this->usuarioRepo->atualizarTipoAtual($usuarioId, $tipo);
 
-        // $tipo já foi validado contra a lista de perfis permitidos e ativos do usuário
         $tipoSession = $tipo;
 
-        // Busca a foto correspondente ao perfil exato que está sendo ativado
         $fotoPerfilAtiva = null;
         if ($tipoSession === 'adotante') {
             $adotanteRepo = new AdotanteRepository();
@@ -390,7 +382,6 @@ class PerfilController extends Controller
             }
         }
 
-        // Atualiza a sessão completamente com os dados do perfil correto
         $_SESSION['tipo_perfil'] = $tipoSession;
         $_SESSION['foto_perfil'] = $fotoPerfilAtiva;
         $_SESSION['perfil_ativo'] = [
@@ -399,7 +390,6 @@ class PerfilController extends Controller
             'foto_perfil' => $fotoPerfilAtiva
         ];
 
-        // Sincroniza status do protetor/ong se aplicável
         if (in_array($tipoSession, ['ong', 'protetor'], true)) {
             $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             $_SESSION['protetor_id'] = $protetor ? (int)$protetor['protetor_id'] : 0;
@@ -411,7 +401,7 @@ class PerfilController extends Controller
         $this->redirecionarComMensagem('sucesso', 'Perfil alternado para ' . ucfirst($tipoSession) . ' com sucesso!', '/perfil');
     }
 
-    // Usado por: rota POST /perfil/excluir (soft delete da conta pelo próprio usuário)
+    /** Exclui (soft delete) a própria conta e encerra a sessão. Usado pela rota POST /perfil/excluir. */
     public function excluir(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

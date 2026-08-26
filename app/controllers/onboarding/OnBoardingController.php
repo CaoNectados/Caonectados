@@ -10,6 +10,11 @@ use app\repositories\UsuarioRepository;
 use app\services\ValidationService;
 use Exception;
 
+/**
+ * Fluxo de onboarding: escolha e cadastro do primeiro perfil (Adotante ou
+ * Protetor/ONG), upgrade para um perfil adicional (RF 20 e seu inverso) e a
+ * tela de espera de aprovação do cadastro de Protetor/ONG.
+ */
 class OnboardingController extends Controller
 {
     private OnboardingService $onboardingService;
@@ -28,7 +33,7 @@ class OnboardingController extends Controller
         $this->verificarSeJaPossuiPerfil();
     }
 
-    // Usado por: rota GET /onboarding
+    /** Exibe a tela de seleção do tipo de perfil a cadastrar. Usado pela rota GET /onboarding. */
     public function index()
     {
         $this->view('onboarding/selecionar_perfil', [
@@ -37,7 +42,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    // Usado por: rota GET /onboarding/adotante
+    /** Exibe o formulário de cadastro de Adotante. Usado pela rota GET /onboarding/adotante. */
     public function adotante(): void
     {
         $regioes = $this->regiaoRepo->buscarTodas();
@@ -50,8 +55,10 @@ class OnboardingController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /onboarding/salvar-adotante (fluxo original de cadastro, e
-    // RF 20 inverso - upgrade de Protetor/ONG para Adotante)
+    /**
+     * Persiste o cadastro de Adotante (fluxo original) ou, no caso de RF 20 inverso, o
+     * perfil adicional de Adotante de um usuário já Protetor/ONG. Usado pela rota POST /onboarding/salvar-adotante.
+     */
     public function salvarAdotante(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -95,7 +102,7 @@ class OnboardingController extends Controller
         }
     }
 
-    // Usado por: rota GET /onboarding/ong
+    /** Exibe o formulário de cadastro de ONG (protetor com CNPJ). Usado pela rota GET /onboarding/ong. */
     public function ong(): void
     {
         $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
@@ -111,7 +118,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    // Usado por: rota GET /onboarding/protetor
+    /** Exibe o formulário de cadastro de Protetor (pessoa física, CPF). Usado pela rota GET /onboarding/protetor. */
     public function protetor(): void
     {
         $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
@@ -127,8 +134,11 @@ class OnboardingController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /onboarding/salvar-protetor (fluxo de ONG e de Protetor, e
-    // RF 20 - upgrade de Adotante para Protetor/ONG)
+    /**
+     * Envia a solicitação de cadastro de Protetor/ONG para análise do administrador
+     * (fluxo original), ou, no caso de RF 20, o upgrade de um Adotante já validado. Usado
+     * pela rota POST /onboarding/salvar-protetor.
+     */
     public function salvarProtetor(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -169,7 +179,7 @@ class OnboardingController extends Controller
         }
     }
 
-    // Usado por: rota GET /onboarding/especies-ativas
+    /** Endpoint AJAX que lista as espécies ativas em JSON, usado nos combobox do formulário de onboarding. Usado pela rota GET /onboarding/especies-ativas. */
     public function especiesAtivas(): void
     {
         try {
@@ -193,7 +203,7 @@ class OnboardingController extends Controller
         }
     }
 
-    // Usado por: rota GET /aguardando-aprovacao
+    /** Exibe o status da solicitação de cadastro de Protetor/ONG (pendente/aprovada/recusada). Usado pela rota GET /aguardando-aprovacao. */
     public function aguardandoAprovacao(): void
     {
         $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
@@ -226,7 +236,11 @@ class OnboardingController extends Controller
         ]);
     }
 
-    // Usado por: __construct()
+    /**
+     * Guarda de acesso do construtor: bloqueia rotas de onboarding para quem já concluiu o
+     * fluxo, e roteia quem está em RF 20 (upgrade de perfil) ou com solicitação de
+     * Protetor/ONG pendente/recusada para a tela correta.
+     */
     private function verificarSeJaPossuiPerfil(): void
     {
         $usuarioId = $_SESSION['usuario_id'] ?? null;
@@ -236,7 +250,6 @@ class OnboardingController extends Controller
 
         $uriAtual = $this->getUriLimpa();
 
-        // Rotas sempre liberadas, independente do estado do perfil
         $rotasSempreLivres = [
             '/onboarding/especies-ativas',
             '/logout'
@@ -249,7 +262,6 @@ class OnboardingController extends Controller
         $possuiPerfil = $this->onboardingService->usuarioJaPossuiPerfil((int)$usuarioId);
 
         if (!$possuiPerfil) {
-            // Ainda não possui nenhum perfil: livre para navegar por todo o fluxo de onboarding.
             return;
         }
 

@@ -5,8 +5,13 @@ namespace app\core;
 use RuntimeException;
 use app\repositories\UsuarioRepository;
 use app\repositories\ProtetorRepository;
+
 class Controller
 {
+    /**
+     * Renderiza uma view em app/views/, extraindo $data como variáveis locais.
+     * Usado por todo controller do sistema para produzir HTML.
+     */
     public function view(string $view, ?array $data = null): void
     {
         if ($data) {
@@ -22,6 +27,10 @@ class Controller
         }
     }
 
+    /**
+     * Responde a requisição atual como JSON e encerra a execução.
+     * Usado pelas rotas AJAX de todo o sistema.
+     */
     public function json(int $statusCode, array $payload): void
     {
         http_response_code($statusCode);
@@ -30,12 +39,21 @@ class Controller
         exit;
     }
 
+    /**
+     * Redireciona para uma rota interna (prefixada com URL_BASE) e encerra a execução.
+     * Usado por todo controller do sistema.
+     */
     public function redirect(string $url): void
     {
         header('Location: ' . URL_BASE . $url);
         exit();
     }
 
+    /**
+     * Normaliza a URI da requisição atual (remove o base path do document root e barras
+     * duplicadas/finais). Usado por autenticacaoRequired() para comparar contra as listas de
+     * rotas livres.
+     */
     protected function getUriLimpa(): string
     {
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
@@ -58,6 +76,11 @@ class Controller
         return '/' . ltrim(rtrim($uri, '/'), '/');
     }
 
+    /**
+     * Guarda de sessão principal: exige login, sincroniza a sessão com o banco, força a
+     * conclusão do onboarding, restringe por perfil (RBAC) e bloqueia ONG/Protetor não
+     * validado fora das rotas livres. Chamada no construtor de todo controller autenticado.
+     */
     protected function autenticacaoRequired(array $perfisPermitidos = []): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -98,15 +121,11 @@ class Controller
             }
         }
 
-        if (!empty($perfisPermitidos)) {
-            if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
-                $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/perfil');
-            }
+        if (!empty($perfisPermitidos) && !in_array($tipoUsuario, $perfisPermitidos, true)) {
+            $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/perfil');
         }
 
-       // Se for ONG/Protetor e não estiver validado (0)
         if (in_array($tipoUsuario, ['ong', 'protetor'], true) && ($validado === false || $validado === 0 || $validado === '0')) {
-
             $rotasLivres = [
                 '/',
                 '/home',
@@ -151,7 +170,10 @@ class Controller
         $this->redirect($this->resolverDestinoPainel());
     }
 
-    // Usado por: redirecionarSeAutenticado()
+    /**
+     * Decide pra qual painel redirecionar um usuário já autenticado, a partir do tipo de
+     * perfil e do status de validação. Usado por redirecionarSeAutenticado().
+     */
     private function resolverDestinoPainel(): string
     {
         $tipoUsuario = $_SESSION['tipo_perfil'] ?? 'usuario';
@@ -172,6 +194,10 @@ class Controller
         return '/perfil';
     }
 
+    /**
+     * Grava um feedback flash na sessão (lido pelo modal global em footer.php) e redireciona.
+     * Usado por todo controller do sistema para reportar sucesso/erro após uma ação.
+     */
     protected function redirecionarComMensagem(string $tipo, string $mensagem, string $rota, ?string $erroDetalhado = null): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -190,17 +216,22 @@ class Controller
         $this->redirect($rota);
     }
 
-
-    // Usado por: autenticacaoRequired() — mantém a sessão alinhada com o banco a cada
-    // requisição autenticada. A sessão só era preenchida no login (AuthService::iniciarSessao)
-    // e nunca era revalidada depois disso, então uma conta/perfil desativado pelo admin (ou
-    // editado direto no banco) só tinha efeito quando o usuário deslogava e logava de novo.
+    /**
+     * Realinha a sessão com o banco a cada requisição autenticada (tipo de perfil, perfis
+     * ativos, status da conta e validação de ONG/Protetor) — sem isso, uma conta/perfil
+     * alterado pelo admin só surtiria efeito no próximo login. Usado por autenticacaoRequired()
+     * e redirecionarSeAutenticado().
+     */
     private function sincronizarSessaoComBanco(int $usuarioId): void
     {
         $usuarioRepo = new UsuarioRepository();
         $usuario = $usuarioRepo->buscarPorId($usuarioId);
 
-        $statusInvalido = ['inativo', 'bloqueado', 'rejeitado', 'bloqueada', 'desativado'];
+        // 'bloqueado' fica fora desta lista de propósito (RF 16/19, RN 14/15): é uma sanção de
+        // moderação que restringe AÇÕES específicas (ver exigirContaNaoBloqueada()), não um
+        // logout forçado — o usuário precisa continuar logado pra conseguir contestar (RF 17).
+        // 'inativo'/'rejeitado' são desativação administrativa completa e derrubam a sessão.
+        $statusInvalido = ['inativo', 'rejeitado', 'bloqueada', 'desativado'];
         $statusConta = strtolower((string)($usuario['status_conta'] ?? ''));
 
         if (!$usuario || in_array($statusConta, $statusInvalido, true)) {
@@ -217,13 +248,10 @@ class Controller
         $_SESSION['perfis_ativos'] = $perfisAtivos;
         $_SESSION['status_conta']  = $statusConta;
 
-        // Mantém perfil_ativo.tipo alinhado com tipo_atual do banco a cada requisição.
-        // perfil_ativo só era escrito no login (AuthService::iniciarSessao) e ao trocar de
-        // perfil (PerfilController::alternar) — quem completava o onboarding pela primeira
-        // vez tinha tipo_perfil atualizado corretamente, mas perfil_ativo.tipo continuava
-        // com o valor 'usuario' do login, e perfil.php/editar.php dão prioridade a
-        // perfil_ativo.tipo. Resultado: o perfil aparecia como "incompleto" mesmo depois de
-        // concluído o cadastro de adotante/protetor/ong.
+        // perfil_ativo.tipo precisa ficar alinhado com tipo_atual aqui também, não só no login
+        // e na troca de perfil — senão quem completa o onboarding continua com perfil_ativo
+        // apontando pro 'usuario' antigo, e telas como perfil.php/editar.php (que priorizam
+        // perfil_ativo.tipo) mostram o cadastro como incompleto mesmo depois de concluído.
         $_SESSION['perfil_ativo'] = [
             'id'   => $usuarioId,
             'tipo' => $tipoAtual
@@ -235,6 +263,19 @@ class Controller
             $_SESSION['validado'] = $protetor ? (bool)$protetor['validado'] : false;
         } else {
             $_SESSION['validado'] = true;
+        }
+    }
+
+    /**
+     * RF 16 / RN 14 / RN 15: interceptação de ações críticas pra contas com status_conta =
+     * 'bloqueado' (aplicado via DenunciaService::aprovar()/aplicarSancaoDireta()). Chamada no
+     * início de toda ação restrita — SolicitacaoAdocaoController (criar/colocarEmAnalise/
+     * recusar/aprovar/devolver) e AnimalController (store/update/status/reativar/destroy).
+     */
+    protected function exigirContaNaoBloqueada(): void
+    {
+        if (($_SESSION['status_conta'] ?? '') === 'bloqueado') {
+            throw new \Exception('Solicitação negada! Seu perfil está bloqueado. Entre em contato com a administração para mais informações.');
         }
     }
 }

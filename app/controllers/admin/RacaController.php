@@ -11,6 +11,10 @@ use app\services\EspecieService;
 use app\database\ConnectionFactory;
 use Exception;
 
+/**
+ * CRUD administrativo de raças, incluindo importação e sugestões vindas das APIs
+ * externas (TheDogAPI/TheCatAPI). Painel do administrador em /admin/raca.
+ */
 class RacaController extends Controller
 {
     private RacaService $service;
@@ -18,7 +22,6 @@ class RacaController extends Controller
     private RacaRepository $racaRepo;
     private EspecieRepository $especieRepository;
 
-    // Usado por: instanciado pelo Router para todas as rotas /admin/raca/* e /raca/json
     public function __construct()
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -40,7 +43,7 @@ class RacaController extends Controller
         $this->especieService = new EspecieService($this->especieRepository);
     }
 
-    // Usado por: rota GET /admin/raca
+    /** Lista as raças cadastradas, filtráveis por status. Usado pela rota GET /admin/raca. */
     public function index(): void
     {
         $status = $_GET['status'] ?? 'todos';
@@ -53,7 +56,7 @@ class RacaController extends Controller
         ]);
     }
 
-    // Usado por: rota GET /admin/raca/cadastrar
+    /** Exibe o formulário de cadastro de raça. Usado pela rota GET /admin/raca/cadastrar. */
     public function create(): void
     {
         $especies = $this->especieService->listarTodas();
@@ -64,7 +67,7 @@ class RacaController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /admin/raca/salvar
+    /** Persiste uma nova raça. Usado pela rota POST /admin/raca/salvar. */
     public function store(): void
     {
         try {
@@ -83,7 +86,7 @@ class RacaController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/raca/editar
+    /** Exibe o formulário de edição de uma raça. Usado pela rota GET /admin/raca/editar. */
     public function edit(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -102,7 +105,7 @@ class RacaController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /admin/raca/atualizar
+    /** Salva as alterações de uma raça. Usado pela rota POST /admin/raca/atualizar. */
     public function update(): void
     {
         try {
@@ -123,7 +126,7 @@ class RacaController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/raca/excluir
+    /** Exibe a confirmação de exclusão de uma raça. Usado pela rota GET /admin/raca/excluir. */
     public function deleteView(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -139,7 +142,7 @@ class RacaController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /admin/raca/deletar
+    /** Desativa (soft delete) uma raça. Usado pela rota POST /admin/raca/deletar. */
     public function destroy(): void
     {
         try {
@@ -155,8 +158,8 @@ class RacaController extends Controller
         }
     }
 
-    // Usado por: rota POST /admin/raca/importar
-public function importar(): void
+    /** Importa em lote as raças sugeridas selecionadas para uma espécie. Usado pela rota POST /admin/raca/importar. */
+    public function importar(): void
     {
         try {
             $especieNome = trim($_POST['especie_nome'] ?? '');
@@ -175,7 +178,7 @@ public function importar(): void
         $this->redirect('/admin/gerenciar-especies-racas?aba=sugestoes');
     }
 
-    // Usado por: rota GET /admin/raca/reativar
+    /** Reativa uma raça desativada. Usado pela rota GET /admin/raca/reativar. */
     public function reativar(): void
     {
         try {
@@ -191,7 +194,7 @@ public function importar(): void
         }
     }
 
-    // Usado por: rotas GET /admin/raca/json e /raca/json (chamada por outros perfis)
+    /** Endpoint AJAX que lista raças (opcionalmente filtradas por espécie) em JSON. Usado pelas rotas GET /admin/raca/json e /raca/json (combobox de outros perfis). */
     public function buscarJson()
     {
         try {
@@ -212,7 +215,7 @@ public function importar(): void
         exit;
     }
 
-    // Usado por: rota GET /admin/gerenciar-especies-racas
+    /** Tela combinada de gerenciamento de espécies e raças, agrupadas por espécie. Usado pela rota GET /admin/gerenciar-especies-racas. */
     public function gerenciarEspeciesRacas(): void
     {
         // Carrega SOMENTE dados locais do banco — nenhuma chamada às APIs externas
@@ -243,10 +246,9 @@ public function importar(): void
     }
 
     /**
-     * Endpoint AJAX: busca sugestões de raças nas APIs externas (TheDogAPI/TheCatAPI)
-     * SOB DEMANDA, disparado apenas pelo clique no botão "Sugestões da API" da view.
+     * Endpoint AJAX: busca sugestões de raças ainda não cadastradas nas APIs externas
+     * (TheDogAPI/TheCatAPI), disparado sob demanda pelo botão "Sugestões da API" na view.
      */
-    // Usado por: rota GET /admin/raca/sugestoes-json
     public function sugestoesJson(): void
     {
         try {

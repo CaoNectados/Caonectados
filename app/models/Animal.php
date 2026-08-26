@@ -2,7 +2,6 @@
 
 namespace app\models;
 
-#[\AllowDynamicProperties]
 class Animal
 {
     private ?int $animalId = null;

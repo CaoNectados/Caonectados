@@ -8,9 +8,13 @@ use app\repositories\RelatorioRepository;
 use app\repositories\DenunciaRepository;
 use DateTimeImmutable;
 
+/**
+ * Painel inicial do administrador, com indicadores agregados da plataforma
+ * (cadastros pendentes, denúncias abertas, adoções do mês, etc.).
+ */
 class DashboardController extends AdminBaseController
 {
-    // Usado por: rota GET /admin/dashboard
+    /** Monta os indicadores do dashboard administrativo. Usado pela rota GET /admin/dashboard. */
     public function index()
     {
         $protetorRepo = new ProtetorRepository();

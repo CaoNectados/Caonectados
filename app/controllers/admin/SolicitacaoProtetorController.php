@@ -4,6 +4,10 @@ namespace app\controllers\admin;
 
 use app\services\SolicitacaoService;
 
+/**
+ * Triagem administrativa dos cadastros de Protetor/ONG (aprovação/rejeição do
+ * documento enviado no onboarding). Painel do administrador em /admin/solicitacoes.
+ */
 class SolicitacaoProtetorController extends AdminBaseController
 {
     private SolicitacaoService $solicitacaoService;
@@ -14,7 +18,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         $this->solicitacaoService = new SolicitacaoService();
     }
 
-    // Usado por: rota GET /admin/solicitacoes
+    /** Lista as solicitações de cadastro de protetor, filtráveis por status e busca. Usado pela rota GET /admin/solicitacoes. */
     public function index(): void
     {
         $status = $_GET['status'] ?? 'pendentes';
@@ -30,7 +34,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         ]);
     }
 
-    // Usado por: rota GET /admin/solicitacoes/detalhes
+    /** Exibe os detalhes de uma solicitação de cadastro de protetor. Usado pela rota GET /admin/solicitacoes/detalhes. */
     public function detalhes(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -49,7 +53,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         ]);
     }
 
-    // Usado por: rota POST /admin/solicitacoes/aprovar
+    /** Aprova e valida o cadastro de um protetor. Usado pela rota POST /admin/solicitacoes/aprovar. */
     public function aprovar(): void
     {
         $id = (int)($_POST['protetor_id'] ?? 0);
@@ -64,7 +68,7 @@ class SolicitacaoProtetorController extends AdminBaseController
         $this->redirecionarComMensagem('erro', 'Ocorreu um erro ao aprovar o cadastro.', '/admin/solicitacoes');
     }
 
-    // Usado por: rota POST /admin/solicitacoes/rejeitar
+    /** Recusa o cadastro de um protetor, com motivo enviado por e-mail. Usado pela rota POST /admin/solicitacoes/rejeitar. */
     public function rejeitar(): void
     {
         $id = (int)($_POST['protetor_id'] ?? 0);
