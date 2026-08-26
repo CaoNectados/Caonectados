@@ -4,30 +4,29 @@ require_once __DIR__ . '/../templates/header.php';
 
 <div class="min-h-[80vh] flex flex-col items-center justify-center p-4">
     <!-- Container alargado para max-w-4xl para melhor visualização no desktop -->
-    <div class="w-full max-w-4xl bg-white dark:bg-zinc-800 rounded-3xl shadow-xl border border-purple-200 dark:border-zinc-700 p-6 md:p-8 transition-colors duration-200">
-        
+    <div class="w-full max-w-4xl bg-surface rounded-3xl shadow-xl border border-rosa-2 dark:border-preto3 p-6 md:p-8 transition-colors duration-200">
+
         <!-- Cabeçalho -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <div>
-                <h1 class="text-2xl md:text-3xl font-extrabold text-zinc-800 dark:text-zinc-100 tracking-wide flex items-center gap-2">
+                <h1 class="text-2xl md:text-3xl font-extrabold text-text-dark dark:text-white tracking-wide flex items-center gap-2">
                     <span class="text-3xl">📍</span> Regiões Cadastradas
                 </h1>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Gerencie os bairros e áreas de atuação disponíveis.</p>
+                <p class="text-sm text-text-muted mt-1">Gerencie os bairros e áreas de atuação disponíveis.</p>
             </div>
-            <a href="<?= URL_BASE ?>/admin/regiao/cadastrar" 
-               class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl transition duration-150 shadow hover:shadow-md whitespace-nowrap">
+            <a href="<?= URL_BASE ?>/admin/regiao/cadastrar" class="btn-primario whitespace-nowrap">
                 + Nova Região
             </a>
         </div>
 
         <!-- Busca -->
-        <div class="mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+        <div class="mb-6 p-4 bg-rosa-1/20 dark:bg-preto2/50 rounded-2xl border border-rosa-2/60 dark:border-preto3">
             <div class="relative w-full">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">🔍</span>
-                <input type="text" 
-                       id="busca-regiao" 
-                       placeholder="Buscar região pelo nome..." 
-                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-zinc-900 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400 transition"
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted">🔍</span>
+                <input type="text"
+                       id="busca-regiao"
+                       placeholder="Buscar região pelo nome..."
+                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-preto1 dark:border-white bg-branco dark:bg-preto1 text-text-dark dark:text-white focus:outline-none focus:border-primary transition"
                        onkeyup="filtrarRegioes()">
             </div>
         </div>
@@ -35,45 +34,45 @@ require_once __DIR__ . '/../templates/header.php';
         <form action="<?= URL_BASE ?>/admin/regiao/deletar-multiplos" method="POST" id="form-regioes">
             <div class="mb-4">
                 <div class="flex items-center justify-between mb-2 px-1">
-                    <label class="block text-lg font-bold text-zinc-700 dark:text-zinc-200">
+                    <label class="block text-lg font-bold text-text-dark dark:text-white">
                         Selecionar para Exclusão
                     </label>
-                    <label class="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer select-none">
-                        <input type="checkbox" id="master-checkbox" onchange="toggleTodasRegioes(this)" class="w-4 h-4 rounded border-2 border-zinc-800 text-purple-600 focus:ring-purple-500 dark:bg-zinc-800 dark:border-zinc-500">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-text-muted cursor-pointer select-none">
+                        <input type="checkbox" id="master-checkbox" onchange="toggleTodasRegioes(this)" class="w-4 h-4 rounded border-2 border-preto1 dark:border-white text-primary focus:ring-roxinhoFofo dark:bg-preto1">
                         Marcar Todas
                     </label>
                 </div>
-                
-                <div class="border-2 border-zinc-900 dark:border-zinc-600 rounded-2xl overflow-hidden bg-purple-50/30 dark:bg-zinc-900/50">
-                    <div class="max-h-96 overflow-y-auto divide-y divide-purple-100 dark:divide-zinc-700" id="lista-regioes">
+
+                <div class="border-2 border-preto1 dark:border-white rounded-2xl overflow-hidden bg-rosa-1/10 dark:bg-preto1/50">
+                    <div class="max-h-96 overflow-y-auto divide-y divide-rosa-1 dark:divide-preto3" id="lista-regioes">
                         <?php if (!empty($regioes)): ?>
                             <?php foreach ($regioes as $r): ?>
-                                <div class="regiao-item flex items-center justify-between p-3.5 hover:bg-purple-100/60 dark:hover:bg-zinc-700/50 transition" 
+                                <div class="regiao-item flex items-center justify-between p-3.5 hover:bg-rosa-1/30 dark:hover:bg-preto2 transition"
                                      data-nome="<?= htmlspecialchars(strtolower($r->getNomeRegiao())); ?>">
-                                    
+
                                     <div class="flex items-center space-x-3">
-                                        <span class="text-xs font-mono text-zinc-400 dark:text-zinc-500">
+                                        <span class="text-xs font-mono text-text-muted">
                                             #<?= $r->getRegiaoId(); ?>
                                         </span>
-                                        <span class="text-base font-semibold text-zinc-800 dark:text-zinc-100">
+                                        <span class="text-base font-semibold text-text-dark dark:text-white">
                                             <?= htmlspecialchars($r->getNomeRegiao()); ?>
                                         </span>
                                     </div>
-                                    
+
                                     <div class="flex items-center space-x-4">
-                                        <a href="<?= URL_BASE ?>/admin/regiao/editar?id=<?= $r->getRegiaoId(); ?>" 
-                                           class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline">
+                                        <a href="<?= URL_BASE ?>/admin/regiao/editar?id=<?= $r->getRegiaoId(); ?>"
+                                           class="text-xs font-bold text-primary dark:text-roxinhoFofo hover:underline">
                                             Editar
                                         </a>
-                                        <input type="checkbox" 
-                                               name="ids[]" 
-                                               value="<?= $r->getRegiaoId(); ?>" 
-                                               class="chk-regiao w-5 h-5 rounded border-2 border-zinc-800 text-purple-600 focus:ring-purple-500 dark:bg-zinc-800 dark:border-zinc-500">
+                                        <input type="checkbox"
+                                               name="ids[]"
+                                               value="<?= $r->getRegiaoId(); ?>"
+                                               class="chk-regiao w-5 h-5 rounded border-2 border-preto1 dark:border-white text-primary focus:ring-roxinhoFofo dark:bg-preto1">
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <div class="p-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            <div class="p-8 text-center text-sm text-text-muted">
                                 Nenhuma região cadastrada ainda.
                             </div>
                         <?php endif; ?>
@@ -83,9 +82,9 @@ require_once __DIR__ . '/../templates/header.php';
 
             <?php if (!empty($regioes)): ?>
                 <div class="flex justify-center mt-6">
-                    <button type="button" 
+                    <button type="button"
                             onclick="confirmarExclusaoModal()"
-                            class="px-8 py-2.5 bg-purple-200 hover:bg-purple-300 dark:bg-purple-900/60 dark:hover:bg-purple-800 text-zinc-900 dark:text-purple-100 font-bold rounded-2xl border-2 border-zinc-900 dark:border-zinc-600 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer">
+                            class="px-8 py-2.5 bg-rosa-1 hover:bg-rosa-2 dark:bg-preto2 dark:hover:bg-preto3 text-text-dark dark:text-white font-bold rounded-2xl border-2 border-preto1 dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer">
                         Deletar regiões marcadas
                     </button>
                 </div>
@@ -131,37 +130,17 @@ require_once __DIR__ . '/../templates/header.php';
     // Valida seleção e dispara a modal do footer
     function confirmarExclusaoModal() {
         const selecionados = document.querySelectorAll('.chk-regiao:checked');
-        
+
         if (selecionados.length === 0) {
-            if (typeof abrirModalMensagem === 'function') {
-                abrirModalMensagem('Aviso', 'Selecione ao menos uma região para excluir.');
-            } else {
-                alert('Selecione ao menos uma região para excluir.');
-            }
+            mostrarModalFeedback('aviso', 'Selecione ao menos uma região para excluir.');
             return;
         }
 
-        // Se houver função de modal de confirmação no footer (ex: abrirModalConfirmacao)
-        if (typeof abrirModalConfirmacao === 'function') {
-            abrirModalConfirmacao(
-                'Confirmar Exclusão',
-                `Deseja realmente excluir as ${selecionados.length} região(ões) selecionada(s)?`,
-                () => document.getElementById('form-regioes').submit()
-            );
-        } else {
-            // Caso sua estrutura utilize abertura por elemento de modal
-            const modalEl = document.getElementById('modal-confirmacao') || document.getElementById('modal-exclusao');
-            if (modalEl) {
-                modalEl.classList.remove('hidden');
-                const btnConfirmar = modalEl.querySelector('#btn-confirmar-exclusao');
-                if (btnConfirmar) {
-                    btnConfirmar.onclick = () => document.getElementById('form-regioes').submit();
-                }
-            } else {
-                // Fallback caso a modal não esteja instanciada
-                document.getElementById('form-regioes').submit();
-            }
-        }
+        abrirModalConfirmacao(
+            'Confirmar Exclusão',
+            `Deseja realmente excluir as ${selecionados.length} região(ões) selecionada(s)?`,
+            () => document.getElementById('form-regioes').submit()
+        );
     }
 </script>
 

@@ -20,11 +20,11 @@ $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evit
     <div class="text-center my-4">
         <div class="flex items-center justify-center gap-3 mb-6">
             <h1 class="text-3xl font-bold font-shantell text-primary">Análise Geral</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">📅 <?= htmlspecialchars($mesRotulo) ?></span>
+            <span class="bg-gray-200 dark:bg-preto3 text-gray-700 dark:text-white text-xs px-3 py-1 rounded-full font-medium">📅 <?= htmlspecialchars($mesRotulo) ?></span>
         </div>
 
-        <div class="card-padrao max-w-3xl mx-auto py-8 bg-white rounded-xl shadow">
-            <div class="flex justify-center gap-6 mb-6 text-xs font-bold text-gray-600">
+        <div class="card-padrao max-w-3xl mx-auto py-8">
+            <div class="flex justify-center gap-6 mb-6 text-xs font-bold text-text-muted">
                 <?php foreach ($metricasGrafico as $m): ?>
                     <span class="flex items-center gap-1"><span class="w-3 h-3 <?= $m['cor'] ?> rounded-sm block"></span> <?= htmlspecialchars($m['rotulo']) ?></span>
                 <?php endforeach; ?>
@@ -35,10 +35,10 @@ $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evit
             <div class="space-y-4 px-6 sm:px-10">
                 <?php foreach ($metricasGrafico as $m): ?>
                     <div class="flex items-center gap-3">
-                        <div class="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="flex-1 h-6 bg-gray-100 dark:bg-preto3 rounded-full overflow-hidden">
                             <div class="h-full <?= $m['cor'] ?> rounded-full transition-all" style="width: <?= max(4, round($m['valor'] / $maiorValorGrafico * 100)) ?>%"></div>
                         </div>
-                        <span class="w-10 text-right text-sm font-bold text-gray-800"><?= (int) $m['valor'] ?></span>
+                        <span class="w-10 text-right text-sm font-bold text-gray-800 dark:text-white"><?= (int) $m['valor'] ?></span>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -54,36 +54,36 @@ $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evit
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Card 1 -->
-            <a href="<?= URL_BASE ?>/admin/solicitacoes?status=pendentes" class="card-padrao text-center border-t-8 border-amber-500 bg-white shadow rounded-lg p-4 hover:shadow-md transition block">
-                <span class="text-xs font-bold uppercase bg-amber-500 text-white px-6 py-1 rounded-full inline-block mb-4">Revisar</span>
+            <a href="<?= URL_BASE ?>/admin/solicitacoes?status=pendentes" class="card-padrao text-center border-t-8 border-aviso hover:shadow-md transition block">
+                <span class="text-xs font-bold uppercase bg-aviso text-white px-6 py-1 rounded-full inline-block mb-4">Revisar</span>
                 <div class="my-3 text-4xl">🕒</div>
-                <h3 class="text-sm font-bold text-gray-800"><?= (int) $stats['cadastros_pendentes'] ?></h3>
+                <h3 class="text-sm font-bold text-text-dark dark:text-white"><?= (int) $stats['cadastros_pendentes'] ?></h3>
                 <p class="text-xs text-text-muted">Cadastros Pendentes</p>
             </a>
 
             <!-- Card 2 -->
-            <a href="<?= URL_BASE ?>/admin/denuncias" class="card-padrao text-center border-t-8 border-red-800 bg-white shadow rounded-lg p-4 hover:shadow-md transition block">
-                <span class="text-xs font-bold uppercase bg-red-800 text-white px-6 py-1 rounded-full inline-block mb-4">Prioridade</span>
+            <a href="<?= URL_BASE ?>/admin/denuncias" class="card-padrao text-center border-t-8 border-erro hover:shadow-md transition block">
+                <span class="text-xs font-bold uppercase bg-erro text-white px-6 py-1 rounded-full inline-block mb-4">Prioridade</span>
                 <div class="my-3 text-4xl">⚠️</div>
-                <h3 class="text-sm font-bold text-gray-800"><?= (int) $stats['denuncias_abertas'] ?></h3>
+                <h3 class="text-sm font-bold text-text-dark dark:text-white"><?= (int) $stats['denuncias_abertas'] ?></h3>
                 <p class="text-xs text-text-muted">Denúncias em Aberto</p>
             </a>
 
             <!-- Card 3 -->
-            <a href="<?= URL_BASE ?>/admin/relatorios?periodo=mes_atual&status=adotado" class="card-padrao text-center border-t-8 border-blue-600 bg-white shadow rounded-lg p-4 hover:shadow-md transition block">
-                <span class="text-xs font-bold uppercase bg-blue-600 text-white px-6 py-1 rounded-full inline-block mb-4">Monitorar</span>
+            <a href="<?= URL_BASE ?>/admin/relatorios?periodo=mes_atual&status=adotado" class="card-padrao text-center border-t-8 border-informativo hover:shadow-md transition block">
+                <span class="text-xs font-bold uppercase bg-informativo text-white px-6 py-1 rounded-full inline-block mb-4">Monitorar</span>
                 <div class="my-3 text-4xl">🤍</div>
-                <h3 class="text-sm font-bold text-gray-800"><?= (int) $stats['adocoes_concluidas_no_mes'] ?></h3>
+                <h3 class="text-sm font-bold text-text-dark dark:text-white"><?= (int) $stats['adocoes_concluidas_no_mes'] ?></h3>
                 <p class="text-xs text-text-muted">Adoções Concluídas no Mês</p>
             </a>
         </div>
 
         <!-- BOTÕES DE RELATÓRIO (RF 12) -->
         <div class="flex flex-col items-center gap-2 max-w-md mx-auto">
-            <a href="<?= URL_BASE ?>/admin/relatorios/exportar-csv" class="w-full text-center border border-gray-400 bg-white text-black font-bold py-2 rounded-lg shadow-sm hover:bg-gray-50">
+            <a href="<?= URL_BASE ?>/admin/relatorios/exportar-csv" class="btn-secundario w-full">
                 Exportar CSV
             </a>
-            <a href="<?= URL_BASE ?>/admin/relatorios" class="w-full text-center bg-black text-white font-bold py-2 rounded-lg shadow-sm hover:bg-gray-800">
+            <a href="<?= URL_BASE ?>/admin/relatorios" class="btn-primario w-full">
                 Gerar Relatório Geral do Sistema
             </a>
         </div>
@@ -91,49 +91,49 @@ $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evit
 
     <!-- SEÇÃO: ATALHOS DE VALIDAÇÃO -->
     <div class="mt-8">
-        <div class="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
+        <div class="flex justify-between items-end mb-4 border-b border-cinzaMarrom/30 dark:border-preto3 pb-2">
             <div>
                 <h2 class="text-xl font-bold font-shantell text-text-dark">Atalhos de Validação</h2>
                 <p class="text-xs text-text-muted">Ações recomendadas para hoje</p>
             </div>
-            <a href="<?= URL_BASE ?>/admin/solicitacoes" class="border border-gray-400 text-xs font-medium py-1 px-3 rounded hover:bg-gray-100 text-gray-700">Ver tudo ></a>
+            <a href="<?= URL_BASE ?>/admin/solicitacoes" class="border border-cinzaMarrom dark:border-preto3 text-xs font-medium py-1 px-3 rounded hover:bg-rosa-1/20 dark:hover:bg-preto2 text-text-dark dark:text-white">Ver tudo ></a>
         </div>
 
         <div class="space-y-3">
             <!-- Atalho 1 -->
-            <a href="<?= URL_BASE ?>/admin/solicitacoes?status=pendentes" class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
+            <a href="<?= URL_BASE ?>/admin/solicitacoes?status=pendentes" class="flex items-center justify-between p-3 bg-surface border border-cinzaMarrom/20 dark:border-preto3 rounded-xl shadow-sm hover:bg-rosa-1/20 dark:hover:bg-preto2 transition">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl text-green-500">✅</span>
+                    <span class="text-2xl text-sucesso">✅</span>
                     <div>
-                        <strong class="block text-sm text-gray-800">Aprovar cadastros pendentes</strong>
+                        <strong class="block text-sm text-text-dark dark:text-white">Aprovar cadastros pendentes</strong>
                         <span class="text-xs text-text-muted"><?= (int) $stats['cadastros_pendentes'] ?> ONGs/Protetores aguardando</span>
                     </div>
                 </div>
-                <span class="text-gray-400">🔍 📄</span>
+                <span class="text-text-muted">🔍 📄</span>
             </a>
 
             <!-- Atalho 2 -->
-            <a href="<?= URL_BASE ?>/admin/denuncias" class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
+            <a href="<?= URL_BASE ?>/admin/denuncias" class="flex items-center justify-between p-3 bg-surface border border-cinzaMarrom/20 dark:border-preto3 rounded-xl shadow-sm hover:bg-rosa-1/20 dark:hover:bg-preto2 transition">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl text-amber-500">⚠️</span>
+                    <span class="text-2xl text-aviso">⚠️</span>
                     <div>
-                        <strong class="block text-sm text-gray-800">Tratar denúncias em aberto</strong>
+                        <strong class="block text-sm text-text-dark dark:text-white">Tratar denúncias em aberto</strong>
                         <span class="text-xs text-text-muted"><?= (int) $stats['denuncias_abertas'] ?> denúncia(s) aguardando análise</span>
                     </div>
                 </div>
-                <span class="text-gray-400">🔍 📄</span>
+                <span class="text-text-muted">🔍 📄</span>
             </a>
 
             <!-- Atalho 3 -->
-            <a href="<?= URL_BASE ?>/admin/relatorios?periodo=mes_atual&status=adotado" class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
+            <a href="<?= URL_BASE ?>/admin/relatorios?periodo=mes_atual&status=adotado" class="flex items-center justify-between p-3 bg-surface border border-cinzaMarrom/20 dark:border-preto3 rounded-xl shadow-sm hover:bg-rosa-1/20 dark:hover:bg-preto2 transition">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl text-gray-600">📊</span>
+                    <span class="text-2xl text-text-muted">📊</span>
                     <div>
-                        <strong class="block text-sm text-gray-800">Acompanhar adoções do mês</strong>
+                        <strong class="block text-sm text-text-dark dark:text-white">Acompanhar adoções do mês</strong>
                         <span class="text-xs text-text-muted"><?= (int) $stats['adocoes_concluidas_no_mes'] ?> concluída(s) em <?= htmlspecialchars($mesRotulo) ?></span>
                     </div>
                 </div>
-                <span class="text-gray-400">🔍 📄</span>
+                <span class="text-text-muted">🔍 📄</span>
             </a>
         </div>
     </div>
