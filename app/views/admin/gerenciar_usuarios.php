@@ -10,6 +10,9 @@
             <p class="text-sm text-text-muted mt-1">Controle global de contas e status individual de perfis.</p>
         </div>
         <div class="flex items-center gap-3">
+            <button type="button" onclick="abrirModalCriarAdmin()" class="btn-primario text-xs sm:text-sm whitespace-nowrap">
+                + Criar Administrador
+            </button>
             <a href="<?= URL_BASE ?>/admin/dashboard" class="btn-secundario text-xs sm:text-sm whitespace-nowrap">
                 &larr; Voltar ao Painel
             </a>
@@ -193,12 +196,52 @@
     <div class="card-padrao bg-surface dark:bg-surface rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-rosa-3">
         <div id="confirma-icone" class="mb-2 flex justify-center"><span class="text-4xl">⚠️</span></div>
         <h3 id="confirma-titulo" class="font-bold text-lg text-text-dark dark:text-white mb-2">Confirmação</h3>
-        <p id="confirma-texto" class="text-xs text-text-muted mb-6">Você tem certeza desta ação?</p>
+        <p id="confirma-texto" class="text-xs text-text-muted mb-4">Você tem certeza desta ação?</p>
+
+        <div id="bloco-motivo-inadimplencia" class="hidden text-left mb-4">
+            <label for="input-motivo-inadimplencia" class="block text-xs font-bold text-text-dark dark:text-white mb-1">Descreva a irregularidade recorrente:</label>
+            <textarea id="input-motivo-inadimplencia" rows="3" class="input-padrao text-xs w-full" placeholder="Ex: Atrasos recorrentes em atualizar status de animais, denúncias não respondidas..."></textarea>
+        </div>
 
         <div class="flex gap-2">
             <button type="button" onclick="fecharModalConfirmacao()" class="btn-secundario flex-1 text-xs py-2.5">Cancelar</button>
             <button type="button" id="btn-executar-acao" class="btn-primario flex-1 text-xs py-2.5">Confirmar</button>
         </div>
+    </div>
+</div>
+
+<!-- MODAL CRIAR ADMINISTRADOR -->
+<div id="modal-criar-admin" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="card-padrao bg-surface dark:bg-surface rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-rosa-3">
+        <button type="button" onclick="fecharModalCriarAdmin()" class="absolute top-4 right-4 text-text-muted hover:text-text-dark dark:hover:text-white text-2xl font-bold">&times;</button>
+
+        <h2 class="text-xl font-bold text-text-dark dark:text-white mb-1">Criar Administrador</h2>
+        <p class="text-xs text-text-muted mb-4">A conta é criada com o perfil de Administrador já ativo, sem necessidade de verificação por e-mail.</p>
+
+        <form id="form-criar-admin" class="space-y-3" onsubmit="return enviarCriarAdmin(event)">
+            <div>
+                <label for="admin-nome" class="block text-xs font-bold text-text-dark dark:text-white mb-1">Nome completo</label>
+                <input type="text" id="admin-nome" name="nome" class="input-padrao text-sm w-full" required>
+            </div>
+            <div>
+                <label for="admin-email" class="block text-xs font-bold text-text-dark dark:text-white mb-1">E-mail</label>
+                <input type="email" id="admin-email" name="email" class="input-padrao text-sm w-full" required>
+            </div>
+            <div>
+                <label for="admin-senha" class="block text-xs font-bold text-text-dark dark:text-white mb-1">Senha</label>
+                <input type="password" id="admin-senha" name="senha" class="input-padrao text-sm w-full" required>
+            </div>
+            <div>
+                <label for="admin-confirmar-senha" class="block text-xs font-bold text-text-dark dark:text-white mb-1">Confirmar senha</label>
+                <input type="password" id="admin-confirmar-senha" name="confirmar_senha" class="input-padrao text-sm w-full" required>
+            </div>
+            <p id="admin-erro" class="text-xs text-rosaAlerta hidden"></p>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="fecharModalCriarAdmin()" class="btn-secundario flex-1 text-xs py-2.5">Cancelar</button>
+                <button type="submit" class="btn-primario flex-1 text-xs py-2.5">Criar</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -224,14 +267,14 @@
             const res = await resp.json();
 
             if (res.status !== 'sucesso') {
-                alert(res.mensagem);
+                mostrarModalFeedback('erro', res.mensagem);
                 fecharModalGerenciar();
                 return;
             }
 
             renderizarDetalhesModal(res.dados);
         } catch (e) {
-            alert('Falha ao buscar dados do usuário.');
+            mostrarModalFeedback('erro', 'Falha ao buscar dados do usuário.');
             fecharModalGerenciar();
         }
     }
@@ -252,10 +295,15 @@
                         ● ${p.ativo ? 'ATIVO' : 'DESATIVADO'}
                     </span>
                 </div>
-                <div>
+                <div class="flex flex-col gap-1.5 items-end">
                     <button type="button" onclick="confirmarAlterarPerfil(${u.usuario_id}, '${p.tipo}', '${p.nome}', '${p.ativo ? 'desativar' : 'ativar'}')" class="text-[11px] font-bold px-3 py-1.5 rounded-xl transition ${p.ativo ? 'bg-rosaAlerta/10 text-rosaAlerta hover:bg-rosaAlerta hover:text-white' : 'bg-sucesso/10 text-sucesso hover:bg-sucesso hover:text-white'}">
                         ${p.ativo ? 'Desativar' : 'Reativar'}
                     </button>
+                    ${(p.tipo === 'protetor' || p.tipo === 'ong') ? `
+                        <button type="button" onclick="confirmarClassificarInadimplente(${u.usuario_id}, '${p.nome.replace(/'/g, "\\'")}')" class="text-[11px] font-bold px-3 py-1.5 rounded-xl transition bg-laranja-1/10 text-laranja-1 hover:bg-laranja-1 hover:text-white">
+                            Inadimplente
+                        </button>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -321,7 +369,7 @@
                 url.searchParams.delete('status');
                 window.location.href = url.toString();
             } else {
-                alert(res.mensagem);
+                mostrarModalFeedback('erro', res.mensagem);
             }
         };
 
@@ -355,7 +403,45 @@
             if (res.status === 'sucesso') {
                 abrirModalGerenciar(usuarioId);
             } else {
-                alert(res.mensagem);
+                mostrarModalFeedback('erro', res.mensagem);
+            }
+        };
+
+        document.getElementById('modal-confirmacao').classList.remove('hidden');
+    }
+
+    // RN 15: classifica um perfil de protetor/ONG como inadimplente — mesma "cola" de
+    // denúncia+advertência+bloqueio que a moderação de denúncias usa (ver DenunciaService::
+    // aplicarSancaoDireta()), só que disparada direto pelo admin, sem denúncia de terceiro.
+    function confirmarClassificarInadimplente(usuarioId, nomePerfil) {
+        document.getElementById('confirma-icone').innerHTML = '<span class="text-4xl">⚠️</span>';
+        document.getElementById('confirma-titulo').innerText = `Classificar ${nomePerfil} como inadimplente?`;
+        document.getElementById('confirma-texto').innerText = 'O perfil será bloqueado imediatamente (RN 15) e o usuário poderá abrir uma contestação (RN 16).';
+        document.getElementById('bloco-motivo-inadimplencia').classList.remove('hidden');
+        document.getElementById('input-motivo-inadimplencia').value = '';
+
+        acaoPendente = async () => {
+            const motivo = document.getElementById('input-motivo-inadimplencia').value.trim();
+            if (!motivo) {
+                mostrarModalFeedback('aviso', 'Descreva a irregularidade antes de confirmar.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('usuario_id', usuarioId);
+            formData.append('motivo', motivo);
+
+            const resp = await fetch('<?= URL_BASE ?>/admin/usuarios/classificar-inadimplente', {
+                method: 'POST',
+                body: formData
+            });
+            const res = await resp.json();
+
+            fecharModalConfirmacao();
+            if (res.status === 'sucesso') {
+                abrirModalGerenciar(usuarioId);
+            } else {
+                mostrarModalFeedback('erro', res.mensagem);
             }
         };
 
@@ -364,12 +450,53 @@
 
     function fecharModalConfirmacao() {
         document.getElementById('modal-confirmacao').classList.add('hidden');
+        document.getElementById('bloco-motivo-inadimplencia').classList.add('hidden');
         acaoPendente = null;
     }
 
     document.getElementById('btn-executar-acao').addEventListener('click', () => {
         if (acaoPendente) acaoPendente();
     });
+
+    function abrirModalCriarAdmin() {
+        document.getElementById('form-criar-admin').reset();
+        document.getElementById('admin-erro').classList.add('hidden');
+        document.getElementById('modal-criar-admin').classList.remove('hidden');
+    }
+
+    function fecharModalCriarAdmin() {
+        document.getElementById('modal-criar-admin').classList.add('hidden');
+    }
+
+    async function enviarCriarAdmin(event) {
+        event.preventDefault();
+
+        const erroEl = document.getElementById('admin-erro');
+        erroEl.classList.add('hidden');
+
+        const formData = new FormData(document.getElementById('form-criar-admin'));
+
+        try {
+            const resp = await fetch('<?= URL_BASE ?>/admin/usuarios/criar-administrador', {
+                method: 'POST',
+                body: formData
+            });
+            const res = await resp.json();
+
+            if (res.status === 'sucesso') {
+                fecharModalCriarAdmin();
+                window.location.href = '<?= URL_BASE ?>/admin/gerenciar-usuarios?perfil=administrador';
+            } else {
+                erroEl.innerText = res.mensagem;
+                erroEl.classList.remove('hidden');
+            }
+        } catch (e) {
+            erroEl.innerText = 'Falha ao criar administrador. Tente novamente.';
+            erroEl.classList.remove('hidden');
+        }
+
+        return false;
+    }
 </script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

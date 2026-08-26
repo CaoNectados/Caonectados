@@ -8,6 +8,29 @@ use PDO;
 
 class UsuarioRepository extends BaseRepository
 {
+    // Usado por: geral\DenunciaController::buscar() — campo de busca do formulário de denúncia
+    // (RF 18), por nome ou e-mail; exclui o próprio usuário logado da lista de resultados.
+    public function buscarParaDenuncia(string $termo, int $usuarioIdExcluir, int $limite = 8): array
+    {
+        $sql = "SELECT usuario_id, nome, email, tipo_atual
+                FROM USUARIO
+                WHERE deletado_em IS NULL
+                  AND usuario_id != :excluir
+                  AND (nome LIKE :termo1 OR email LIKE :termo2)
+                ORDER BY nome ASC
+                LIMIT :limite";
+
+        $stmt = $this->db->prepare($sql);
+        $curinga = "%{$termo}%";
+        $stmt->bindValue(':excluir', $usuarioIdExcluir, PDO::PARAM_INT);
+        $stmt->bindValue(':termo1', $curinga, PDO::PARAM_STR);
+        $stmt->bindValue(':termo2', $curinga, PDO::PARAM_STR);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Usado por: AuthService::autenticar(), registrar() e AuthController
     public function buscarPorEmail(string $email): ?Usuario
     {
@@ -165,17 +188,19 @@ class UsuarioRepository extends BaseRepository
         return $dados ?: null;
     }
 
-    // Usado por: AuthService::registrar()
+    // Usado por: AuthService::registrar() e UsuarioAdminService::criarAdministrador()
     public function salvarNovoUsuario(Usuario $usuario): int
     {
-        $sql = "INSERT INTO USUARIO (email, senha, tipo_atual, perfis_ativos)
-                VALUES (:email, :senha, :tipo_atual, :perfis_ativos)";
+        $sql = "INSERT INTO USUARIO (nome, email, senha, tipo_atual, perfis_ativos, status_conta)
+                VALUES (:nome, :email, :senha, :tipo_atual, :perfis_ativos, :status_conta)";
 
         $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':nome', $usuario->getNome(), $usuario->getNome() !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
         $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->bindValue(':tipo_atual', $usuario->getTipoAtual() ?? 'usuario', PDO::PARAM_STR);
         $stmt->bindValue(':perfis_ativos', $usuario->getPerfisAtivos() ?? 'usuario', PDO::PARAM_STR);
+        $stmt->bindValue(':status_conta', $usuario->getStatusConta() ?? 'pendente', PDO::PARAM_STR);
         $stmt->execute();
 
         return (int) $this->db->lastInsertId();

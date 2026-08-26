@@ -62,6 +62,31 @@ $router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
 $router->get('/pesquisar', 'geral/PesquisaController@index');
 $router->get('/pesquisar/buscar', 'geral/PesquisaController@buscar');
 
+// Solicitações de Adoção (RF 08 / RF 09 — ver SolicitacaoAdocaoController)
+// Adotante (UC 15)
+$router->post('/solicitacoes/criar', 'geral/SolicitacaoAdocaoController@criar');
+$router->get('/minhas-solicitacoes', 'geral/SolicitacaoAdocaoController@minhas');
+$router->post('/minhas-solicitacoes/cancelar', 'geral/SolicitacaoAdocaoController@cancelar');
+// Protetor/ONG (UC 18)
+$router->get('/solicitacoes', 'geral/SolicitacaoAdocaoController@painel');
+$router->get('/solicitacoes/detalhes', 'geral/SolicitacaoAdocaoController@detalhes');
+$router->post('/solicitacoes/em-analise', 'geral/SolicitacaoAdocaoController@colocarEmAnalise');
+$router->post('/solicitacoes/recusar', 'geral/SolicitacaoAdocaoController@recusar');
+$router->post('/solicitacoes/aprovar', 'geral/SolicitacaoAdocaoController@aprovar');
+$router->post('/solicitacoes/devolver', 'geral/SolicitacaoAdocaoController@devolver');
+
+// Notificações (RF 11 / UC 06 — ver NotificacaoController)
+$router->get('/notificacoes', 'geral/NotificacaoController@index');
+$router->get('/notificacoes/carregar-mais', 'geral/NotificacaoController@carregarMais');
+$router->get('/notificacoes/abrir', 'geral/NotificacaoController@abrir');
+
+// Chat (RF 13 / UC 03 - UC 03.1 — ver ChatController)
+$router->get('/chats', 'geral/ChatController@listar');
+$router->get('/chats/conversa', 'geral/ChatController@conversa');
+$router->post('/chats/enviar', 'geral/ChatController@enviar');
+$router->get('/chats/novas-mensagens', 'geral/ChatController@novasMensagens');
+$router->post('/chats/encerrar', 'geral/ChatController@encerrar');
+
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
 $router->get('/perfil/editar', 'geral/PerfilController@editar');
@@ -127,8 +152,26 @@ $router->get('/admin/dashboard', 'admin/DashboardController@index');
 $router->get('/admin/relatorios', 'admin/RelatorioController@index');
 $router->get('/admin/relatorios/exportar-csv', 'admin/RelatorioController@exportarCsv');
 
-// Denúncias (listagem básica — fluxo de moderação ainda não implementado)
+// Denúncias (RF 18 / RF 21 — ver geral\DenunciaController e admin\DenunciaController)
+$router->get('/denunciar', 'geral/DenunciaController@criar');
+$router->get('/denunciar/buscar', 'geral/DenunciaController@buscar');
+$router->post('/denunciar/enviar', 'geral/DenunciaController@enviar');
+$router->get('/minhas-denuncias', 'geral/DenunciaController@minhas');
+
 $router->get('/admin/denuncias', 'admin/DenunciaController@index');
+$router->get('/admin/denuncias/detalhes', 'admin/DenunciaController@detalhes');
+$router->post('/admin/denuncias/em-analise', 'admin/DenunciaController@colocarEmAnalise');
+$router->post('/admin/denuncias/reprovar', 'admin/DenunciaController@reprovar');
+$router->post('/admin/denuncias/aprovar', 'admin/DenunciaController@aprovar');
+
+// Contestações (RF 17 / RF 22 — ver geral\ContestacaoController e admin\ContestacaoController)
+$router->get('/contestar', 'geral/ContestacaoController@criar');
+$router->post('/contestar/enviar', 'geral/ContestacaoController@enviar');
+$router->get('/minhas-contestacoes', 'geral/ContestacaoController@minhas');
+
+$router->get('/admin/contestacoes', 'admin/ContestacaoController@index');
+$router->get('/admin/contestacoes/detalhes', 'admin/ContestacaoController@detalhes');
+$router->post('/admin/contestacoes/decidir', 'admin/ContestacaoController@decidir');
 
 // Solicitações de Cadastro (ONGs e Protetores)
 $router->get('/admin/solicitacoes', 'admin\SolicitacaoProtetorController@index');
@@ -141,6 +184,8 @@ $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
 $router->get('/admin/usuarios/detalhes', 'admin/UsuarioController@detalhes');
 $router->post('/admin/usuarios/alterar-status', 'admin/UsuarioController@alterarStatusUsuario');
 $router->post('/admin/usuarios/alterar-status-perfil', 'admin/UsuarioController@alterarStatusPerfil');
+$router->post('/admin/usuarios/classificar-inadimplente', 'admin/UsuarioController@classificarInadimplente');
+$router->post('/admin/usuarios/criar-administrador', 'admin/UsuarioController@criarAdministrador');
 
 // Espécies e Raças (Admin)
 $router->get('/admin/gerenciar-especies-racas', 'admin/RacaController@gerenciarEspeciesRacas');

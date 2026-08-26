@@ -12,6 +12,31 @@ $statusConta = $_SESSION['status_conta'] ?? 'ativo';
 $uriAtual = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $menuItens = [];
 
+// RF 13: badge de mensagens não lidas no item "Chat" da navbar (mobile e desktop). Contado
+// pelo PAPEL ativo (adotante/protetor), não só pelo usuario_id — uma conta pode ter chats como
+// adotante E como protetor/ONG (ex.: a conta de teste do admin), então o badge só deve refletir
+// o que é relevante pro chapéu calçado agora. Ver ChatService::papelParaPerfil().
+$naoLidasChat = 0;
+$papelChatAtual = \app\services\ChatService::papelParaPerfil((string) $tipoPerfil);
+if ($papelChatAtual !== null && !empty($_SESSION['usuario_id'])) {
+    try {
+        $naoLidasChat = (new \app\repositories\MensagemRepository())->contarNaoLidasPorPapel((int) $_SESSION['usuario_id'], $papelChatAtual);
+    } catch (\Throwable $e) {
+        $naoLidasChat = 0;
+    }
+}
+
+// RF 11: badge de notificações não lidas no sininho — qualquer perfil autenticado pode ter
+// notificações (diferente do chat, que só existe pra adotante/protetor).
+$naoLidasNotificacoes = 0;
+if (!empty($_SESSION['usuario_id'])) {
+    try {
+        $naoLidasNotificacoes = (new \app\repositories\NotificacaoRepository())->contarNaoLidas((int) $_SESSION['usuario_id']);
+    } catch (\Throwable $e) {
+        $naoLidasNotificacoes = 0;
+    }
+}
+
 // ==================================================================
 // ITENS DO MENU
 // ==================================================================
@@ -31,6 +56,7 @@ if ($tipoPerfil === 'administrador') {
     $menuItens[] = ['url' => URL_BASE . '/admin/regiao', 'label' => 'Gerenciar Regiões', 'icone' => 'bairros.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
     $menuItens[] = ['url' => URL_BASE . '/admin/denuncias', 'label' => 'Denúncias', 'icone' => 'denuncia.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/admin/contestacoes', 'label' => 'Contestações', 'icone' => 'denuncia.svg'];
     $menuItens[] = ['url' => URL_BASE . '/admin/auditoria-logs', 'label' => 'Auditoria e Logs', 'icone' => 'auditoria.svg'];
     $menuItens[] = ['url' => URL_BASE . '/perfil', 'label' => 'Perfil', 'icone' => 'perfil.svg', 'apenas_desktop' => true];
 
@@ -42,7 +68,7 @@ if ($tipoPerfil === 'administrador') {
         // Feed é exclusivo do Adotante (RF 10 depende de adotante_id) — Protetor/ONG que
         // clicasse aqui só seria redirecionado de volta com erro de acesso negado.
         $menuItens[] = ['url' => URL_BASE . '/pesquisar',            'label' => 'Pesquisar',              'icone' => 'pesquisar.svg'];
-        $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true];
+        $menuItens[] = ['url' => URL_BASE . '/chats',                'label' => 'Chat',                   'icone' => 'chat.svg',             'apenas_desktop' => true, 'badge' => $naoLidasChat];
         $menuItens[] = ['url' => URL_BASE . '/perfil',               'label' => 'Meu Perfil',             'icone' => 'perfil.svg',           'apenas_desktop' => true];
         $menuItens[] = ['url' => URL_BASE . '/gerenciar-animais',    'label' => 'Gerenciar Animais',      'icone' => 'gerenciar-animais.png'];
         $menuItens[] = ['url' => URL_BASE . '/solicitacoes',         'label' => 'Solicitações Recebidas', 'icone' => 'solicitacoes.png'];
@@ -57,10 +83,11 @@ if ($tipoPerfil === 'administrador') {
     // RF 10: Feed já é uma rota real (a própria página do feed também tem uma barra de
     // navegação inferior específica pra mobile, mas o item aqui garante acesso a partir de
     // qualquer outra tela via menu hambúrguer).
-    $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg'];
-    $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg'];
-    $menuItens[] = ['url' => URL_BASE . '/chats',     'label' => 'Chat',      'icone' => 'chat.svg',      'apenas_desktop' => true];
-    $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/feed',                'label' => 'Feed',               'icone' => 'dashboard.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/pesquisar',           'label' => 'Pesquisar',           'icone' => 'pesquisar.svg'];
+    $menuItens[] = ['url' => URL_BASE . '/minhas-solicitacoes', 'label' => 'Minhas Solicitações', 'icone' => 'solicitacoes.png'];
+    $menuItens[] = ['url' => URL_BASE . '/chats',               'label' => 'Chat',                'icone' => 'chat.svg',      'apenas_desktop' => true, 'badge' => $naoLidasChat];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',              'label' => 'Meu Perfil',          'icone' => 'perfil.svg',    'apenas_desktop' => true];
 
 // ---------------- PERFIL: USUÁRIO GENÉRICO ----------------
 } elseif ($tipoPerfil === 'usuario') {
@@ -126,14 +153,19 @@ $itemAuth   = $estaLogado
             </div>
 
             <div class="ml-auto flex items-center gap-1 sm:gap-2">
-                <button type="button"
+                <?php if ($estaLogado): ?>
+                <a href="<?= e(URL_BASE) ?>/notificacoes"
                     class="relative rounded-lg p-2 text-white transition hover:bg-white/20"
-                    aria-label="Notificações">
+                    aria-label="Notificações<?= $naoLidasNotificacoes > 0 ? " ({$naoLidasNotificacoes} não lidas)" : '' ?>">
                     <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/notificacao.svg"
                         alt=""
                         aria-hidden="true"
                         class="h-8 w-8">
-                </button>
+                    <?php if ($naoLidasNotificacoes > 0): ?>
+                        <span class="absolute top-0.5 right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rosaAlerta text-white text-[10px] font-bold flex items-center justify-center leading-none"><?= $naoLidasNotificacoes > 9 ? '9+' : $naoLidasNotificacoes ?></span>
+                    <?php endif; ?>
+                </a>
+                <?php endif; ?>
 
                 <button type="button" id="botao-menu-mobile"
                     class="rounded-lg p-2 text-white transition hover:bg-white/20 lg:hidden"
@@ -170,7 +202,12 @@ $itemAuth   = $estaLogado
                     <li>
                         <a href="<?= e($item['url']) ?>"
                             class="nav-link-mobile border-white/20 no-underline">
-                            <?= renderIconeMenu($item['icone'], $item['label']) ?>
+                            <span class="relative inline-flex shrink-0">
+                                <?= renderIconeMenu($item['icone'], $item['label']) ?>
+                                <?php if (!empty($item['badge'])): ?>
+                                    <span class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rosaAlerta text-white text-[10px] font-bold flex items-center justify-center leading-none"><?= $item['badge'] > 9 ? '9+' : (int) $item['badge'] ?></span>
+                                <?php endif; ?>
+                            </span>
                             <span class="<?= $classeTexto ?>"><?= e($item['label']) ?></span>
                         </a>
                     </li>
@@ -234,7 +271,12 @@ $itemAuth   = $estaLogado
                 $classeTexto = $ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white';
                 ?>
                 <a href="<?= e($item['url']) ?>" class="nav-link-desktop !h-auto min-h-[3rem] py-2">
-                    <?= renderIconeMenu($item['icone'], $item['label'], 'h-6 w-6 shrink-0 text-white') ?>
+                    <span class="relative inline-flex shrink-0">
+                        <?= renderIconeMenu($item['icone'], $item['label'], 'h-6 w-6 shrink-0 text-white') ?>
+                        <?php if (!empty($item['badge'])): ?>
+                            <span class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rosaAlerta text-white text-[10px] font-bold flex items-center justify-center leading-none"><?= $item['badge'] > 9 ? '9+' : (int) $item['badge'] ?></span>
+                        <?php endif; ?>
+                    </span>
                     <span class="rotulo-link whitespace-normal leading-tight <?= $classeTexto ?>"><?= e($item['label']) ?></span>
                 </a>
             <?php endforeach; ?>

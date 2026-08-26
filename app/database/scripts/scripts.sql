@@ -225,6 +225,11 @@ CREATE TABLE IF NOT EXISTS MENSAGEM (
     mensagem_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     chat_id INT UNSIGNED NOT NULL,
     remetente_id INT UNSIGNED NOT NULL,
+    -- Qual "lado" da conversa enviou (adotante ou protetor/ong). Necessário porque uma mesma
+    -- conta pode ter usuario_id igual nos dois lados do chat (ex: a conta de teste do admin,
+    -- que tem perfil de adotante E de protetor/ong) — remetente_id sozinho não basta pra saber
+    -- de qual lado a mensagem partiu quando os dois lados são a mesma pessoa.
+    remetente_perfil ENUM('adotante', 'protetor') NULL,
     texto TEXT NOT NULL,
     lida BOOLEAN NOT NULL DEFAULT FALSE,
     data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -315,6 +320,10 @@ CREATE TABLE IF NOT EXISTS CONTESTACAO (
     contestacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     advertencia_id INT UNSIGNED NOT NULL,
     justificativa TEXT NOT NULL,
+    -- Caminho do arquivo de evidência/comprovante enviado pelo usuário (RF 17). Não fazia
+    -- parte do schema original — sem essa coluna o upload de anexo não teria onde ser
+    -- persistido, então adicionei como campo aditivo (nullable, não quebra nada existente).
+    anexo VARCHAR(255) NULL,
     parecer_admin TEXT NULL,
     data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_contestacao_advertencia FOREIGN KEY (advertencia_id) REFERENCES ADVERTENCIA (advertencia_id) ON UPDATE CASCADE

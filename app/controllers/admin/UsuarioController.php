@@ -6,6 +6,10 @@ use app\core\Controller;
 use app\services\UsuarioAdminService;
 use Exception;
 
+/**
+ * Gestão administrativa de usuários: listagem/filtro, detalhes, ativação/desativação da
+ * conta ou de um perfil específico, e classificação manual de inadimplência (RN 15).
+ */
 class UsuarioController extends Controller
 {
     private UsuarioAdminService $adminService;
@@ -16,7 +20,7 @@ class UsuarioController extends Controller
         $this->adminService = new UsuarioAdminService();
     }
 
-    // Usado por: rota GET /admin/gerenciar-usuarios
+    /** Lista os usuários da plataforma, filtráveis por busca/status/perfil. Usado pela rota GET /admin/gerenciar-usuarios. */
     public function index(): void
     {
         $filtros = [
@@ -34,7 +38,7 @@ class UsuarioController extends Controller
         ]));
     }
 
-    // Usado por: rota GET /admin/usuarios/detalhes
+    /** Endpoint AJAX que retorna os detalhes de um usuário em JSON. Usado pela rota GET /admin/usuarios/detalhes. */
     public function detalhes(): void
     {
         try {
@@ -50,7 +54,7 @@ class UsuarioController extends Controller
         }
     }
 
-    // Usado por: rota POST /admin/usuarios/alterar-status
+    /** Ativa ou desativa a conta de um usuário. Usado pela rota POST /admin/usuarios/alterar-status. */
     public function alterarStatusUsuario(): void
     {
         try {
@@ -69,7 +73,7 @@ class UsuarioController extends Controller
         }
     }
 
-    // Usado por: rota POST /admin/usuarios/alterar-status-perfil
+    /** Ativa ou desativa um perfil específico (adotante/protetor/ong) de um usuário multi-perfil. Usado pela rota POST /admin/usuarios/alterar-status-perfil. */
     public function alterarStatusPerfil(): void
     {
         try {
@@ -83,6 +87,45 @@ class UsuarioController extends Controller
             }
 
             $mensagem = $this->adminService->alterarStatusPerfil($usuarioId, $tipoPerfil, $acao, $adminLogadoId);
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => $mensagem]);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Cria uma nova conta de Administrador. Só é alcançável por quem já está logado como
+     * administrador (autenticacaoRequired() do construtor), o que garante a regra de que um
+     * admin só pode ser criado por outro admin. Usado pela rota POST /admin/usuarios/criar-administrador.
+     */
+    public function criarAdministrador(): void
+    {
+        try {
+            $nome = trim($_POST['nome'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $senha = (string) ($_POST['senha'] ?? '');
+            $confirmarSenha = (string) ($_POST['confirmar_senha'] ?? '');
+
+            $mensagem = $this->adminService->criarAdministrador($nome, $email, $senha, $confirmarSenha);
+            $this->json(200, ['status' => 'sucesso', 'mensagem' => $mensagem]);
+        } catch (Exception $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        }
+    }
+
+    /** Classifica manualmente um protetor como inadimplente (RN 15), aplicando a sanção padrão. Usado pela rota POST /admin/usuarios/classificar-inadimplente. */
+    public function classificarInadimplente(): void
+    {
+        try {
+            $usuarioId = (int) ($_POST['usuario_id'] ?? 0);
+            $motivo = (string) ($_POST['motivo'] ?? '');
+            $adminLogadoId = (int) $_SESSION['usuario_id'];
+
+            if ($usuarioId <= 0) {
+                throw new Exception("Parâmetros inválidos.");
+            }
+
+            $mensagem = $this->adminService->classificarProtetorInadimplente($usuarioId, $motivo, $adminLogadoId);
             $this->json(200, ['status' => 'sucesso', 'mensagem' => $mensagem]);
         } catch (Exception $e) {
             $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
