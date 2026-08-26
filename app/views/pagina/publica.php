@@ -36,10 +36,10 @@ $iconesRede = ['instagram' => '📷', 'facebook' => '📘', 'whatsapp' => '💬'
             &larr;
         </a>
 
-        <button type="button" onclick="if(typeof mostrarModalFeedback === 'function') { mostrarModalFeedback('informativo', 'Denúncia de perfil ainda está sendo implementada. Em breve você poderá reportar ONGs/Protetores por aqui.'); } else { alert('Em breve!'); }"
-                class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-erro shadow" title="Denunciar">
+        <a href="<?= $urlBase ?>/denunciar?protetor_id=<?= (int) ($protetor['protetor_id'] ?? 0) ?>"
+                class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-erro shadow hover:bg-white transition" title="Denunciar">
             🚩
-        </button>
+        </a>
     </div>
 
     <div class="flex flex-col items-center -mt-14 px-6">
@@ -146,13 +146,9 @@ $iconesRede = ['instagram' => '📷', 'facebook' => '📘', 'whatsapp' => '💬'
     function copiarChavePix(botao) {
         const chave = botao.dataset.chave;
         navigator.clipboard?.writeText(chave).then(function () {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('sucesso', 'Chave PIX copiada!');
-            } else {
-                alert('Chave PIX copiada: ' + chave);
-            }
+            mostrarModalFeedback('sucesso', 'Chave PIX copiada!');
         }).catch(function () {
-            alert('Chave PIX: ' + chave);
+            mostrarModalFeedback('informativo', 'Chave PIX: ' + chave);
         });
     }
 </script>

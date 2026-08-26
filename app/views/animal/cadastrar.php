@@ -138,8 +138,10 @@ unset($_SESSION['old']);
                     <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-branco focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
                         <option value="disponivel" class="dark:bg-preto2" <?= ($old['status'] ?? 'disponivel') === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
                         <option value="em_analise" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
-                        <option value="adotado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'adotado' ? 'selected' : '' ?>>Adotado</option>
                         <option value="desativado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'desativado' ? 'selected' : '' ?>>Desativado</option>
+                        <!-- "Adotado" não é uma opção aqui de propósito (RN 08/13): só é
+                             alcançável aprovando uma solicitação de adoção, pra garantir que a
+                             cascata de cancelamento dos concorrentes (RN 08) sempre dispare. -->
                     </select>
                 </div>
                 <div>
@@ -266,11 +268,7 @@ unset($_SESSION['old']);
         if (!fileInput.files || fileInput.files.length === 0) return;
 
         if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, 5)) {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
-            } else {
-                alert('A imagem é muito grande. Escolha uma de até 5MB.');
-            }
+            mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
             fileInput.value = '';
             return;
         }
@@ -319,21 +317,54 @@ unset($_SESSION['old']);
 
     // Só preview local (o upload de verdade acontece no submit do form, via
     // fotos_adicionais[] no $_FILES) — sem cropper aqui, cada imagem vai como enviada.
+    //
+    // input.files é substituído (não somado) a cada seleção — clicar no "+" de novo pra
+    // adicionar mais uma foto perdia as escolhidas antes. Por isso o acumulado fica num
+    // array próprio, e o input é reconstruído via DataTransfer a cada mudança pra carregar
+    // o lote inteiro até o envio do form.
+    let fotosAdicionaisAcumuladas = [];
+
     function renderizarPreviewFotosAdicionais(event) {
-        const arquivos = Array.from(event.target.files || []);
+        const novosArquivos = Array.from(event.target.files || []);
+        fotosAdicionaisAcumuladas = fotosAdicionaisAcumuladas.concat(novosArquivos);
+
+        const dt = new DataTransfer();
+        fotosAdicionaisAcumuladas.forEach(arquivo => dt.items.add(arquivo));
+        event.target.files = dt.files;
+
+        renderizarGradeFotosAdicionaisPendentes();
+    }
+
+    function renderizarGradeFotosAdicionaisPendentes() {
         const grade = document.getElementById('grade-preview-fotos-adicionais');
         grade.innerHTML = '';
 
-        arquivos.forEach(function (arquivo) {
+        fotosAdicionaisAcumuladas.forEach(function (arquivo, indice) {
             const reader = new FileReader();
             reader.onload = function (e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'w-16 h-16 object-cover rounded-xl border border-cinzaMarrom/30 dark:border-branco/20';
-                img.alt = 'Prévia de foto adicional';
-                grade.appendChild(img);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'relative w-16 h-16';
+                wrapper.innerHTML = `
+                    <img src="${e.target.result}" class="w-16 h-16 object-cover rounded-xl border border-cinzaMarrom/30 dark:border-branco/20" alt="Prévia de foto adicional">
+                    <button type="button" title="Remover" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-erro text-white text-xs font-bold flex items-center justify-center shadow hover:opacity-90">&times;</button>
+                `;
+                wrapper.querySelector('button').addEventListener('click', function () {
+                    removerFotoAdicionalPendente(indice);
+                });
+                grade.appendChild(wrapper);
             };
             reader.readAsDataURL(arquivo);
         });
+    }
+
+    function removerFotoAdicionalPendente(indice) {
+        fotosAdicionaisAcumuladas.splice(indice, 1);
+
+        const input = document.getElementById('input-fotos-adicionais');
+        const dt = new DataTransfer();
+        fotosAdicionaisAcumuladas.forEach(arquivo => dt.items.add(arquivo));
+        input.files = dt.files;
+
+        renderizarGradeFotosAdicionaisPendentes();
     }
 </script>

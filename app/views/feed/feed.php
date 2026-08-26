@@ -151,10 +151,10 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/70 hover:bg-white flex items-center justify-center text-text-dark shadow" aria-label="Próxima foto">&rsaquo;</button>
                             <?php endif; ?>
 
-                            <span class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-erro" title="Denunciar (em breve)">🚩</span>
+                            <a href="<?= $urlBase ?>/denunciar?protetor_id=<?= (int) $animal['protetor_id'] ?>" onclick="event.stopPropagation()"
+                               class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-erro hover:bg-white transition" title="Denunciar">🚩</a>
 
-                            <button type="button" onclick="if(typeof mostrarModalFeedback === 'function') { mostrarModalFeedback('informativo', 'Em breve você poderá dar petiscos direto por aqui! Essa etapa ainda está sendo implementada.'); } else { alert('Em breve! Essa função ainda está sendo implementada.'); }"
-                                    class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">
+                            <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">
                                 Dar Petisco!
                             </button>
                         </div>
@@ -217,8 +217,11 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     <button type="button" onclick="document.getElementById('modal-filtros-feed').classList.remove('hidden')" class="flex flex-col items-center justify-center text-white/70">
         <img src="<?= $urlBase ?>/assets/icons/navbar/pesquisar.svg" alt="Buscar" class="w-6 h-6 brightness-0 invert opacity-70">
     </button>
-    <a href="#" onclick="event.preventDefault(); if(typeof mostrarModalFeedback === 'function'){mostrarModalFeedback('informativo','Chat ainda não foi implementado.');}" class="flex flex-col items-center justify-center text-white/70">
+    <a href="<?= $urlBase ?>/chats" class="relative flex flex-col items-center justify-center text-white/70">
         <img src="<?= $urlBase ?>/assets/icons/navbar/chat.svg" alt="Chat" class="w-6 h-6 brightness-0 invert opacity-70">
+        <?php if (!empty($naoLidasChat)): ?>
+            <span class="absolute top-0.5 right-1/4 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rosaAlerta text-white text-[10px] font-bold flex items-center justify-center leading-none"><?= $naoLidasChat > 9 ? '9+' : (int) $naoLidasChat ?></span>
+        <?php endif; ?>
     </a>
     <a href="<?= $urlBase ?>/perfil" class="flex flex-col items-center justify-center text-white/70">
         <img src="<?= $urlBase ?>/assets/icons/navbar/perfil.svg" alt="Perfil" class="w-6 h-6 brightness-0 invert opacity-70">
@@ -335,6 +338,44 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     let proximoOffset = <?= (int) ($proximoOffset ?? 0) ?>;
     let temMais = <?= !empty($temMais) ? 'true' : 'false' ?>;
     let carregando = false;
+
+    // ---------- RF 08: "Dar Petisco!" (manifestar interesse em um animal) ----------
+    async function enviarPetisco(botao) {
+        const card = botao.closest('.feed-card');
+        const animalId = card ? card.dataset.animalId : null;
+        if (!animalId) return;
+
+        const textoOriginal = botao.textContent;
+        botao.disabled = true;
+        botao.textContent = 'Enviando...';
+
+        try {
+            const corpo = new URLSearchParams({ animal_id: animalId });
+            const resposta = await fetch(`${urlBase}/solicitacoes/criar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+                body: corpo
+            });
+            const resultado = await resposta.json();
+
+            if (resultado.status === 'sucesso') {
+                botao.textContent = 'Petisco enviado! 🐾';
+                mostrarModalFeedback('sucesso', resultado.mensagem);
+            } else {
+                botao.disabled = false;
+                botao.textContent = textoOriginal;
+                mostrarModalFeedback('erro', resultado.mensagem || 'Não foi possível enviar o petisco.');
+            }
+        } catch (erro) {
+            botao.disabled = false;
+            botao.textContent = textoOriginal;
+            mostrarModalFeedback('erro', 'Erro de conexão ao enviar o petisco.');
+        }
+    }
+
+    document.querySelectorAll('.btn-dar-petisco').forEach(function (botao) {
+        botao.addEventListener('click', function () { enviarPetisco(this); });
+    });
 
     // ---------- Carrossel de fotos por card ----------
     function iniciarCarrossel(card) {
@@ -517,8 +558,9 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                 </a>
                 <div class="foto-carrossel absolute inset-0">${fotosHtml}</div>
                 ${setasHtml}
-                <span class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-erro" title="Denunciar (em breve)">🚩</span>
-                <button type="button" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">Dar Petisco!</button>
+                <a href="${urlBase}/denunciar?protetor_id=${animal.protetor_id}" onclick="event.stopPropagation()"
+                   class="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-erro hover:bg-white transition" title="Denunciar">🚩</a>
+                <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">Dar Petisco!</button>
             </div>
             <div class="p-4 bg-branco dark:bg-preto1">
                 <div class="flex items-center gap-2 flex-wrap mb-2">
@@ -531,12 +573,8 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             </div>
         `;
 
-        card.querySelector('button.absolute.bottom-4')?.addEventListener('click', function () {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('informativo', 'Em breve você poderá dar petiscos direto por aqui! Essa etapa ainda está sendo implementada.');
-            } else {
-                alert('Em breve! Essa função ainda está sendo implementada.');
-            }
+        card.querySelector('.btn-dar-petisco')?.addEventListener('click', function () {
+            enviarPetisco(this);
         });
 
         sentinela.parentNode.insertBefore(card, sentinela);

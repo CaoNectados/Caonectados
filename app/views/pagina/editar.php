@@ -100,9 +100,11 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
                             <span class="text-xs font-bold text-text-dark dark:text-white shrink-0"><?= htmlspecialchars($labelsRede[$rede['tipo_rede']] ?? ucfirst($rede['tipo_rede'])) ?>:</span>
                             <a href="<?= htmlspecialchars($rede['link_rede']) ?>" target="_blank" rel="noopener" class="text-xs text-primary dark:text-roxinhoFofo underline truncate"><?= htmlspecialchars($rede['link_rede']) ?></a>
                         </div>
-                        <form action="<?= $urlBase ?>/pagina-perfil/rede/remover" method="POST" onsubmit="return confirm('Remover esta rede social?');" class="shrink-0">
+                        <form id="form-remover-rede-<?= (int) $rede['rede_id'] ?>" action="<?= $urlBase ?>/pagina-perfil/rede/remover" method="POST" class="shrink-0">
                             <input type="hidden" name="rede_id" value="<?= (int) $rede['rede_id'] ?>">
-                            <button type="submit" class="text-erro text-xs font-bold hover:underline">Remover</button>
+                            <button type="button"
+                                    onclick="abrirModalConfirmacao('Remover rede social', 'Tem certeza que deseja remover esta rede social?', function () { document.getElementById('form-remover-rede-<?= (int) $rede['rede_id'] ?>').submit(); }, 'Remover', 'Cancelar')"
+                                    class="text-erro text-xs font-bold hover:underline">Remover</button>
                         </form>
                     </li>
                 <?php endforeach; ?>
@@ -151,11 +153,7 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
 
         const limiteMB = (alvo === 'perfil') ? 2 : 3;
         if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, limiteMB)) {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('erro', `A imagem é muito grande. Escolha uma de até ${limiteMB}MB.`);
-            } else {
-                alert(`A imagem é muito grande. Escolha uma de até ${limiteMB}MB.`);
-            }
+            mostrarModalFeedback('erro', `A imagem é muito grande. Escolha uma de até ${limiteMB}MB.`);
             fileInput.value = '';
             return;
         }

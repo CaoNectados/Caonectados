@@ -16,7 +16,8 @@ class UploadService
         'foto_fundo'  => 'foto_pagina',
         'capa'        => 'foto_pagina',
         'comprovante' => 'comprovantes',
-        'animal'      => 'animais'
+        'animal'      => 'animais',
+        'contestacao' => 'contestacoes'
     ];
 
     /**

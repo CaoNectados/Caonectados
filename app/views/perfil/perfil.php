@@ -15,7 +15,13 @@ if ($tipoPerfil === 'adotante') {
     if (empty($fotoPerfilSessao)) {
         $fotoPerfilSessao = $adotanteInfo['foto_perfil'] ?? null;
     }
-    $petiscosDiarios = isset($adotanteInfo['petiscos_diarios']) ? (int)$adotanteInfo['petiscos_diarios'] : 10;
+    // RN 02: 10 petiscos/dia, contados a partir das próprias solicitações de hoje — não a
+    // partir da coluna ADOTANTE.petiscos_diarios (que exigiria um job de reset à meia-noite).
+    // Ver SolicitacaoAdocaoRepository::contarSolicitacoesHoje().
+    $usadosHoje = !empty($adotanteInfo['adotante_id'])
+        ? (new \app\repositories\SolicitacaoAdocaoRepository())->contarSolicitacoesHoje((int)$adotanteInfo['adotante_id'])
+        : 0;
+    $petiscosDiarios = max(0, 10 - $usadosHoje);
 
     // RF 20: status da solicitação de upgrade para Protetor/ONG (se houver). Reaproveita os
     // mesmos campos (validado/deletado_em) já usados pelo admin em /admin/solicitacoes.
@@ -90,7 +96,9 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Termos de Uso',    'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
         ['label' => 'Excluir Conta',    'icone' => 'excluir.svg',       'action' => 'abrirModalExcluirConta()'],
         ['label' => 'Sair',             'icone' => 'sair.svg',          'url' => '/logout'],
-        ['label' => 'Denunciar',        'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
+        ['label' => 'Denunciar',        'icone' => 'denunciar.svg',     'url' => '/denunciar'],
+        ['label' => 'Minhas Denúncias', 'icone' => 'denunciar.svg',     'url' => '/minhas-denuncias'],
+        ['label' => 'Minhas Contestações', 'icone' => 'relatorios.svg', 'url' => '/minhas-contestacoes'],
     ];
 
     // RF 20 (inverso): sem aprovação envolvida (Adotante não passa por validação), então o
@@ -117,7 +125,9 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Termos de Uso',          'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
         ['label' => 'Excluir Conta',          'icone' => 'excluir.svg',       'action' => 'abrirModalExcluirConta()'],
         ['label' => 'Sair',                   'icone' => 'sair.svg',          'url' => '/logout'],
-        ['label' => 'Denunciar',              'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
+        ['label' => 'Denunciar',              'icone' => 'denunciar.svg',     'url' => '/denunciar'],
+        ['label' => 'Minhas Denúncias',       'icone' => 'denunciar.svg',     'url' => '/minhas-denuncias'],
+        ['label' => 'Minhas Contestações',    'icone' => 'relatorios.svg',    'url' => '/minhas-contestacoes'],
     ];
 
     // RF 20: "Torne-se Protetor/ONG" só aparece como botão clicável quando ainda não há
@@ -435,17 +445,9 @@ $paginasBotoes = array_chunk($botoes, 6);
                 return;
             }
 
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('erro', result.mensagem || 'Não foi possível excluir a conta.');
-            } else {
-                alert(result.mensagem || 'Não foi possível excluir a conta.');
-            }
+            mostrarModalFeedback('erro', result.mensagem || 'Não foi possível excluir a conta.');
         } catch (err) {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
-            } else {
-                alert('Erro de conexão com o servidor.');
-            }
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
         } finally {
             btnConfirmar.disabled = false;
             btnCancelar.disabled = false;
@@ -499,11 +501,7 @@ $paginasBotoes = array_chunk($botoes, 6);
         const files = event.target.files;
         if (files && files.length > 0) {
             if (files[0].size > 5 * 1024 * 1024) {
-                if (typeof mostrarModalFeedback === 'function') {
-                    mostrarModalFeedback('erro', 'A imagem excede o tamanho máximo de 5MB.');
-                } else {
-                    alert('A imagem excede o tamanho máximo de 5MB.');
-                }
+                mostrarModalFeedback('erro', 'A imagem excede o tamanho máximo de 5MB.');
                 return;
             }
             const reader = new FileReader();
@@ -552,24 +550,14 @@ $paginasBotoes = array_chunk($botoes, 6);
 
             if (result.status === 'sucesso' || result.sucesso === true) {
                 document.getElementById('foto-perfil-display').src = base64Image;
-                if (typeof mostrarModalFeedback === 'function') {
-                    mostrarModalFeedback('sucesso', result.mensagem || 'Foto atualizada com sucesso!');
-                }
+                mostrarModalFeedback('sucesso', result.mensagem || 'Foto atualizada com sucesso!');
                 fecharCropperDireto();
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                if (typeof mostrarModalFeedback === 'function') {
-                    mostrarModalFeedback('erro', result.mensagem || 'Falha ao atualizar foto.');
-                } else {
-                    alert(result.mensagem || 'Falha ao atualizar foto.');
-                }
+                mostrarModalFeedback('erro', result.mensagem || 'Falha ao atualizar foto.');
             }
         } catch (err) {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
-            } else {
-                alert('Erro de conexão com o servidor.');
-            }
+            mostrarModalFeedback('erro', 'Erro de conexão com o servidor.');
         } finally {
             btn.disabled = false; 
             btn.innerText = 'Aplicar';

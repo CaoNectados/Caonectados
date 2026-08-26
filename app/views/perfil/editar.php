@@ -496,11 +496,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
         const fileInput = event.target;
         if (fileInput.files && fileInput.files.length > 0) {
             if (!CaonectadosValidator.validarTamanhoArquivo(fileInput, 5)) {
-                if (typeof mostrarModalFeedback === 'function') {
-                    mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
-                } else {
-                    alert('A imagem é muito grande. Escolha uma de até 5MB.');
-                }
+                mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
                 fileInput.value = '';
                 return;
             }

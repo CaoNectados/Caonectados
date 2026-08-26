@@ -40,6 +40,19 @@ class ProtetorRepository extends BaseRepository
         return $resultado ?: null;
     }
 
+    // Usado por: SolicitacaoAdocaoService — descobre quem é o dono da conta (USUARIO) por
+    // trás de um protetor_id, pra endereçar notificações (RN 06) a ele
+    public function buscarUsuarioIdPorProtetorId(int $protetorId): ?int
+    {
+        $sql = "SELECT usuario_id FROM PROTETOR WHERE protetor_id = :protetor_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $usuarioId = $stmt->fetchColumn();
+        return $usuarioId === false ? null : (int) $usuarioId;
+    }
+
     // Usado por: AnimalController, PerfilController, OnBoardingService, AuthService, UsuarioAdminService e PerfilService
     public function buscarPorUsuarioId(int $usuarioId): ?array
     {

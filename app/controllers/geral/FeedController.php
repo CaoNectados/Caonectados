@@ -10,6 +10,10 @@ use app\repositories\RegiaoRepository;
 use app\repositories\ProtetorRepository;
 use Exception;
 
+/**
+ * RF 10 (UC 14 / UC 14.1) — feed/catálogo de animais disponíveis para o Adotante, com
+ * embaralhamento estável por sessão e scroll infinito.
+ */
 class FeedController extends Controller
 {
     private FeedRepository $feedRepo;
@@ -17,7 +21,6 @@ class FeedController extends Controller
 
     private const TAMANHO_PAGINA = 6;
 
-    // Usado por: instanciado ao acessar as rotas /feed e /feed/carregar-mais
     public function __construct()
     {
         // RF 10 tem foco no perfil Adotante (RN 17 e o score de preferências dependem de
@@ -27,7 +30,7 @@ class FeedController extends Controller
         $this->adotanteRepo = new AdotanteRepository();
     }
 
-    // Usado por: rota GET /feed (UC 14)
+    /** Renderiza a primeira página do feed, com um novo seed de embaralhamento. Usado pela rota GET /feed (UC 14). */
     public function index(): void
     {
         try {
@@ -58,7 +61,7 @@ class FeedController extends Controller
         }
     }
 
-    // Usado por: rota GET /feed/carregar-mais (scroll infinito via AJAX)
+    /** Endpoint AJAX de scroll infinito, reaproveitando o seed da carga inicial. Usado pela rota GET /feed/carregar-mais. */
     public function carregarMais(): void
     {
         try {
@@ -90,7 +93,7 @@ class FeedController extends Controller
         }
     }
 
-    // Usado por: index() e carregarMais() — resolve o adotante_id a partir da SESSÃO
+    /** Resolve o adotante_id do usuário logado, cacheando na sessão. Usado por index() e carregarMais(). */
     private function obterAdotanteIdAutenticado(): int
     {
         if (isset($_SESSION['adotante_id']) && (int) $_SESSION['adotante_id'] > 0) {
@@ -108,7 +111,7 @@ class FeedController extends Controller
         return (int) $adotante['adotante_id'];
     }
 
-    // Usado por: index() e carregarMais() — mesmos filtros em GET, reaproveitados pelas duas rotas
+    /** Lê os filtros de busca em GET, compartilhados por index() e carregarMais(). */
     private function filtrosDaRequisicao(): array
     {
         return [
@@ -129,8 +132,8 @@ class FeedController extends Controller
      * aninhado em detalhes['preferencias']['especie'|'porte'|'sexo'], mas na edição de perfil
      * (PerfilService::atualizarPerfil) vira chaves soltas 'preferencias_especie' etc. — mesma
      * inconsistência que PerfilController::editar() já contorna tentando os dois formatos.
+     * Usado por index() e carregarMais().
      */
-    // Usado por: index() e carregarMais()
     private function obterPreferenciasAdotante(int $adotanteId): array
     {
         $adotante = null;
@@ -154,8 +157,7 @@ class FeedController extends Controller
         ];
     }
 
-    // Usado por: index() e carregarMais() — busca as fotos de todos os animais da página em
-    // UMA query (WHERE IN) e anexa como $animal['fotos'] pro carrossel do card
+    /** Busca as fotos de todos os animais da página em uma única query e anexa como $animal['fotos'] pro carrossel do card. Usado por index() e carregarMais(). */
     private function anexarFotos(array $animais): array
     {
         if (empty($animais)) {
@@ -172,7 +174,7 @@ class FeedController extends Controller
         return $animais;
     }
 
-    // Usado por: carregarMais() — monta o payload JSON de cada card pro JS renderizar
+    /** Monta o payload JSON de um card de animal pro JS renderizar. Usado por carregarMais(). */
     private function formatarAnimalParaJson(array $animal): array
     {
         $urlBase = rtrim(URL_BASE, '/');

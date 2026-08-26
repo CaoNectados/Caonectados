@@ -91,6 +91,60 @@ class PesquisaRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Mesmas duas consultas acima, mas sem filtro de termo — é o "feed" que aparece na tela de
+     * Pesquisa antes do usuário digitar qualquer coisa (estado ocioso, estilo TikTok: mostra algo
+     * por padrão, some quando o campo ganha foco pra digitar).
+     */
+    // Usado por: PesquisaController (perfil Adotante) — feed ocioso, mesma regra RN 17 da busca
+    public function buscarAnimaisDisponiveisFeed(int $adotanteId, int $limite = 24): array
+    {
+        $sql = "SELECT
+                    a.animal_id, a.protetor_id, a.nome, a.dt_nasc, a.porte, a.sexo,
+                    r.nome AS raca_nome, e.nome AS especie_nome, p.nome_fantasia,
+                    fa.caminho_foto AS foto_principal
+                FROM ANIMAL a
+                INNER JOIN RACA r ON r.raca_id = a.raca_id
+                INNER JOIN ESPECIE e ON e.especie_id = r.especie_id
+                INNER JOIN PROTETOR p ON p.protetor_id = a.protetor_id AND p.deletado_em IS NULL
+                LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
+                WHERE a.status = 'disponivel'
+                  AND a.deletado_em IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM SOLICITACAO_ADOCAO sa
+                      WHERE sa.animal_id = a.animal_id
+                        AND sa.adotante_id = :adotante_id
+                        AND sa.status_solicitacao IN ('pendente', 'em_analise', 'aprovada')
+                  )
+                ORDER BY a.criado_em DESC
+                LIMIT :limite";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':adotante_id', $adotanteId, PDO::PARAM_INT);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Usado por: PesquisaController (perfil Adotante) — feed ocioso de ONGs/Protetores validados
+    public function buscarOngsFeed(int $limite = 8): array
+    {
+        $sql = "SELECT p.protetor_id, p.nome_fantasia, p.tipo_documento, pag.foto_perfil
+                FROM PROTETOR p
+                LEFT JOIN PAGINA pag ON pag.protetor_id = p.protetor_id
+                WHERE p.validado = 1
+                  AND p.deletado_em IS NULL
+                ORDER BY p.nome_fantasia ASC
+                LIMIT :limite";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // ===================== PROTETOR / ONG =====================
 
     // Usado por: PesquisaController (perfil Protetor/ONG) — só os próprios animais
@@ -115,6 +169,29 @@ class PesquisaRepository extends BaseRepository
         $stmt->bindValue(':termo1', $curinga, PDO::PARAM_STR);
         $stmt->bindValue(':termo2', $curinga, PDO::PARAM_STR);
         $stmt->bindValue(':termo3', $curinga, PDO::PARAM_STR);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Usado por: PesquisaController (perfil Protetor/ONG) — feed ocioso: seus animais mais recentes
+    public function buscarAnimaisDoProtetorFeed(int $protetorId, int $limite = 24): array
+    {
+        $sql = "SELECT
+                    a.animal_id, a.nome, a.status, a.porte,
+                    r.nome AS raca_nome,
+                    fa.caminho_foto AS foto_principal
+                FROM ANIMAL a
+                INNER JOIN RACA r ON r.raca_id = a.raca_id
+                LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
+                WHERE a.protetor_id = :protetor_id
+                  AND a.deletado_em IS NULL
+                ORDER BY a.criado_em DESC
+                LIMIT :limite";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -169,6 +246,39 @@ class PesquisaRepository extends BaseRepository
         if ($ehNumerico) {
             $stmt->bindValue(':id', (int) $termo, PDO::PARAM_INT);
         }
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Usado por: PesquisaController (perfil Admin) — feed ocioso: usuários mais recentes
+    public function buscarUsuariosFeedAdmin(int $limite = 15): array
+    {
+        $sql = "SELECT usuario_id, nome, email, tipo_atual, status_conta
+                FROM USUARIO
+                WHERE deletado_em IS NULL
+                ORDER BY usuario_id DESC
+                LIMIT :limite";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Usado por: PesquisaController (perfil Admin) — feed ocioso: ONGs/Protetores mais recentes
+    public function buscarProtetoresFeedAdmin(int $limite = 15): array
+    {
+        $sql = "SELECT p.protetor_id, p.nome_fantasia, p.validado, p.tipo_documento, u.email
+                FROM PROTETOR p
+                INNER JOIN USUARIO u ON u.usuario_id = p.usuario_id
+                WHERE p.deletado_em IS NULL
+                ORDER BY p.protetor_id DESC
+                LIMIT :limite";
+
+        $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
         $stmt->execute();
 

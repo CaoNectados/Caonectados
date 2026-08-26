@@ -24,7 +24,7 @@ $placeholderBusca = match ($tipoPerfil) {
             <span class="text-white/80 mr-3">🔍</span>
             <input type="text" id="input-pesquisa" placeholder="<?= htmlspecialchars($placeholderBusca) ?>" autocomplete="off"
                    class="flex-1 bg-transparent outline-none text-white placeholder-white/70 font-poppins text-sm">
-            <button type="button" onclick="if(typeof mostrarModalFeedback === 'function') { mostrarModalFeedback('informativo', 'Filtros de pesquisa avançados ainda estão sendo implementados.'); } else { alert('Em breve!'); }"
+            <button type="button" onclick="mostrarModalFeedback('informativo', 'Filtros de pesquisa avançados ainda estão sendo implementados.')"
                     class="flex items-center gap-1.5 text-white text-xs font-bold shrink-0 ml-2 hover:opacity-80 transition">
                 Filtros <span class="text-base leading-none">⚙️</span>
             </button>
@@ -34,8 +34,9 @@ $placeholderBusca = match ($tipoPerfil) {
         <?php endif; ?>
     </div>
 
-    <!-- Histórico (localStorage — sem tabela nova só pra isso) -->
-    <div id="bloco-historico" class="mb-6">
+    <!-- Histórico (localStorage — sem tabela nova só pra isso). Só aparece com o campo focado
+         e vazio — no resto do tempo quem ocupa esse espaço é o feed ocioso ou os resultados. -->
+    <div id="bloco-historico" class="mb-6 hidden">
         <div class="flex items-center justify-between mb-2">
             <span class="text-xs text-text-muted"></span>
             <button type="button" onclick="limparHistoricoPesquisa()" class="text-xs font-bold text-primary dark:text-roxinhoFofo underline hidden" id="btn-limpar-historico">Limpar histórico</button>
@@ -43,7 +44,12 @@ $placeholderBusca = match ($tipoPerfil) {
         <ul id="lista-historico" class="space-y-3"></ul>
     </div>
 
-    <div id="area-resultados" class="space-y-6"></div>
+    <!-- Feed ocioso — estilo TikTok: aparece quando o campo não está em foco/vazio, some assim
+         que o usuário clica pra digitar. Renderizado com os mesmos templates dos resultados de
+         busca (renderizarAdotante/Protetor/Admin), só que a partir de $feedInicial (sem termo). -->
+    <div id="area-feed" class="space-y-6"></div>
+
+    <div id="area-resultados" class="space-y-6 hidden"></div>
 
     <div id="pesquisa-vazio" class="hidden text-center py-12">
         <span class="text-4xl block mb-3">🔍</span>
@@ -61,8 +67,11 @@ $placeholderBusca = match ($tipoPerfil) {
     <a href="<?= $urlBase ?>/pesquisar" class="flex flex-col items-center justify-center text-white">
         <img src="<?= $urlBase ?>/assets/icons/navbar/pesquisar.svg" alt="Pesquisar" class="w-6 h-6 brightness-0 invert">
     </a>
-    <a href="#" onclick="event.preventDefault(); if(typeof mostrarModalFeedback === 'function'){mostrarModalFeedback('informativo','Chat ainda não foi implementado.');}" class="flex flex-col items-center justify-center text-white/70">
+    <a href="<?= $urlBase ?>/chats" class="relative flex flex-col items-center justify-center text-white/70">
         <img src="<?= $urlBase ?>/assets/icons/navbar/chat.svg" alt="Chat" class="w-6 h-6 brightness-0 invert opacity-70">
+        <?php if (!empty($naoLidasChat)): ?>
+            <span class="absolute top-0.5 right-1/4 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rosaAlerta text-white text-[10px] font-bold flex items-center justify-center leading-none"><?= $naoLidasChat > 9 ? '9+' : (int) $naoLidasChat ?></span>
+        <?php endif; ?>
     </a>
     <a href="<?= $urlBase ?>/perfil" class="flex flex-col items-center justify-center text-white/70">
         <img src="<?= $urlBase ?>/assets/icons/navbar/perfil.svg" alt="Perfil" class="w-6 h-6 brightness-0 invert opacity-70">
@@ -75,9 +84,60 @@ $placeholderBusca = match ($tipoPerfil) {
 
     const urlBase = '<?= $urlBase ?>';
     const tipoPerfil = <?= json_encode($tipoPerfil) ?>;
+    const feedInicial = <?= json_encode($feedInicial ?? []) ?>;
     const CHAVE_HISTORICO = 'caonectados_pesquisa_historico';
     const input = document.getElementById('input-pesquisa');
     let timeoutBusca = null;
+
+    // ---------- Estados da tela: ocioso (feed) / focado (histórico) / digitando (resultados) ----------
+    function renderizarPorPerfil(resultados) {
+        if (tipoPerfil === 'adotante') return renderizarAdotante(resultados);
+        if (tipoPerfil === 'protetor' || tipoPerfil === 'ong') return renderizarProtetor(resultados);
+        if (tipoPerfil === 'administrador') return renderizarAdmin(resultados);
+        return '';
+    }
+
+    function estadoOcioso() {
+        document.getElementById('area-feed').classList.remove('hidden');
+        document.getElementById('bloco-historico').classList.add('hidden');
+        document.getElementById('area-resultados').classList.add('hidden');
+        document.getElementById('pesquisa-vazio').classList.add('hidden');
+    }
+
+    function estadoFocado() {
+        document.getElementById('area-feed').classList.add('hidden');
+        document.getElementById('area-resultados').classList.add('hidden');
+        document.getElementById('pesquisa-vazio').classList.add('hidden');
+        renderizarHistorico();
+        document.getElementById('bloco-historico').classList.remove('hidden');
+    }
+
+    function estadoResultados() {
+        document.getElementById('area-feed').classList.add('hidden');
+        document.getElementById('bloco-historico').classList.add('hidden');
+        document.getElementById('area-resultados').classList.remove('hidden');
+    }
+
+    const areaFeed = document.getElementById('area-feed');
+    if (areaFeed) {
+        areaFeed.innerHTML = renderizarPorPerfil(feedInicial);
+    }
+
+    input.addEventListener('focus', function () {
+        if (input.value.trim().length < 2) {
+            estadoFocado();
+        }
+    });
+
+    // Delay curto: clicar num item do histórico dispara blur antes do click, então sem o delay
+    // o campo voltaria pro feed ocioso antes do onclick do histórico conseguir rodar.
+    input.addEventListener('blur', function () {
+        setTimeout(() => {
+            if (document.activeElement !== input && input.value.trim().length === 0) {
+                estadoOcioso();
+            }
+        }, 150);
+    });
 
     // ---------- Histórico local (por navegador — não existe tabela de histórico no banco) ----------
     function lerHistorico() {
@@ -135,12 +195,11 @@ $placeholderBusca = match ($tipoPerfil) {
 
         if (termo.length < 2) {
             document.getElementById('area-resultados').innerHTML = '';
-            document.getElementById('pesquisa-vazio').classList.add('hidden');
-            document.getElementById('bloco-historico').classList.remove('hidden');
+            estadoFocado();
             return;
         }
 
-        document.getElementById('bloco-historico').classList.add('hidden');
+        estadoResultados();
         timeoutBusca = setTimeout(() => executarBusca(termo), 350);
     });
 
@@ -178,14 +237,7 @@ $placeholderBusca = match ($tipoPerfil) {
             return;
         }
         document.getElementById('pesquisa-vazio').classList.add('hidden');
-
-        if (tipoPerfil === 'adotante') {
-            area.innerHTML = renderizarAdotante(resultados);
-        } else if (tipoPerfil === 'protetor' || tipoPerfil === 'ong') {
-            area.innerHTML = renderizarProtetor(resultados);
-        } else if (tipoPerfil === 'administrador') {
-            area.innerHTML = renderizarAdmin(resultados);
-        }
+        area.innerHTML = renderizarPorPerfil(resultados);
     }
 
     function renderizarAdotante(r) {
@@ -219,7 +271,7 @@ $placeholderBusca = match ($tipoPerfil) {
     function renderizarProtetor(r) {
         if (!r.meus_animais || !r.meus_animais.length) return '';
 
-        const statusCores = { 'Disponível': 'bg-sucesso/15 text-sucesso', 'Em Análise': 'bg-laranja-1/20 text-laranja-1', 'Adotado': 'bg-primary/15 text-primary', 'Desativado': 'bg-gray-200 text-gray-500' };
+        const statusCores = { 'Disponível': 'bg-sucesso/15 text-sucesso', 'Em Análise': 'bg-laranja-1/20 text-laranja-1', 'Adotado': 'bg-primary/15 text-primary', 'Desativado': 'bg-cinzaMarrom/20 dark:bg-preto2 text-text-muted' };
 
         return `<div><h2 class="font-shantell text-lg font-bold text-text-dark dark:text-white mb-2">Meus Animais</h2><div class="space-y-2">` +
             r.meus_animais.map(a => `
@@ -229,7 +281,7 @@ $placeholderBusca = match ($tipoPerfil) {
                         <p class="text-sm font-bold text-text-dark dark:text-white truncate">${a.nome}</p>
                         <p class="text-xs text-text-muted truncate">${a.raca_nome || ''}</p>
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${statusCores[a.status] || 'bg-gray-200 text-gray-500'}">${a.status}</span>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${statusCores[a.status] || 'bg-cinzaMarrom/20 dark:bg-preto2 text-text-muted'}">${a.status}</span>
                 </a>
             `).join('') + `</div></div>`;
     }

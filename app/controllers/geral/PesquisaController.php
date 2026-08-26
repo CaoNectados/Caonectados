@@ -24,16 +24,32 @@ class PesquisaController extends Controller
         $this->pesquisaRepo = new PesquisaRepository();
     }
 
-    // Usado por: rota GET /pesquisar
+    /** Exibe a tela de pesquisa com um feed ocioso inicial (estilo TikTok), por perfil. Usado pela rota GET /pesquisar. */
     public function index(): void
     {
+        $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
+
+        try {
+            $feedInicial = match ($tipoPerfil) {
+                'adotante'          => $this->feedComoAdotante(),
+                'protetor', 'ong'   => $this->feedComoProtetor(),
+                'administrador'     => $this->feedComoAdmin(),
+                default             => [],
+            };
+        } catch (Exception $e) {
+            // Feed ocioso é só um "TikTok de sugestões" pra tela não abrir vazia — se falhar,
+            // a busca digitada continua funcionando normalmente, então degrada pra lista vazia.
+            $feedInicial = [];
+        }
+
         $this->view('pesquisa/pesquisa', [
-            'titulo'     => 'Pesquisa',
-            'tipoPerfil' => $_SESSION['tipo_perfil'] ?? 'usuario',
+            'titulo'      => 'Pesquisa',
+            'tipoPerfil'  => $tipoPerfil,
+            'feedInicial' => $feedInicial,
         ]);
     }
 
-    // Usado por: rota GET /pesquisar/buscar (AJAX, busca ao digitar)
+    /** Endpoint AJAX de busca ao digitar, roteado por tipo de perfil. Usado pela rota GET /pesquisar/buscar. */
     public function buscar(): void
     {
         try {
@@ -58,14 +74,32 @@ class PesquisaController extends Controller
         }
     }
 
-    // Usado por: buscar() — Adotante: animais disponíveis (RN 17 aplicada) + ONGs
+    /** Busca animais disponíveis (RN 17 aplicada) e ONGs por termo, para o Adotante. Usado por buscar(). */
     private function buscarComoAdotante(string $termo): array
     {
         $adotanteId = $this->obterAdotanteIdAutenticado();
-        $urlBase = rtrim(URL_BASE, '/');
 
-        $animais = $this->pesquisaRepo->buscarAnimaisDisponiveisPorTermo($termo, $adotanteId);
-        $ongs = $this->pesquisaRepo->buscarOngsPorTermo($termo);
+        return $this->montarResultadoAdotante(
+            $this->pesquisaRepo->buscarOngsPorTermo($termo),
+            $this->pesquisaRepo->buscarAnimaisDisponiveisPorTermo($termo, $adotanteId)
+        );
+    }
+
+    /** Monta o feed ocioso do Adotante (mesmo formato da busca, sem termo digitado). Usado por index(). */
+    private function feedComoAdotante(): array
+    {
+        $adotanteId = $this->obterAdotanteIdAutenticado();
+
+        return $this->montarResultadoAdotante(
+            $this->pesquisaRepo->buscarOngsFeed(),
+            $this->pesquisaRepo->buscarAnimaisDisponiveisFeed($adotanteId)
+        );
+    }
+
+    /** Formata o resultado (ongs + animais) no formato comum usado por buscarComoAdotante() e feedComoAdotante(). */
+    private function montarResultadoAdotante(array $ongs, array $animais): array
+    {
+        $urlBase = rtrim(URL_BASE, '/');
 
         return [
             'ongs' => array_map(function (array $p) use ($urlBase) {
@@ -88,14 +122,31 @@ class PesquisaController extends Controller
         ];
     }
 
-    // Usado por: buscar() — Protetor/ONG: só os próprios animais cadastrados
+    /** Busca os próprios animais cadastrados por termo, para o Protetor/ONG. Usado por buscar(). */
     private function buscarComoProtetor(string $termo): array
     {
         $protetorId = $this->obterProtetorIdAutenticado();
-        $urlBase = rtrim(URL_BASE, '/');
 
+        return $this->montarResultadoProtetor(
+            $this->pesquisaRepo->buscarAnimaisDoProtetorPorTermo($termo, $protetorId)
+        );
+    }
+
+    /** Monta o feed ocioso do Protetor/ONG: seus próprios animais mais recentes. Usado por index(). */
+    private function feedComoProtetor(): array
+    {
+        $protetorId = $this->obterProtetorIdAutenticado();
+
+        return $this->montarResultadoProtetor(
+            $this->pesquisaRepo->buscarAnimaisDoProtetorFeed($protetorId)
+        );
+    }
+
+    /** Formata o resultado (meus_animais) no formato comum usado por buscarComoProtetor() e feedComoProtetor(). */
+    private function montarResultadoProtetor(array $animais): array
+    {
+        $urlBase = rtrim(URL_BASE, '/');
         $statusLabels = ['disponivel' => 'Disponível', 'em_analise' => 'Em Análise', 'adotado' => 'Adotado', 'desativado' => 'Desativado'];
-        $animais = $this->pesquisaRepo->buscarAnimaisDoProtetorPorTermo($termo, $protetorId);
 
         return [
             'meus_animais' => array_map(function (array $a) use ($urlBase, $statusLabels) {
@@ -111,13 +162,28 @@ class PesquisaController extends Controller
         ];
     }
 
-    // Usado por: buscar() — Admin: usuários e ONGs/Protetores da plataforma inteira
+    /** Busca usuários e ONGs/Protetores da plataforma inteira por termo, para o Admin. Usado por buscar(). */
     private function buscarComoAdmin(string $termo): array
     {
-        $urlBase = rtrim(URL_BASE, '/');
+        return $this->montarResultadoAdmin(
+            $this->pesquisaRepo->buscarUsuariosPorTermoAdmin($termo),
+            $this->pesquisaRepo->buscarProtetoresPorTermoAdmin($termo)
+        );
+    }
 
-        $usuarios = $this->pesquisaRepo->buscarUsuariosPorTermoAdmin($termo);
-        $protetores = $this->pesquisaRepo->buscarProtetoresPorTermoAdmin($termo);
+    /** Monta o feed ocioso do Admin: usuários e ONGs/Protetores mais recentes. Usado por index(). */
+    private function feedComoAdmin(): array
+    {
+        return $this->montarResultadoAdmin(
+            $this->pesquisaRepo->buscarUsuariosFeedAdmin(),
+            $this->pesquisaRepo->buscarProtetoresFeedAdmin()
+        );
+    }
+
+    /** Formata o resultado (usuarios + protetores) no formato comum usado por buscarComoAdmin() e feedComoAdmin(). */
+    private function montarResultadoAdmin(array $usuarios, array $protetores): array
+    {
+        $urlBase = rtrim(URL_BASE, '/');
 
         return [
             'usuarios' => array_map(function (array $u) use ($urlBase) {
@@ -141,7 +207,7 @@ class PesquisaController extends Controller
         ];
     }
 
-    // Usado por: buscarComoAdotante(), buscarComoProtetor(), buscarComoAdmin() (uso interno)
+    /** Monta a URL pública de um arquivo enviado via upload, ou null se vazio. */
     private function montarUrlUpload(?string $caminho, string $urlBase): ?string
     {
         if (empty($caminho)) {
@@ -150,7 +216,7 @@ class PesquisaController extends Controller
         return $urlBase . '/' . ltrim($caminho, '/');
     }
 
-    // Usado por: buscarComoAdotante() — mesmo padrão de FeedController::obterAdotanteIdAutenticado()
+    /** Resolve o adotante_id do usuário logado. Mesmo padrão de FeedController::obterAdotanteIdAutenticado(). */
     private function obterAdotanteIdAutenticado(): int
     {
         if (isset($_SESSION['adotante_id']) && (int) $_SESSION['adotante_id'] > 0) {
@@ -166,7 +232,7 @@ class PesquisaController extends Controller
         return (int) $adotante['adotante_id'];
     }
 
-    // Usado por: buscarComoProtetor() — mesmo padrão de AnimalController::obterProtetorIdAutenticado()
+    /** Resolve o protetor_id do usuário logado. Mesmo padrão de AnimalController::obterProtetorIdAutenticado(). */
     private function obterProtetorIdAutenticado(): int
     {
         if (isset($_SESSION['protetor_id']) && (int) $_SESSION['protetor_id'] > 0) {

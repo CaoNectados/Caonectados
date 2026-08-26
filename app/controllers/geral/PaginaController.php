@@ -22,7 +22,7 @@ class PaginaController extends Controller
         $this->protetorRepo = new ProtetorRepository();
     }
 
-    // Usado por: rota GET /pagina-perfil (UC 19 — tela de gestão)
+    /** Exibe a tela de gestão da página do protetor/ONG logado. Usado pela rota GET /pagina-perfil (UC 19). */
     public function editar(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -41,7 +41,7 @@ class PaginaController extends Controller
         }
     }
 
-    // Usado por: rota POST /pagina-perfil/atualizar (UC 19.1 / UC 19.2 / UC 19.3)
+    /** Salva descrição, chave PIX e fotos (perfil/fundo) da página. Usado pela rota POST /pagina-perfil/atualizar (UC 19.1/19.2/19.3). */
     public function atualizar(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -71,7 +71,7 @@ class PaginaController extends Controller
         }
     }
 
-    // Usado por: rota POST /pagina-perfil/rede/adicionar (UC 19.2)
+    /** Adiciona uma rede social à página. Usado pela rota POST /pagina-perfil/rede/adicionar (UC 19.2). */
     public function adicionarRede(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -90,7 +90,7 @@ class PaginaController extends Controller
         }
     }
 
-    // Usado por: rota POST /pagina-perfil/rede/remover (UC 19.2)
+    /** Remove uma rede social da página. Usado pela rota POST /pagina-perfil/rede/remover (UC 19.2). */
     public function removerRede(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -108,9 +108,9 @@ class PaginaController extends Controller
     }
 
     /**
-     * Usado por: rota GET /pagina?id={protetor_id} — RN 18 (conteúdo exibido) e RN 01
-     * (só visível se validado). Aberta pra qualquer visitante — inclusive anônimo, sem
-     * exigir autenticacaoRequired() — assim como /animal/mostrar já é.
+     * Exibe a página pública de um protetor/ONG (RN 18 — conteúdo exibido; RN 01 — só
+     * visível se validado). Aberta a qualquer visitante, inclusive anônimo, sem exigir
+     * autenticacaoRequired() — assim como /animal/mostrar já é. Usado pela rota GET /pagina?id={protetor_id}.
      */
     public function publica(): void
     {
@@ -139,8 +139,7 @@ class PaginaController extends Controller
         ]);
     }
 
-    // Usado por: editar(), atualizar(), adicionarRede(), removerRede() — mesmo padrão de
-    // AnimalController::obterProtetorIdAutenticado()
+    /** Resolve o protetor_id do usuário logado. Mesmo padrão de AnimalController::obterProtetorIdAutenticado(). */
     private function obterProtetorIdAutenticado(): int
     {
         if (isset($_SESSION['protetor_id']) && (int) $_SESSION['protetor_id'] > 0) {
