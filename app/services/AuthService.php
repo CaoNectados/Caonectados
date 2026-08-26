@@ -181,26 +181,4 @@ class AuthService
             'tipo' => $tipoAtual
         ];
     }
-
-    // Usado por: (não referenciado atualmente)
-    public function logout(): void
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        unset(
-            $_SESSION['usuario'], 
-            $_SESSION['perfis'], 
-            $_SESSION['perfil_ativo'],
-            $_SESSION['usuario_id'],
-            $_SESSION['usuario_email'],
-            $_SESSION['usuario_nome'],
-            $_SESSION['tipo_perfil'],
-            $_SESSION['perfis_ativos'],
-            $_SESSION['status_conta'],
-            $_SESSION['validado'],
-            $_SESSION['protetor_id']
-        );
-        session_destroy();
-    }
 }

@@ -99,16 +99,6 @@ class RacaService
         return $cadastros;
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function importarDeApisExternas(EspecieRepository $especieRepo): array
-    {
-        $sugestoes = $this->buscarSugestoesExternas();
-        $totalCaes = $this->importarSelecionadas($especieRepo, 'Cão', $sugestoes['caes']);
-        $totalGatos = $this->importarSelecionadas($especieRepo, 'Gato', $sugestoes['gatos']);
-
-        return ['sucesso' => true, 'total' => ($totalCaes + $totalGatos)];
-    }
-
     /**
      * Método unificado e privado para consumir qualquer API externa de raças.
      */

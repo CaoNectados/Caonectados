@@ -45,7 +45,7 @@ class RedeRepository extends BaseRepository
         return $stmt->rowCount() > 0;
     }
 
-    // Usado por: (não referenciado atualmente)
+    // Usado por: PaginaService::adicionarRede()
     public function salvar(Rede $rede): int
     {
         $sql = "INSERT INTO REDE (protetor_id, link_rede, tipo_rede) VALUES (:protetor_id, :link_rede, :tipo_rede)";

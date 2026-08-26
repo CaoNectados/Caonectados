@@ -124,7 +124,7 @@ class ValidationService
         return $d <= $hoje;
     }
 
-    // Usado por: OnBoardingService::processarOng, validarChavePix()
+    // Usado por: OnBoardingService::processarOng
     public static function validarCpf(string $cpf): bool
     {
         $cpf = preg_replace('/[^0-9]/is', '', $cpf);
@@ -145,7 +145,7 @@ class ValidationService
         return true;
     }
 
-    // Usado por: OnBoardingService::processarOng, validarChavePix()
+    // Usado por: OnBoardingService::processarOng
     public static function validarCnpj(string $cnpj): bool
     {
         $cnpj = preg_replace('/[^0-9]/', '', (string) $cnpj);
@@ -169,58 +169,6 @@ class ValidationService
         }
         $resto = $soma % 11;
         return $cnpj[13] == ($resto < 2 ? 0 : 11 - $resto);
-    }
-
-    // Usado por: (não referenciado atualmente)
-    public static function verificarExistenciaCnpjReal(string $cnpj): bool
-    {
-        $cnpjLimpo = preg_replace('/[^0-9]/', '', $cnpj);
-
-        if (strlen($cnpjLimpo) !== 14) return false;
-
-        $url = "https://minhareceita.org/" . $cnpjLimpo;
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-        $resposta = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode === 200) {
-            $dados = json_decode($resposta, true);
-            return isset($dados['situacao_cadastral']) && (int)$dados['situacao_cadastral'] === 2;
-        }
-
-        return false;
-    }
-
-    /**
-     * Valida os formatos permitidos de Chave PIX
-     */
-    // Usado por: (não referenciado atualmente)
-    public static function validarChavePix(?string $chave): bool
-    {
-        if (empty($chave)) return true;
-
-        $chaveLimpa = trim($chave);
-
-        if (filter_var($chaveLimpa, FILTER_VALIDATE_EMAIL)) return true;
-
-        $numeros = preg_replace('/[^0-9]/', '', $chaveLimpa);
-
-        if (strlen($numeros) === 11) return self::validarCpf($numeros);
-        if (strlen($numeros) === 14) return self::validarCnpj($numeros);
-        if (strlen($numeros) === 10 || strlen($numeros) === 11) return true;
-
-        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $chaveLimpa)) {
-            return true;
-        }
-
-        return false;
     }
 
     /**

@@ -203,12 +203,6 @@ class AnimalService
         }
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function getErros(): array
-    {
-        return $this->erros;
-    }
-
     // Usado por: cadastrarAnimal(), editarAnimal()
     private function validarAnimal(Animal $animal): void
     {

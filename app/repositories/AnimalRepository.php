@@ -96,41 +96,6 @@ class AnimalRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function buscarPorProtetor(int $protetorId): array
-    {
-        $sql = "SELECT
-            a.animal_id,
-            a.protetor_id,
-            a.raca_id,
-            a.nome,
-            a.dt_nasc,
-            a.sexo,
-            a.porte,
-            a.status,
-            a.descricao,
-            a.vacinado,
-            a.castrado,
-            a.comportamento,
-            a.historico_saude,
-            a.criado_em,
-            a.deletado_em,
-            a.atualizado_em,
-            rc.nome AS raca_nome
-        FROM ANIMAL a
-        LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
-        WHERE a.protetor_id = :protetor_id
-        ORDER BY a.criado_em DESC";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
-    }
-
     // Usado por: AnimalService::cadastrarAnimal() e AnimalController::cadastrar()
     public function cadastrarAnimal(Animal $animal): int
     {
@@ -356,7 +321,7 @@ class AnimalRepository extends BaseRepository
         $stmt->bindValue(':historico_saude', $animal->getHistoricoSaude(), $animal->getHistoricoSaude() === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
     }
 
-    // Usado por: AnimalRepository::buscarPorId(), listarComFiltros() e buscarPorProtetor() (uso interno)
+    // Usado por: AnimalRepository::buscarPorId() e listarComFiltros() (uso interno)
     private function mapAnimal(array $row): Animal
     {
         $animal = new Animal();

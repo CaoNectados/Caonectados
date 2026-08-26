@@ -65,10 +65,7 @@ class MailService
         ]);
     }
 
-    /**
-     * Envia e-mail notificando aprovação do cadastro de Protetor/ONG
-     */
-    // Usado por: ProtetorService::aprovarSolicitacao, SolicitacaoService::aprovarSolicitacao
+    /** Envia e-mail notificando aprovação do cadastro de Protetor/ONG. Usado por SolicitacaoService::aprovarSolicitacao(). */
     public static function enviarNotificacaoAprovacao(string $emailDestino, string $nomeDestino): bool
     {
         return self::enviarEmailTemplate($emailDestino, $nomeDestino, 'Cadastro Aprovado! - CãoNectados', [
@@ -81,10 +78,7 @@ class MailService
         ]);
     }
 
-    /**
-     * Envia e-mail notificando recusa da solicitação com o motivo
-     */
-    // Usado por: ProtetorService::recusarSolicitacao, SolicitacaoService::recusarSolicitacao
+    /** Envia e-mail notificando recusa da solicitação, com o motivo informado. Usado por SolicitacaoService::recusarSolicitacao(). */
     public static function enviarNotificacaoRecusa(string $emailDestino, string $nomeDestino, string $motivo): bool
     {
         $motivoTexto = !empty($motivo) ? htmlspecialchars($motivo) : 'Documentação inconsistente ou ilegível.';
