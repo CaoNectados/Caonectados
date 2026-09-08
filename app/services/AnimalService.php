@@ -81,6 +81,15 @@ class AnimalService
         if (!$excluido) {
             throw new \RuntimeException('Animal não encontrado ou já está excluído.');
         }
+
+        // UC 17.3 / FA 03: a desativação é lógica (deletado_em), mas os arquivos de imagem
+        // não precisam continuar ocupando espaço no servidor — remove todas as fotos do
+        // animal (registro em FOTO_ANIMAL + arquivo físico em uploads/). Se o animal for
+        // reativado depois, ele volta sem fotos; o protetor cadastra novas.
+        $caminhos = $this->animalRepository->removerTodasFotos($animal->getAnimalId());
+        foreach ($caminhos as $caminho) {
+            $this->uploadService->remover($caminho);
+        }
     }
 
     // Usado por: AnimalController (reativar animal desativado)
@@ -119,10 +128,79 @@ class AnimalService
         return $caminhoFoto;
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function getErros(): array
+    // Usado por: AnimalController (galeria de fotos no cadastro/edição, e FeedRepository
+    // indiretamente via AnimalRepository na montagem do carrossel do card do feed)
+    public function listarFotos(int $animalId): array
     {
-        return $this->erros;
+        return $this->animalRepository->buscarFotosPorAnimal($animalId);
+    }
+
+    /**
+     * Salva um lote de fotos adicionais (além da principal). Aceita tanto um array de
+     * $_FILES (múltiplos arquivos no mesmo campo) quanto uma lista de strings Base64
+     * (recorte feito no cliente), sem exigir cropper — a foto principal é que passa pelo
+     * cropper existente; estas aqui só ficam armazenadas como enviadas.
+     */
+    // Usado por: AnimalController (cadastro/edição de animal)
+    public function salvarFotosAdicionais(array $arquivosOuBase64, int $animalId): array
+    {
+        if ($animalId <= 0) {
+            return [];
+        }
+
+        $caminhosSalvos = [];
+        foreach ($arquivosOuBase64 as $arquivo) {
+            if (empty($arquivo)) {
+                continue;
+            }
+
+            // Item de um input múltiplo de $_FILES: PHP entrega erro UPLOAD_ERR_NO_FILE
+            // pros slots vazios do array — ignora em vez de tentar salvar "nada".
+            if (is_array($arquivo) && ($arquivo['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            $caminho = $this->uploadService->salvar($arquivo, 'animal');
+            if ($caminho) {
+                $this->animalRepository->salvarFotoAdicional($animalId, $caminho);
+                $caminhosSalvos[] = $caminho;
+            }
+        }
+
+        return $caminhosSalvos;
+    }
+
+    // Usado por: AnimalController — remove uma foto específica (principal ou adicional).
+    // $animalIdEsperado é sempre o animal já validado como pertencente ao protetor logado
+    // (ver AnimalController::carregarEValidarPropriedade()); aqui é só uma segunda checagem
+    // pra garantir que o foto_id realmente pertence a ESSE animal antes de apagar algo.
+    public function removerFoto(int $fotoId, int $animalIdEsperado): void
+    {
+        $foto = $this->animalRepository->buscarFotoPorId($fotoId);
+
+        if (!$foto || (int) $foto['animal_id'] !== $animalIdEsperado) {
+            throw new \RuntimeException('Foto não encontrada para este animal.');
+        }
+
+        if (!$this->animalRepository->removerFotoPorId($fotoId)) {
+            throw new \RuntimeException('Não foi possível remover a foto.');
+        }
+
+        $this->uploadService->remover($foto['caminho_foto']);
+    }
+
+    // Usado por: AnimalController — promove uma foto adicional a foto principal
+    public function definirFotoPrincipal(int $fotoId, int $animalIdEsperado): void
+    {
+        $foto = $this->animalRepository->buscarFotoPorId($fotoId);
+
+        if (!$foto || (int) $foto['animal_id'] !== $animalIdEsperado) {
+            throw new \RuntimeException('Foto não encontrada para este animal.');
+        }
+
+        if (!$this->animalRepository->definirFotoPrincipal($animalIdEsperado, $fotoId)) {
+            throw new \RuntimeException('Não foi possível definir a foto principal.');
+        }
     }
 
     // Usado por: cadastrarAnimal(), editarAnimal()
