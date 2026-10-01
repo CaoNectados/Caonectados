@@ -168,14 +168,15 @@ class UsuarioRepository extends BaseRepository
     // Usado por: AuthService::registrar()
     public function salvarNovoUsuario(Usuario $usuario): int
     {
-        $sql = "INSERT INTO USUARIO (email, senha, tipo_atual, perfis_ativos)
-                VALUES (:email, :senha, :tipo_atual, :perfis_ativos)";
+        $sql = "INSERT INTO USUARIO (email, senha, tipo_atual, perfis_ativos, status_conta)
+                VALUES (:email, :senha, :tipo_atual, :perfis_ativos, :status_conta)";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':email', $usuario->getEmail(), PDO::PARAM_STR);
         $stmt->bindValue(':senha', $usuario->getSenha(), PDO::PARAM_STR);
         $stmt->bindValue(':tipo_atual', $usuario->getTipoAtual() ?? 'usuario', PDO::PARAM_STR);
         $stmt->bindValue(':perfis_ativos', $usuario->getPerfisAtivos() ?? 'usuario', PDO::PARAM_STR);
+        $stmt->bindValue(':status_conta', $usuario->getStatusConta() ?? 'pendente', PDO::PARAM_STR);
         $stmt->execute();
 
         return (int) $this->db->lastInsertId();

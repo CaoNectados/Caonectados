@@ -56,12 +56,14 @@ class PaginaController extends Controller
                 trim($_POST['chave_pix'] ?? '')
             );
 
-            $fotoPerfil = $_FILES['foto_perfil'] ?? ($_POST['foto_perfil_cortada'] ?? null);
+            $fotoPerfil = !empty($_POST['foto_perfil_cortada'])
+                ? $_POST['foto_perfil_cortada'] : ($_FILES['foto_perfil'] ?? null);
             if (!empty($fotoPerfil) && (!is_array($fotoPerfil) || ($fotoPerfil['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)) {
                 $this->paginaService->atualizarFoto($protetorId, 'foto_perfil', $fotoPerfil);
             }
 
-            $fotoFundo = $_FILES['foto_fundo'] ?? ($_POST['foto_fundo_cortada'] ?? null);
+            $fotoFundo = !empty($_POST['foto_fundo_cortada'])
+                ? $_POST['foto_fundo_cortada'] : ($_FILES['foto_fundo'] ?? null);
             if (!empty($fotoFundo) && (!is_array($fotoFundo) || ($fotoFundo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)) {
                 $this->paginaService->atualizarFoto($protetorId, 'foto_fundo', $fotoFundo);
             }

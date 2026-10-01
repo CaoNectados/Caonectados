@@ -188,7 +188,10 @@ class OnBoardingService
             $stmt=$conexao->prepare('SELECT * FROM USUARIO WHERE usuario_id=? FOR UPDATE');
             $stmt->execute([$usuarioId]);
             $original=$stmt->fetch(\PDO::FETCH_ASSOC);
-            if (!$original || $original['status_conta'] !== 'ativo' || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
+            // Cadastros antigos confirmados podem continuar como usuario/pendente.
+            $statusPermitido = $original && ($original['status_conta'] === 'ativo'
+                || ($original['tipo_atual'] === 'usuario' && $original['status_conta'] === 'pendente'));
+            if (!$statusPermitido || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
             PerfilPolicy::exigirPerfilComum($original);
             $adicional=in_array($original['tipo_atual'],['ong','protetor'],true);
             if ($this->adotanteRepo->buscarPorUsuarioId($usuarioId)) throw new Exception('Perfil de adotante já existe.');
@@ -316,7 +319,10 @@ class OnBoardingService
             $stmt = $conexao->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
             $stmt->execute([$usuarioId]);
             $original = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if (!$original || $original['status_conta'] !== 'ativo' || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
+            // Cadastros antigos confirmados podem continuar como usuario/pendente.
+            $statusPermitido = $original && ($original['status_conta'] === 'ativo'
+                || ($original['tipo_atual'] === 'usuario' && $original['status_conta'] === 'pendente'));
+            if (!$statusPermitido || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
             PerfilPolicy::exigirPerfilComum($original);
             $upgrade = $original['tipo_atual'] === 'adotante';
             $existente = $this->protetorRepo->buscarPorUsuarioId($usuarioId);

@@ -211,7 +211,9 @@ class OnBoardingController extends Controller
         }
 
         $dadosProtetor = $this->onboardingService->obterDadosPreenchidosProtetor($usuarioId);
-        $motivoRecusa = $_SESSION['motivo_recusa_protetor_' . ($dadosProtetor['protetor_id'] ?? 0)] ?? 'Documentação incompleta ou inconsistente.';
+        $motivoRecusa = $dadosProtetor['motivo_recusa']
+            ?? $_SESSION['motivo_recusa_protetor_' . ($dadosProtetor['protetor_id'] ?? 0)]
+            ?? 'Documentação incompleta ou inconsistente.';
 
         $this->view('onboarding/aguardando_aprovacao', [
             'titulo'        => 'Status da Solicitação',

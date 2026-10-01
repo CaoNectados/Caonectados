@@ -240,3 +240,30 @@ Validação adicional:
 - Os testes anteriores de fluxo, catálogo, HTTP Apache, renderização, normalização e sintaxe também passaram.
 
 `tests/` é material de verificação local, ignorado pelo Git e retirado dos commits desta branch ainda não publicados. Não integra a entrega ao GitHub. Os números acima não comprovam todos os formulários com gravação, entrega de mensagens ao destinatário ou fluxos simultâneos em MySQL. Migração e aceitação completa continuam pendentes conforme descrito acima.
+
+
+## Revisão funcional após erro de redefinição de senha
+
+Corrigido o campo `email` ausente no POST de `/redefinir-senha/processar`. O formulário agora envia email/código, exige as duas senhas, informa “Salvar Senha” e não restaura dados de recuperação pelo autosave.
+
+A bateria ampliada reproduziu e corrigiu outras falhas:
+- `salvarNovoUsuario` descartava o status ativo definido após confirmação do email. Agora persiste o status; onboarding também aceita o estado transitório usuario/pendente de cadastros antigos, sem liberar contas bloqueadas ou excluídas.
+- Fotos recortadas da página e de animais eram ignoradas quando `$_FILES` continha um campo vazio. O conteúdo recortado agora tem prioridade, mantendo as validações do upload.
+- `/aguardando-aprovacao` não recuperava o motivo de recusa persistido. A leitura usa primeiro o banco e foi verificada após novo login.
+- Autosave restaurava tokens CSRF antigos. Tokens/códigos não são salvos nem restaurados; dados comuns continuam sendo recuperados. Teste reproduziu o erro antes e passou após a correção.
+
+Validação com gravações foi executada em banco MySQL separado, com dados fictícios, estrutura/índices originais, 29 chaves estrangeiras reproduzidas e migração pós-banca aplicada exclusivamente nesse banco. O servidor HTTP de teste usou a aplicação real, com captura local dos emails para impedir envios a pessoas reais. A autenticação SMTP real já havia sido validada separadamente; entrega ao destinatário não foi testada.
+
+Resultados:
+- Recuperação completa: solicitação, campos renderizados, redefinição, login com nova senha e rejeição do link reutilizado.
+- Cadastro/confirmar email, segundo fator administrativo, troca de senha/email do perfil.
+- 224 acessos GET (56 por perfil de adotante, protetor, ONG e administrador), sem falhas de servidor; reenvio, logout e reativação ficaram fora dessa varredura e foram tratados nos testes de fluxo aplicáveis.
+- 37 verificações no primeiro grupo funcional; segundo grupo concluiu CRUD de região/espécie/raça/animal, propriedade de animais, redes, imagens públicas, comprovantes privados, onboarding inicial de adotante/ONG/protetor, perfis adicionais, alternância, recusa/reenvio/aprovação e bloqueio/reativação de conta.
+- 172 POSTs com campos ausentes e sessão válida, sem exceção ou aviso PHP não tratado. Exclusão de conta ficou fora dessa varredura destrutiva.
+- Cinco verificações em duas conexões MySQL: criação repetida idempotente, interessados distintos, disputa de aprovações, estados finais e animal adotado.
+- 26 verificações transacionais em memória, dois testes de catálogo, 104 contratos de rota, 28 verificações no Apache local e oito views/JavaScript continuaram passando.
+- Tela de redefinição inspecionada no navegador com os quatro campos corretos, autosave desabilitado e nenhum erro JavaScript; não houve alteração de senha real pelo navegador.
+
+O banco isolado, servidor de teste e arquivos enviados durante a bateria foram removidos ao concluir a revisão. Testes continuam locais e ignorados pelo Git. Nenhuma senha/conta real foi alterada e a migração não foi aplicada ao banco original.
+
+Antes de promover a branch: aplicar a migração revisada no ambiente de destino após backup e validar a entrega de email nesse ambiente. As decisões funcionais pendentes listadas na revisão original não foram inventadas durante os testes. Os testes comprovam os cenários enumerados, sem prometer cobertura de todas as combinações possíveis de dados e ambiente.
