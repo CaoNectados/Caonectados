@@ -94,6 +94,9 @@ class ValidationService
         }
 
         $hoje = new DateTime();
+        if ($dtNascimento > $hoje) {
+            throw new Exception('A data de nascimento não pode ser futura.');
+        }
         $idade = $hoje->diff($dtNascimento)->y;
         if ($idade < 18) {
             throw new Exception("É necessário ter pelo menos 18 anos para se cadastrar.");

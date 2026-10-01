@@ -15,7 +15,7 @@ if ($tipoPerfil === 'adotante') {
     if (empty($fotoPerfilSessao)) {
         $fotoPerfilSessao = $adotanteInfo['foto_perfil'] ?? null;
     }
-    $petiscosDiarios = isset($adotanteInfo['petiscos_diarios']) ? (int)$adotanteInfo['petiscos_diarios'] : 10;
+    $petiscosDiarios = $adotanteInfo ? max(0, 10 - (new \app\repositories\SolicitacaoAdocaoRepository())->contarSolicitacoesHoje((int)$adotanteInfo['adotante_id'])) : 0;
 
     // RF 20: status da solicitação de upgrade para Protetor/ONG (se houver). Reaproveita os
     // mesmos campos (validado/deletado_em) já usados pelo admin em /admin/solicitacoes.
@@ -76,7 +76,6 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Editar Perfil',    'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil', 'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
         ['label' => 'Termos de Uso',    'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
-        ['label' => 'Relatórios',      'icone' => 'relatorios.svg',    'url' => '/admin/relatorios'],
         ['label' => 'Sair',            'icone' => 'sair.svg',          'url' => '/logout'],
     ];
 } elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
@@ -84,13 +83,11 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Editar Perfil',    'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil',  'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
         ['label' => 'Página ' . ucfirst($tipoPerfil), 'icone' => 'pagina.svg', 'url' => '/pagina-perfil'],
-        ['label' => 'Relatórios',       'icone' => 'relatorios.svg',    'url' => '/relatorios'],
         ['label' => 'Gerenciar Animais','icone' => 'patinha.svg',       'url' => '/animal'],
         ['label' => 'Solicitações',     'icone' => 'solicitacoes.svg',  'url' => '/solicitacoes'],
         ['label' => 'Termos de Uso',    'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
         ['label' => 'Excluir Conta',    'icone' => 'excluir.svg',       'action' => 'abrirModalExcluirConta()'],
         ['label' => 'Sair',             'icone' => 'sair.svg',          'url' => '/logout'],
-        ['label' => 'Denunciar',        'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
     ];
 
     // RF 20 (inverso): sem aprovação envolvida (Adotante não passa por validação), então o
@@ -113,11 +110,10 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     $botoes = [
         ['label' => 'Editar Perfil',          'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil',        'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
-        ['label' => 'Petiscos diários',       'icone' => 'petiscos.svg',      'url' => '/petiscos', 'valor' => (int)$petiscosDiarios],
+        ['label' => 'Petiscos diários',       'icone' => 'petiscos.svg',      'url' => '/minhas-solicitacoes', 'valor' => (int)$petiscosDiarios],
         ['label' => 'Termos de Uso',          'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
         ['label' => 'Excluir Conta',          'icone' => 'excluir.svg',       'action' => 'abrirModalExcluirConta()'],
         ['label' => 'Sair',                   'icone' => 'sair.svg',          'url' => '/logout'],
-        ['label' => 'Denunciar',              'icone' => 'denunciar.svg',     'url' => '/denuncias/nova'],
     ];
 
     // RF 20: "Torne-se Protetor/ONG" só aparece como botão clicável quando ainda não há
@@ -175,7 +171,10 @@ $paginasBotoes = array_chunk($botoes, 6);
         </h2>
 
         <?php if ($statusSolicitacaoProtetor !== null): ?>
-            <!-- RF 20: Status da solicitação de upgrade para Protetor/ONG -->
+            <?php if ($statusSolicitacaoProtetor === 'recusada' && !empty($solicitacaoProtetor['motivo_recusa'])): ?>
+                <p class="text-sm">Motivo: <?= htmlspecialchars($solicitacaoProtetor['motivo_recusa']) ?></p>
+            <?php endif; ?>
+            <!-- RF 15: Status da solicitação de upgrade para Protetor/ONG -->
             <?php
                 $bannerConfig = [
                     'pendente' => [

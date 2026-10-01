@@ -56,7 +56,23 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 // ==========================================
 // Feed temporariamente removido desta etapa do projeto (controller/view/repository
 // mantidos no código para reativação futura — só a rota está desligada).
-// $router->get('/feed', 'geral/FeedController@feed');
+$router->get('/feed', 'geral/FeedController@index');
+$router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
+$router->get('/pesquisar', 'geral/FeedController@index');
+$router->get('/pagina', 'geral/PaginaController@publica');
+$router->get('/pagina-perfil', 'geral/PaginaController@editar');
+$router->post('/pagina-perfil/atualizar', 'geral/PaginaController@atualizar');
+$router->post('/pagina-perfil/rede/adicionar', 'geral/PaginaController@adicionarRede');
+$router->post('/pagina-perfil/rede/remover', 'geral/PaginaController@removerRede');
+$router->post('/solicitacoes/criar', 'geral/SolicitacaoAdocaoController@criar');
+$router->get('/minhas-solicitacoes', 'geral/SolicitacaoAdocaoController@minhas');
+$router->post('/minhas-solicitacoes/cancelar', 'geral/SolicitacaoAdocaoController@cancelar');
+$router->get('/solicitacoes', 'geral/SolicitacaoAdocaoController@painel');
+$router->get('/solicitacoes/detalhes', 'geral/SolicitacaoAdocaoController@detalhes');
+$router->post('/solicitacoes/em-analise', 'geral/SolicitacaoAdocaoController@colocarEmAnalise');
+$router->post('/solicitacoes/recusar', 'geral/SolicitacaoAdocaoController@recusar');
+$router->post('/solicitacoes/aprovar', 'geral/SolicitacaoAdocaoController@aprovar');
+$router->get('/admin/solicitacoes/documento', 'admin/SolicitacaoProtetorController@documento');
 
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
@@ -81,7 +97,6 @@ $router->post('/perfil/trocar', 'geral/PerfilController@alternar');
 $router->post('/perfil/excluir', 'geral/PerfilController@excluir');
 
 // Relatórios e Estatísticas (RF 12) — visão individual da ONG/Protetor
-$router->get('/relatorios', 'geral/RelatorioController@index');
 
 
 // ==========================================
@@ -113,11 +128,8 @@ $router->post('/redefinir-senha/processar', 'auth/AuthController@processarRedefi
 $router->get('/admin/dashboard', 'admin/DashboardController@index');
 
 // Relatórios e Estatísticas (RF 12) — visão global e consolidada
-$router->get('/admin/relatorios', 'admin/RelatorioController@index');
-$router->get('/admin/relatorios/exportar-csv', 'admin/RelatorioController@exportarCsv');
 
 // Denúncias (listagem básica — fluxo de moderação ainda não implementado)
-$router->get('/admin/denuncias', 'admin/DenunciaController@index');
 
 // Solicitações de Cadastro (ONGs e Protetores)
 $router->get('/admin/solicitacoes', 'admin\SolicitacaoProtetorController@index');
@@ -128,6 +140,8 @@ $router->post('/admin/solicitacoes/rejeitar', 'admin\SolicitacaoProtetorControll
 // Gerenciamento de Usuários (Admin)
 $router->get('/admin/gerenciar-usuarios', 'admin/UsuarioController@index');
 $router->get('/admin/usuarios/detalhes', 'admin/UsuarioController@detalhes');
+$router->get('/admin/protetores/classificacao', 'admin/UsuarioController@classificacao');
+$router->post('/admin/protetores/classificacao', 'admin/UsuarioController@classificacao');
 $router->post('/admin/usuarios/alterar-status', 'admin/UsuarioController@alterarStatusUsuario');
 $router->post('/admin/usuarios/alterar-status-perfil', 'admin/UsuarioController@alterarStatusPerfil');
 

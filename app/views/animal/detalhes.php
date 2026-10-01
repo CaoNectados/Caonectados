@@ -85,6 +85,11 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
         <?php endif; ?>
 
         <div class="flex flex-col sm:flex-row items-center gap-4 mt-10">
+            <a href="<?= URL_BASE ?>/pagina?id=<?= (int)$animal->getProtetorId() ?>" class="btn-primario">Ver responsável</a>
+            <?php if (($_SESSION['tipo_perfil'] ?? '') === 'adotante' && $animal->getStatus() === 'disponivel'): ?>
+                <button type="button" id="petisco-detalhe" class="btn-primario" data-animal="<?= (int)$animal->getAnimalId() ?>">Dar Petisco!</button>
+                <span id="feedback-petisco" role="status" aria-live="polite"></span>
+            <?php endif; ?>
             <?php if ($podeEditar): ?>
                 <a href="<?= URL_BASE ?>/animal/editar?id=<?= $animal->getAnimalId() ?>" class="w-full sm:w-auto text-center px-8 py-3 bg-rosaAlerta hover:bg-rosa-2 text-white dark:hover:text-text-dark font-bold rounded-full shadow-md transition-all duration-300 hover:-translate-y-1">
                     Editar
@@ -96,5 +101,27 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
         </div>
     </div>
 </main>
+<script>
+document.getElementById('petisco-detalhe')?.addEventListener('click', async function () {
+    if (this.disabled) return;
+    this.disabled = true;
+    const feedback = document.getElementById('feedback-petisco');
+    feedback.textContent = 'Enviando...';
+    try {
+        const resposta = await fetch(<?= json_encode(URL_BASE . '/solicitacoes/criar', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>, {
+            method: 'POST', headers: {Accept: 'application/json'},
+            body: new URLSearchParams({animal_id: this.dataset.animal, csrf_token: <?= json_encode($_SESSION['csrf_token']) ?>})
+        });
+        const resultado = await resposta.json();
+        if (!resposta.ok || resultado.status !== 'sucesso') throw new Error(resultado.mensagem || 'Não foi possível registrar o petisco.');
+        feedback.textContent = resultado.mensagem;
+        this.textContent = 'Petisco enviado! 🐾';
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) this.animate([{transform:'scale(1)'},{transform:'scale(1.15)'},{transform:'scale(1)'}], {duration:400});
+    } catch (erro) {
+        feedback.textContent = erro.message || 'Falha de conexão. Tente novamente.';
+        this.disabled = false;
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
