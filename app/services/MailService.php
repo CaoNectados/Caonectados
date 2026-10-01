@@ -103,7 +103,7 @@ class MailService
      * Renderiza o template base correto localizado em app/views/templates/template_email_base.php
      */
     // Usado por: enviarCodigoVerificacao(), enviarEmailRecuperacao(), enviarNotificacaoAprovacao(), enviarNotificacaoRecusa()
-    private static function enviarEmailTemplate(string $emailDestino, string $nomeDestino, string $assunto, array $dadosTemplate): bool
+    public static function enviarEmailTemplate(string $emailDestino, string $nomeDestino, string $assunto, array $dadosTemplate): bool
     {
         try {
             $mail = self::configurarMailer();
@@ -148,16 +148,20 @@ class MailService
     {
         $mail = new PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'caonectados2026@gmail.com';
-        $mail->Password   = 'xnnfqykljlmeoyex';
+        $mail->Username = getenv('SMTP_USERNAME') ?: '';
+        $mail->Password = getenv('SMTP_PASSWORD') ?: '';
+        if ($mail->Username === '' || $mail->Password === '') {
+            throw new Exception('Configure SMTP_USERNAME e SMTP_PASSWORD no ambiente.');
+        }
+        $mail->Timeout = 10;
 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
         $mail->CharSet    = 'UTF-8';
-        $mail->setFrom('caonectados2026@gmail.com', 'CãoNectados');
+        $mail->setFrom(getenv('SMTP_FROM') ?: $mail->Username, 'CãoNectados');
         $mail->isHTML(true);
 
         return $mail;

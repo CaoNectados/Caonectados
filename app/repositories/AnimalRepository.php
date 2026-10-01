@@ -70,7 +70,7 @@ class AnimalRepository extends BaseRepository
         FROM ANIMAL a
         LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
         LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
-        WHERE 1=1";
+        WHERE a.deletado_em IS NULL";
 
         $params = [];
 
@@ -88,7 +88,7 @@ class AnimalRepository extends BaseRepository
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $val) {
-            $stmt->bindValue($key, $val, PDO::PARAM_INT);
+            $stmt->bindValue($key, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
         $stmt->execute();
 
