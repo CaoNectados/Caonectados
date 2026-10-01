@@ -69,14 +69,16 @@ Repository (app/repositories/**)      única camada que sabe falar com o banco (
 ## Como Executar o Projeto Localmente
 1. Clone o repositório para a pasta `htdocs` do XAMPP.
 2. Abra o XAMPP Control Panel e garanta que o **Apache** e o **MySQL** estejam em execução.
-3. Acesse o arquivo [app/config/config.php](app/config/config.php) e ajuste as constantes de conexão, se necessário (por padrão usa `localhost`, banco `caonectados`, usuário `root` sem senha, e `URL_BASE` apontando para a pasta `public`).
+3. Acesse o arquivo [app/config/config.php](app/config/config.php) e ajuste as constantes de conexão, se necessário (por padrão usa `localhost`, banco `caonectados`, usuário `root` sem senha, e `URL_BASE` apontando para `http://localhost/Caonectados`, sem `/public`).
 4. No phpMyAdmin (ou client MySQL de sua preferência), crie o banco `caonectados` e importe o script [app/database/scripts/scripts.sql](app/database/scripts/scripts.sql) para criar as tabelas.
 5. Instale o [Composer](https://getcomposer.org/) (ele detecta automaticamente o PHP do XAMPP em `C:\xampp\php\php.exe`).
 6. No terminal, na raiz do projeto, rode:
    ```bash
    composer install
    ```
-7. Acesse a aplicação pelo navegador em `http://localhost/Caonectados/public` (ou pelo caminho equivalente ao nome da pasta do projeto dentro de `htdocs`).
+7. Acesse a aplicação pelo navegador em `http://localhost/Caonectados/` (ou pelo caminho equivalente ao nome da pasta do projeto dentro de `htdocs`).
+
+Consulte [a configuração Apache](docs/APACHE.md) e [o relatório pós-banca](docs/POS_BANCA.md). Em banco existente, revise apenas migrações incrementais; não reimporte o script de criação/carga. Configure as credenciais SMTP pelo ambiente.
 
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista

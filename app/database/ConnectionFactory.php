@@ -24,7 +24,7 @@ class ConnectionFactory
             try {
                 self::$instance = self::createPdo();
             } catch (PDOException $e) {
-                if (self::isUnknownDatabase($e)) {
+                if (self::isUnknownDatabase($e) && getenv('ALLOW_DATABASE_INITIALIZATION') === '1') {
                     \app\database\DatabaseInitializer::initialize();
                     self::$instance = self::createPdo();
 
