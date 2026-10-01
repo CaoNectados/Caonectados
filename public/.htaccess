@@ -1,4 +1,12 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+DirectorySlash Off
 RewriteEngine On
+
+RewriteRule (^|/)\. - [F,L]
+RewriteRule ^assets/uploads/comprovantes(?:/|$) - [F,L,NC]
+RewriteRule \.(?:sql|log|ini|env|bak|lock|md|json|ya?ml|sh|bat|ps1)(?:/|$) - [F,L,NC]
+RewriteRule ^assets/uploads/.*\.(?:php[0-9]?|phtml|phar)(?:/|$) - [F,L,NC]
 
 # Se a URL apontar para um arquivo existente (como imagens/CSS), não faz nada
 RewriteCond %{REQUEST_FILENAME} !-f
