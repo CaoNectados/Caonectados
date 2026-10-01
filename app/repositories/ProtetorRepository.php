@@ -90,7 +90,8 @@ class ProtetorRepository extends BaseRepository
                 LEFT JOIN PAGINA pag ON p.protetor_id = pag.protetor_id
                 WHERE p.protetor_id = :protetor_id
                   AND p.validado = 1
-                  AND p.deletado_em IS NULL
+                  AND p.deletado_em IS NULL AND u.status_conta = 'ativo' AND u.deletado_em IS NULL
+                  AND FIND_IN_SET(IF(p.tipo_documento='cnpj','ong','protetor'),u.perfis_ativos)>0
                 LIMIT 1";
 
         $stmt = $this->db->prepare($sql);
@@ -158,7 +159,7 @@ class ProtetorRepository extends BaseRepository
                     pag.descricao AS pagina_descricao,
                     CASE
                         WHEN p.validado = 1 THEN 'aprovado'
-                        WHEN u.status_conta = 'rejeitado' THEN 'recusado'
+                        WHEN p.deletado_em IS NOT NULL THEN 'recusado'
                         ELSE 'pendente'
                     END AS status
                 FROM PROTETOR p
@@ -225,7 +226,7 @@ class ProtetorRepository extends BaseRepository
                     pg.descricao AS pagina_descricao,
                     CASE
                         WHEN p.validado = 1 THEN 'aprovado'
-                        WHEN u.status_conta = 'rejeitado' THEN 'recusado'
+                        WHEN p.deletado_em IS NOT NULL THEN 'recusado'
                         ELSE 'pendente'
                     END AS status
                 FROM PROTETOR p
@@ -299,14 +300,15 @@ class ProtetorRepository extends BaseRepository
     }
 
     // Usado por: SolicitacaoService::recusarSolicitacao() -> SolicitacaoProtetorController::recusar()
-    public function recusarSolicitacao(int $protetorId): bool
+    public function recusarSolicitacao(int $protetorId, string $motivo = ''): bool
     {
         $sql = "UPDATE PROTETOR
                 SET validado = 0,
-                    deletado_em = NOW()
+                    deletado_em = NOW(), motivo_recusa = :motivo
                 WHERE protetor_id = :protetor_id";
 
         $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':motivo', $motivo, PDO::PARAM_STR);
         $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
         return $stmt->execute();
     }

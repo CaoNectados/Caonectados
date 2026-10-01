@@ -3,28 +3,29 @@
 namespace app\controllers\onboarding;
 
 use app\core\Controller;
-use app\services\OnboardingService;
+use app\services\OnBoardingService;
 use app\repositories\RegiaoRepository;
 use app\repositories\EspecieRepository;
 use app\repositories\UsuarioRepository;
 use app\services\ValidationService;
 use Exception;
 
-class OnboardingController extends Controller
+class OnBoardingController extends Controller
 {
-    private OnboardingService $onboardingService;
+    private OnBoardingService $onboardingService;
     private RegiaoRepository $regiaoRepo;
     private EspecieRepository $especieRepo;
     private UsuarioRepository $usuarioRepo;
 
     public function __construct()
     {
-        $this->onboardingService = new OnboardingService();
+        $this->onboardingService = new OnBoardingService();
         $this->regiaoRepo = new RegiaoRepository();
         $this->especieRepo = new EspecieRepository();
         $this->usuarioRepo = new UsuarioRepository();
 
         $this->autenticacaoRequired();
+        $this->validarCsrf();
         $this->verificarSeJaPossuiPerfil();
     }
 
@@ -67,16 +68,12 @@ class OnboardingController extends Controller
                 // pessoais compartilhados em USUARIO — precisa restaurar do mesmo jeito.
                 $tipoAnterior = $_SESSION['tipo_perfil'] ?? 'usuario';
                 $ehUpgradeDeProtetorOuOng = in_array($tipoAnterior, ['protetor', 'ong'], true);
-                $usuarioOriginal = $ehUpgradeDeProtetorOuOng
-                    ? $this->usuarioRepo->buscarPorId((int)$usuarioId)
-                    : null;
+
 
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, (int)$usuarioId);
 
-                if ($ehUpgradeDeProtetorOuOng && $usuarioOriginal) {
-                    $this->onboardingService->restaurarPerfilAtivoOriginal((int)$usuarioId, $usuarioOriginal, $tipoAnterior);
-                }
+
 
                 $this->json(200, [
                     'status'       => 'sucesso',
@@ -142,16 +139,12 @@ class OnboardingController extends Controller
                 // um perfil ADICIONAL de Protetor/ONG, não se cadastrando do zero. Precisa
                 // continuar navegando como Adotante enquanto a solicitação está pendente.
                 $ehUpgradeDeAdotante = ($_SESSION['tipo_perfil'] ?? 'usuario') === 'adotante';
-                $usuarioOriginal = $ehUpgradeDeAdotante
-                    ? $this->usuarioRepo->buscarPorId((int)$usuarioId)
-                    : null;
+
 
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 $this->onboardingService->processarOng($dadosLimpos, $_FILES, (int)$usuarioId);
 
-                if ($ehUpgradeDeAdotante && $usuarioOriginal) {
-                    $this->onboardingService->restaurarPerfilAtivoOriginal((int)$usuarioId, $usuarioOriginal, 'adotante');
-                }
+
 
                 $this->json(200, [
                     'status'       => 'sucesso',
