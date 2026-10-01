@@ -7,13 +7,14 @@ use PDO;
 
 class ProtetorRepository extends BaseRepository
 {
-    // Usado por: RelatorioService::obterRelatorioAdmin() (dropdown de filtro por entidade)
+    // Usado por: FeedController (filtro por responsável habilitado)
     public function listarValidados(): array
     {
-        $sql = "SELECT protetor_id, nome_fantasia, tipo_documento
-                FROM PROTETOR
-                WHERE validado = 1 AND deletado_em IS NULL
-                ORDER BY nome_fantasia ASC";
+        $sql = "SELECT p.protetor_id, p.nome_fantasia, p.tipo_documento
+                FROM PROTETOR p JOIN USUARIO u ON u.usuario_id=p.usuario_id
+                WHERE p.validado=1 AND p.deletado_em IS NULL AND u.status_conta='ativo' AND u.deletado_em IS NULL
+                AND FIND_IN_SET(IF(p.tipo_documento='cnpj','ong','protetor'),u.perfis_ativos)>0
+                ORDER BY p.nome_fantasia ASC";
 
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }

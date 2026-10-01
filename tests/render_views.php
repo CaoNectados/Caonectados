@@ -1,0 +1,22 @@
+<?php
+require __DIR__.'/../vendor/autoload.php';
+define('URL_BASE','http://localhost/Caonectados');
+$_SESSION=['csrf_token'=>'teste','tipo_perfil'=>'adotante','validado'=>true];
+$_SERVER['REQUEST_URI']='/Caonectados/feed';
+$nome="Animal <teste> \" ' </script>";
+$animais=[['animal_id'=>1,'protetor_id'=>1,'nome'=>$nome,'nome_fantasia'=>'Responsável de teste','dt_nasc'=>'2020-01-01','sexo'=>'macho','porte'=>'medio','raca_nome'=>'SRD','especie_nome'=>'Cão','nome_regiao'=>'Região','vacinado'=>1,'castrado'=>1,'comportamento'=>'docil','fotos'=>[['caminho_foto'=>'assets/img/logo.png']]]];
+$filtrosAtuais=['q'=>'</script><script>alert(1)</script>'];
+$protetor=['protetor_id'=>1,'nome_fantasia'=>$nome,'pagina_descricao'=>'Descrição','nome_regiao'=>'Região'];
+$pagina=['descricao'=>'Descrição de teste'];
+$redes=[['rede_id'=>1,'tipo_rede'=>'whatsapp','link_rede'=>'https://wa.me/123']];
+$animalPagina=new app\models\Animal();
+$animalPagina->setAnimalId(1);$animalPagina->setNome($nome);$animalPagina->setFotoPrincipal('assets/img/logo.png');
+$disponiveis=[$animalPagina];$adotados=[$animalPagina];
+$solicitacao=['solicitacao_id'=>1,'animal_id'=>1,'animal_nome'=>$nome,'adotante_nome'=>$nome,'adotante_email'=>'teste@example.test','adotante_dt_nasc'=>'1990-01-01','adotante_regiao'=>'Região','animal_status'=>'disponivel','status_solicitacao'=>'pendente','data_solicitacao'=>'2026-10-01 12:00:00','tipo_moradia'=>'casa','tamanho_interno_moradia'=>'medio'];
+$solicitacoes=[$solicitacao];
+$usuarioId=1;
+$usuarios=[];$filtros=[];$total=0;$paginaAtual=1;$totalPaginas=1;
+$view=$argv[1]??'feed/feed';
+if(!in_array($view,['feed/feed','pagina/editar','pagina/publica','solicitacao/detalhes','solicitacao/minhas','solicitacao/painel','admin/classificacao_protetor','admin/gerenciar_usuarios'],true))exit(1);
+set_error_handler(function($severity,$message){throw new ErrorException($message,0,$severity);});
+require __DIR__.'/../app/views/'.$view.'.php';
