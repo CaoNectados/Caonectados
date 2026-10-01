@@ -74,7 +74,6 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     $badgeTexto = 'Admin';
     $botoes = [
         ['label' => 'Editar Perfil',    'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
-        ['label' => 'Alternar Perfil', 'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
         ['label' => 'Termos de Uso',    'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
         ['label' => 'Sair',            'icone' => 'sair.svg',          'url' => '/logout'],
     ];
@@ -247,6 +246,7 @@ $paginasBotoes = array_chunk($botoes, 6);
     </div>
 </div>
 
+<?php if (!in_array($tipoPerfil, ['administrador', 'admin'], true)): ?>
 <!-- Modal Trocar Perfil (Sem fotos listadas, apenas seleção de texto/papel) -->
 <div id="modalTrocarPerfil" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-surface dark:bg-preto1 rounded-3xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 border border-rosa-3">
@@ -268,7 +268,7 @@ $paginasBotoes = array_chunk($botoes, 6);
             // mais é atualizado depois. Um perfil concedido durante a sessão (ex: RF 20 —
             // virar Protetor/ONG ou Adotante sem precisar logar de novo) nunca aparecia
             // aqui pra trocar, mesmo já valendo pra tudo mais no sistema.
-            $perfis = array_values(array_filter($_SESSION['perfis_ativos'] ?? [], fn($tipo) => $tipo !== 'usuario'));
+            $perfis = array_values(array_filter($_SESSION['perfis_ativos'] ?? [], fn($tipo) => in_array($tipo, ['adotante', 'protetor', 'ong'], true)));
             $perfis = array_map(fn($tipo) => ['tipo' => $tipo], $perfis);
             if (!empty($perfis)):
                 foreach ($perfis as $p):
@@ -282,6 +282,7 @@ $paginasBotoes = array_chunk($botoes, 6);
                         <span class="text-xs bg-primary text-white font-bold px-3 py-1.5 rounded-full shadow-sm">Ativo</span>
                     <?php else: ?>
                         <form action="<?= $urlBase ?>/perfil/trocar" method="POST" class="m-0">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                             <input type="hidden" name="tipo" value="<?= htmlspecialchars($p['tipo']) ?>">
                             <button type="submit" class="bg-text-dark hover:opacity-90 dark:bg-primary text-white text-xs font-bold px-4 py-2 rounded-full transition shadow cursor-pointer">
                                 Acessar
@@ -301,6 +302,7 @@ $paginasBotoes = array_chunk($botoes, 6);
     </div>
 </div>
 
+<?php endif; ?>
 <!-- Modal Cropper Direto -->
 <div id="modal-cropper-direto" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 hidden">
     <div class="bg-surface dark:bg-preto1 rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl border border-rosa-3">

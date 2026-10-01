@@ -189,6 +189,7 @@ class OnBoardingService
             $stmt->execute([$usuarioId]);
             $original=$stmt->fetch(\PDO::FETCH_ASSOC);
             if (!$original || $original['status_conta'] !== 'ativo' || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
+            PerfilPolicy::exigirPerfilComum($original);
             $adicional=in_array($original['tipo_atual'],['ong','protetor'],true);
             if ($this->adotanteRepo->buscarPorUsuarioId($usuarioId)) throw new Exception('Perfil de adotante já existe.');
 
@@ -316,6 +317,7 @@ class OnBoardingService
             $stmt->execute([$usuarioId]);
             $original = $stmt->fetch(\PDO::FETCH_ASSOC);
             if (!$original || $original['status_conta'] !== 'ativo' || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
+            PerfilPolicy::exigirPerfilComum($original);
             $upgrade = $original['tipo_atual'] === 'adotante';
             $existente = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($existente && (!empty($existente['validado']) || empty($existente['deletado_em']))) throw new Exception('Já existe perfil aprovado ou solicitação pendente.');

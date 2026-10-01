@@ -228,6 +228,12 @@ class Controller
         $tipoAtual = strtolower((string)($usuario['tipo_atual'] ?? 'usuario'));
         $perfisAtivos = array_values(array_filter(array_map('trim', explode(',', strtolower((string)($usuario['perfis_ativos'] ?? ''))))));
 
+        if (\app\services\PerfilPolicy::ehAdministrador($tipoAtual, $usuario['perfis_ativos'] ?? '')) {
+            $tipoAtual = 'administrador';
+            $perfisAtivos = ['administrador'];
+        }
+        $_SESSION['usuario']['is_admin'] = $tipoAtual === 'administrador';
+        $_SESSION['perfis'] = array_map(static fn($tipo) => ['id' => $usuarioId, 'tipo' => $tipo], $perfisAtivos);
         $_SESSION['tipo_perfil']   = $tipoAtual;
         $_SESSION['perfis_ativos'] = $perfisAtivos;
         $_SESSION['status_conta']  = $statusConta;

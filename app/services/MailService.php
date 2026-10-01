@@ -146,22 +146,32 @@ class MailService
     // Usado por: enviarEmailTemplate()
     private static function configurarMailer(): PHPMailer
     {
+        $localPath = __DIR__ . '/../config/smtp.local.php';
+        $local = is_file($localPath) ? require $localPath : [];
+        if (!is_array($local)) throw new Exception('Configuração local de e-mail inválida.');
+        $config = static function (string $key, string $default = '') use ($local): string {
+            $value = getenv($key);
+            return $value !== false ? $value : (string)($local[$key] ?? $default);
+        };
         $mail = new PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+        $mail->Host = $config('SMTP_HOST', 'smtp.gmail.com');
         $mail->SMTPAuth   = true;
-        $mail->Username = getenv('SMTP_USERNAME') ?: '';
-        $mail->Password = getenv('SMTP_PASSWORD') ?: '';
+        $mail->Username = $config('SMTP_USERNAME', '');
+        $mail->Password = $config('SMTP_PASSWORD', '');
         if ($mail->Username === '' || $mail->Password === '') {
-            throw new Exception('Configure SMTP_USERNAME e SMTP_PASSWORD no ambiente.');
+            throw new Exception('O serviço de e-mail não está configurado. Configure SMTP_USERNAME e SMTP_PASSWORD no ambiente ou em app/config/smtp.local.php.');
         }
         $mail->Timeout = 10;
 
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $encryption = strtolower($config('SMTP_ENCRYPTION', 'tls'));
+        if (!in_array($encryption, ['tls', 'ssl'], true)) throw new Exception('SMTP_ENCRYPTION deve ser tls ou ssl.');
+        $mail->SMTPSecure = $encryption === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = (int)$config('SMTP_PORT', $encryption === 'ssl' ? '465' : '587');
+        if ($mail->Port < 1 || $mail->Port > 65535) throw new Exception('Porta SMTP inválida.');
 
         $mail->CharSet    = 'UTF-8';
-        $mail->setFrom(getenv('SMTP_FROM') ?: $mail->Username, 'CãoNectados');
+        $mail->setFrom($config('SMTP_FROM', $mail->Username), 'CãoNectados');
         $mail->isHTML(true);
 
         return $mail;

@@ -1,0 +1,4 @@
+/tests/
+/app/config/smtp.local.php
+/.env
+/.env.*

@@ -112,7 +112,7 @@ Para repetir: `php tests/adocao.php`, `php tests/pagina_catalogo.php`,
 O teste de views aceita ajuste de PHP_BIN/NODE_BIN para outros ambientes.
 
 Renderização/sintaxe não comprovam layout em navegador ou acessibilidade.
-Não foram executados SMTP real, upload multipart autenticado, fluxo RF15 completo,
+Na entrega inicial não foram executados SMTP real, upload multipart autenticado, fluxo RF15 completo,
 alternância com sessão real nem o caminho ponta a ponta em banco compartilhado.
 Consulta ao banco local foi somente leitura; nenhum requisito foi marcado concluído.
 
@@ -171,13 +171,6 @@ continuam com as responsáveis. Sem push, publicação ou merge na main.
 - `app/views/solicitacao/painel.php`
 - `docs/APACHE.md`
 - `docs/POS_BANCA.md`
-- `tests/adocao.php`
-- `tests/contratos.php`
-- `tests/http_apache.py`
-- `tests/pagina_catalogo.php`
-- `tests/render_views.php`
-- `tests/roteamento.php`
-- `tests/verificar_views.py`
 
 ### Alterados
 
@@ -229,3 +222,21 @@ continuam com as responsáveis. Sem push, publicação ou merge na main.
 - `app/views/admin/denuncias.php`
 - `app/views/admin/relatorios.php`
 - `app/views/relatorios/relatorios.php`
+
+
+## Correção posterior: e-mail e administrador exclusivo
+
+A dependência exclusiva das variáveis SMTP foi corrigida: a configuração privada existente foi preservada em `app/config/smtp.local.php`, ignorado pelo Git e inacessível por HTTP. Ambiente tem prioridade; TLS/587 e SSL/465 são configuráveis. Nenhuma credencial foi adicionada ao código versionado.
+
+Recuperação de senha agora envia o link da rota `/redefinir-senha`, com validade de 30 minutos, em vez do código de outro fluxo. Nome nulo não causa erro de tipo. Falhas retornam indisponibilidade do envio e ficam registradas no log.
+
+Administrador tem apenas perfil administrativo na sessão, inclusive quando dados antigos misturam perfis. O login aplica a identificação administrativa antes do segundo fator. O perfil não renderiza botão/modal de alternância; troca, onboarding e aprovação/ativação de perfis comuns para administradores são bloqueados. Não foram modificados registros reais para normalizar dados antigos.
+
+Validação adicional:
+- Conexão TLS e autenticação no SMTP real passaram, sem enviar mensagens.
+- 104 rotas HTTP sem login: nenhuma falha 500 ou aviso PHP.
+- 168 verificações GET autenticadas via execução PHP com banco MySQL local em transação somente leitura, para adotante, protetor e ONG: nenhuma falha de servidor. Excluídos reenvio de e-mail, logout e reativação; não há administrador ativo neste banco.
+- Sete verificações de rotas administrativas com SQLite isolado: sessão administrativa exclusiva, perfil sem alternância e bloqueio 403 de troca/onboarding.
+- Os testes anteriores de fluxo, catálogo, HTTP Apache, renderização, normalização e sintaxe também passaram.
+
+`tests/` é material de verificação local, ignorado pelo Git e retirado dos commits desta branch ainda não publicados. Não integra a entrega ao GitHub. Os números acima não comprovam todos os formulários com gravação, entrega de mensagens ao destinatário ou fluxos simultâneos em MySQL. Migração e aceitação completa continuam pendentes conforme descrito acima.

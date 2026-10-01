@@ -78,7 +78,7 @@ Repository (app/repositories/**)      única camada que sabe falar com o banco (
    ```
 7. Acesse a aplicação pelo navegador em `http://localhost/Caonectados/` (ou pelo caminho equivalente ao nome da pasta do projeto dentro de `htdocs`).
 
-Consulte [a configuração Apache](docs/APACHE.md) e [o relatório pós-banca](docs/POS_BANCA.md). Em banco existente, revise apenas migrações incrementais; não reimporte o script de criação/carga. Configure as credenciais SMTP pelo ambiente.
+Consulte [a configuração Apache](docs/APACHE.md) e [o relatório pós-banca](docs/POS_BANCA.md). Em banco existente, revise apenas migrações incrementais; não reimporte o script de criação/carga. Configure as credenciais SMTP pelo ambiente ou em `app/config/smtp.local.php` (arquivo privado ignorado pelo Git). Esse arquivo deve retornar um array com `SMTP_USERNAME` e `SMTP_PASSWORD`; opcionais: `SMTP_HOST`, `SMTP_FROM`, `SMTP_PORT` e `SMTP_ENCRYPTION` (`tls`/587 ou `ssl`/465). As variáveis de ambiente têm prioridade.
 
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista

@@ -25,6 +25,9 @@ class OnBoardingController extends Controller
         $this->usuarioRepo = new UsuarioRepository();
 
         $this->autenticacaoRequired();
+        if ($_SESSION['tipo_perfil'] === 'administrador') {
+            $this->json(403, ['status' => 'erro', 'mensagem' => 'Administradores não podem criar outros perfis.']);
+        }
         $this->validarCsrf();
         $this->verificarSeJaPossuiPerfil();
     }

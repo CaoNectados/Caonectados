@@ -51,6 +51,11 @@ class UsuarioAdminService
 
         $perfisAtivos = array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? '')));
         $perfis = [];
+        if (PerfilPolicy::ehAdministrador($usuario['tipo_atual'], $usuario['perfis_ativos'])) {
+            return ['usuario' => $usuario, 'perfis' => [[
+                'tipo' => 'administrador', 'nome' => 'Administrador', 'ativo' => true, 'info' => 'Acesso Administrativo'
+            ]]];
+        }
 
         // 1. Perfil Adotante
         $adotante = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
@@ -132,6 +137,12 @@ class UsuarioAdminService
         }
 
         $tipoPerfil = strtolower(trim($tipoPerfil));
+        if (!in_array($tipoPerfil, ['adotante', 'protetor', 'ong', 'administrador'], true)
+            || !in_array($acao, ['ativar', 'reativar', 'desativar'], true)) throw new Exception('Perfil ou ação inválida.');
+        $ehAdmin = PerfilPolicy::ehAdministrador($usuario['tipo_atual'], $usuario['perfis_ativos']);
+        if (($ehAdmin && $tipoPerfil !== 'administrador') || (!$ehAdmin && $tipoPerfil === 'administrador')) {
+            throw new Exception('O perfil administrativo é exclusivo e não pode ser combinado com outros perfis.');
+        }
         $perfisAtivos = array_filter(array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? ''))));
 
         if ($acao === 'desativar') {
@@ -147,7 +158,7 @@ class UsuarioAdminService
                 throw new Exception("Este perfil já está desativado.");
             }
 
-            $perfisAtivos = array_diff($perfisAtivos, [$tipoPerfil]);
+            $perfisAtivos = $ehAdmin ? [] : array_diff($perfisAtivos, [$tipoPerfil]);
 
             // Se o perfil desativado era o perfil atual em uso, aponta para outro ativo ou 'usuario'
             $novoTipoAtual = $usuario['tipo_atual'];

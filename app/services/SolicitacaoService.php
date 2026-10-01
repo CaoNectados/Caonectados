@@ -65,6 +65,7 @@ class SolicitacaoService
             $lock->execute([$atual['usuario_id']]);
             $usuario = $lock->fetch(\PDO::FETCH_ASSOC);
             if (!$usuario || $usuario['status_conta'] !== 'ativo' || !empty($usuario['deletado_em'])) throw new Exception('Conta não habilitada.');
+            PerfilPolicy::exigirPerfilComum($usuario);
             $sucesso = $this->protetorRepository->aprovarSolicitacao($protetorId);
             $tipo = $atual['tipo_documento'] === 'cnpj' ? 'ong' : 'protetor';
             $perfis = array_filter(explode(',', $usuario['perfis_ativos']), fn($p) => $p !== '' && $p !== 'usuario');

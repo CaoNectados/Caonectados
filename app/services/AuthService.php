@@ -33,6 +33,10 @@ class AuthService
             throw new Exception("Esta conta foi excluída e não pode ser acessada.");
         }
 
+        if (PerfilPolicy::ehAdministrador($usuario->getTipoAtual(), $usuario->getPerfisAtivos())) {
+            $usuario->setTipoAtual('administrador');
+            $usuario->setPerfisAtivos('administrador');
+        }
         return $usuario;
     }
 
@@ -64,7 +68,7 @@ class AuthService
 
             $this->usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
 
-            $enviado = MailService::enviarCodigoVerificacao($usuario->getEmail(), $usuario->getNome(), $codigo, 'redefinir_senha');
+            $enviado = MailService::enviarEmailRecuperacao($usuario->getEmail(), $usuario->getNome() ?? 'Usuário', $codigo);
             if (!$enviado) {
                 throw new Exception("Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.");
             }
@@ -128,8 +132,12 @@ class AuthService
             session_start();
         }
 
+        if (PerfilPolicy::ehAdministrador($usuario->getTipoAtual(), $usuario->getPerfisAtivos())) {
+            $usuario->setTipoAtual('administrador');
+            $usuario->setPerfisAtivos('administrador');
+        }
         $protetorRepo = new ProtetorRepository();
-        $protetor = $protetorRepo->buscarPorUsuarioId($usuario->getUsuarioId());
+        $protetor = $usuario->getTipoAtual() === 'administrador' ? null : $protetorRepo->buscarPorUsuarioId($usuario->getUsuarioId());
 
         if ($protetor) {
             $isValid = is_array($protetor) 
