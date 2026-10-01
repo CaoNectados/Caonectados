@@ -7,16 +7,9 @@ $docNome = (string) ($solicitacao['comprovante_documento'] ?? '');
 $caminhoDoc = null;
 $extensao = '';
 
-if (!empty($docNome)) {
-    $docLimpo = trim($docNome);
-    if (strpos($docLimpo, 'http') === 0) {
-        $caminhoDoc = $docLimpo;
-    } else {
-        $docLimpo = ltrim($docLimpo, '/');
-        $docLimpo = preg_replace('#^(assets/)?(uploads/)+#', '', $docLimpo);
-        $caminhoDoc = URL_BASE . '/assets/uploads/' . htmlspecialchars($docLimpo);
-    }
-    $extensao = strtolower(pathinfo($docLimpo, PATHINFO_EXTENSION));
+if ($docNome !== '') {
+    $caminhoDoc = URL_BASE . '/admin/solicitacoes/documento?id=' . (int)($solicitacao['protetor_id'] ?? 0);
+    $extensao = strtolower(pathinfo($docNome, PATHINFO_EXTENSION));
 }
 
 // Tratamento da Foto de Perfil
@@ -199,6 +192,7 @@ if (!empty($fotoNomeDet)) {
                     </button>
 
                     <form method="POST" action="<?= URL_BASE ?>/admin/solicitacoes/aprovar" class="w-full m-0 p-0">
+<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <input type="hidden" name="protetor_id" value="<?= $solicitacao['protetor_id'] ?? '' ?>">
                         <button type="submit" 
                                 class="w-full py-3 bg-verdeMusgo hover:opacity-90 text-white font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:scale-95 transition">
@@ -213,6 +207,7 @@ if (!empty($fotoNomeDet)) {
                         Motivo da recusa (será enviado ao usuário por e-mail):
                     </label>
                     <form method="POST" action="<?= URL_BASE ?>/admin/solicitacoes/rejeitar" class="flex flex-col sm:flex-row gap-2">
+<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <input type="hidden" name="protetor_id" value="<?= $solicitacao['protetor_id'] ?? '' ?>">
                         <input type="text"
                                id="inputMotivo"

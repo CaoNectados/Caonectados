@@ -236,6 +236,9 @@
         }
     }
 
+    function escaparTextoAdmin(valor) {
+        return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
     function renderizarDetalhesModal(dados) {
         const u = dados.usuario;
         const isAtivo = (u.status_conta === 'ativo');
@@ -247,12 +250,13 @@
             <div class="p-3 bg-branco dark:bg-preto1 rounded-xl flex items-center justify-between border border-cinzaMarrom/30">
                 <div>
                     <div class="font-bold text-xs text-text-dark dark:text-white">${p.nome}</div>
-                    <div class="text-[10px] text-text-muted">${p.info}</div>
+                    <div class="text-[10px] text-text-muted">${escaparTextoAdmin(p.info)}</div>
                     <span class="inline-block mt-1 text-[10px] font-bold ${p.ativo ? 'text-sucesso' : 'text-rosaAlerta'}">
                         ● ${p.ativo ? 'ATIVO' : 'DESATIVADO'}
                     </span>
                 </div>
                 <div>
+                    ${['ong','protetor'].includes(p.tipo) ? `<a class="text-xs underline" href="<?= URL_BASE ?>/admin/protetores/classificacao?id=${Number(u.usuario_id)}">Classificação</a>` : ''}
                     <button type="button" onclick="confirmarAlterarPerfil(${u.usuario_id}, '${p.tipo}', '${p.nome}', '${p.ativo ? 'desativar' : 'ativar'}')" class="text-[11px] font-bold px-3 py-1.5 rounded-xl transition ${p.ativo ? 'bg-rosaAlerta/10 text-rosaAlerta hover:bg-rosaAlerta hover:text-white' : 'bg-sucesso/10 text-sucesso hover:bg-sucesso hover:text-white'}">
                         ${p.ativo ? 'Desativar' : 'Reativar'}
                     </button>
@@ -262,8 +266,8 @@
         });
 
         container.innerHTML = `
-        <h2 class="text-xl font-bold text-text-dark dark:text-white mb-1">${u.nome || 'Sem Nome'}</h2>
-        <p class="text-xs text-text-muted mb-4">${u.email} &bull; Cadastrado em ${formatarDataBr(u.criado_em)}</p>
+        <h2 class="text-xl font-bold text-text-dark dark:text-white mb-1">${escaparTextoAdmin(u.nome || 'Sem Nome')}</h2>
+        <p class="text-xs text-text-muted mb-4">${escaparTextoAdmin(u.email)} &bull; Cadastrado em ${formatarDataBr(u.criado_em)}</p>
 
         <!-- Status Global -->
         <div class="p-4 bg-rosa-1/60 dark:bg-preto1 rounded-2xl mb-4 border border-rosa-3 flex items-center justify-between">
@@ -304,6 +308,7 @@
         acaoPendente = async () => {
             const formData = new FormData();
             formData.append('usuario_id', usuarioId);
+            formData.append('csrf_token', <?= json_encode($_SESSION['csrf_token']) ?>);
             formData.append('acao', acao);
 
             const resp = await fetch('<?= URL_BASE ?>/admin/usuarios/alterar-status', {
@@ -342,6 +347,7 @@
         acaoPendente = async () => {
             const formData = new FormData();
             formData.append('usuario_id', usuarioId);
+            formData.append('csrf_token', <?= json_encode($_SESSION['csrf_token']) ?>);
             formData.append('tipo_perfil', tipoPerfil);
             formData.append('acao', acao);
 

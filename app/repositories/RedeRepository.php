@@ -8,10 +8,12 @@ use PDO;
 
 class RedeRepository extends BaseRepository
 {
-    // Usado por: PerfilController::exibirPerfil()
+    // Usado por: PerfilController, OnBoardingService e PaginaController (rede_id incluído
+    // pra permitir remover um link específico na gestão da página — os outros consumidores
+    // desse método só liam tipo_rede/link_rede, então a coluna extra não quebra nada)
     public function buscarPorProtetorId(int $protetorId): array
     {
-        $sql = "SELECT tipo_rede, link_rede FROM REDE WHERE protetor_id = :protetor_id";
+        $sql = "SELECT rede_id, tipo_rede, link_rede FROM REDE WHERE protetor_id = :protetor_id ORDER BY rede_id ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
         $stmt->execute();
@@ -19,7 +21,31 @@ class RedeRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    // Usado por: (não referenciado atualmente)
+    // Usado por: PaginaController::removerRede() — devolve a linha antes de apagar, pra quem
+    // chamou confirmar que ela pertence ao protetor certo antes de excluir (defesa contra
+    // IDOR: outra ONG passando um rede_id que não é dela).
+    public function buscarPorId(int $redeId): ?array
+    {
+        $sql = "SELECT rede_id, protetor_id, tipo_rede, link_rede FROM REDE WHERE rede_id = :rede_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':rede_id', $redeId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $linha = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $linha ?: null;
+    }
+
+    // Usado por: PaginaController::removerRede()
+    public function removerPorId(int $redeId): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM REDE WHERE rede_id = :rede_id");
+        $stmt->bindValue(':rede_id', $redeId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    // Usado por: PaginaService::adicionarRede()
     public function salvar(Rede $rede): int
     {
         $sql = "INSERT INTO REDE (protetor_id, link_rede, tipo_rede) VALUES (:protetor_id, :link_rede, :tipo_rede)";
@@ -36,7 +62,7 @@ class RedeRepository extends BaseRepository
     // Usado por: OnBoardingService::processarOng() e PerfilService::atualizarPerfil() (substitui todas as redes do protetor)
     public function sincronizarRedes(int $protetorId, ?string $instagram, ?string $facebook): void
     {
-        $sqlDelete = "DELETE FROM REDE WHERE protetor_id = :protetor_id";
+        $sqlDelete = "DELETE FROM REDE WHERE protetor_id = :protetor_id AND tipo_rede IN ('instagram', 'facebook')";
         $stmtDel = $this->db->prepare($sqlDelete);
         $stmtDel->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
         $stmtDel->execute();

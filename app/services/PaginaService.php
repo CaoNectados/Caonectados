@@ -45,6 +45,7 @@ class PaginaService
     // Usado por: PaginaController::atualizar() (UC 19.1 / UC 19.2 — descrição e chave PIX)
     public function atualizarDescricaoEChavePix(int $protetorId, ?string $descricao, ?string $chavePix): void
     {
+        if (mb_strlen($descricao ?? '') > 1000 || mb_strlen($chavePix ?? '') > 255) throw new Exception('Descrição ou chave PIX excede o limite permitido.');
         $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
 
         if ($paginaAtual) {
@@ -58,7 +59,7 @@ class PaginaService
             return;
         }
 
-        // Onboarding sempre cria a linha de PAGINA (ver OnboardingService::processarOng), mas
+        // Onboarding sempre cria a linha de PAGINA (ver OnBoardingService::processarOng), mas
         // uma conta antiga/migrada sem ela ainda consegue completar o cadastro por aqui.
         $pagina = new Pagina();
         $pagina->setProtetorId($protetorId);
@@ -122,6 +123,7 @@ class PaginaService
         }
 
         $linkRede = trim($linkRede);
+        if (!preg_match('#^https?://#i', $linkRede)) $linkRede = 'https://' . $linkRede;
         if ($linkRede === '') {
             throw new Exception('Informe o link da rede social.');
         }
@@ -129,6 +131,7 @@ class PaginaService
         if (!ValidationService::validarLinkRedeSocial($linkRede, $tipoRede)) {
             throw new Exception('O link informado não é válido para ' . ucfirst($tipoRede) . '.');
         }
+        if (!in_array(strtolower((string)parse_url($linkRede, PHP_URL_SCHEME)), ['http','https'], true)) throw new Exception('Use um endereço HTTP ou HTTPS.');
 
         $rede = new Rede();
         $rede->setProtetorId($protetorId);

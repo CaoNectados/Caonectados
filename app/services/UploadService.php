@@ -33,7 +33,8 @@ class UploadService
             return null;
         }
 
-        $subpasta = self::PASTAS[$tipo] ?? $tipo;
+        if (!isset(self::PASTAS[$tipo])) throw new InvalidArgumentException('Tipo de upload inválido.');
+        $subpasta = self::PASTAS[$tipo];
         $subpastaLimpa = trim($subpasta, '/');
 
         $diretorioDestino = __DIR__ . '/../../public/assets/uploads/' . $subpastaLimpa . '/';
@@ -59,6 +60,7 @@ class UploadService
 
             $dadosLimpos = substr($arquivoOuBase64, strpos($arquivoOuBase64, ',') + 1);
             $dadosDecodificados = base64_decode($dadosLimpos, true);
+            if ($dadosDecodificados !== false && strlen($dadosDecodificados) > 5 * 1024 * 1024) throw new Exception('Arquivo deve ter até 5 MB.');
 
             if ($dadosDecodificados === false || @getimagesizefromstring($dadosDecodificados) === false) {
                 return null;
@@ -81,6 +83,11 @@ class UploadService
             }
 
             $extensao = strtolower(pathinfo($arquivoOuBase64['name'], PATHINFO_EXTENSION));
+            if (filesize($arquivoOuBase64['tmp_name']) > 5 * 1024 * 1024) throw new Exception('Arquivo deve ter até 5 MB.');
+            $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($arquivoOuBase64['tmp_name']);
+            $mimes = ['jpg'=>'image/jpeg','jpeg'=>'image/jpeg','png'=>'image/png','webp'=>'image/webp'];
+            if ($tipo === 'comprovante') $mimes['pdf'] = 'application/pdf';
+            if (($mimes[$extensao] ?? null) !== $mime) throw new Exception('Conteúdo do arquivo inválido.');
             $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
 
             if (!in_array($extensao, $extensoesPermitidas, true)) {
@@ -122,7 +129,9 @@ class UploadService
         }
 
         $caminhoRelativoLimpo = preg_replace('#^assets/#', '', ltrim($caminhoRelativo, '/'));
-        $caminhoAbsoluto = __DIR__ . '/../../public/assets/' . $caminhoRelativoLimpo;
+        $base = realpath(__DIR__ . '/../../public/assets/uploads');
+        $caminhoAbsoluto = realpath(__DIR__ . '/../../public/assets/' . $caminhoRelativoLimpo);
+        if (!$base || !$caminhoAbsoluto || !str_starts_with(str_replace('\\','/',$caminhoAbsoluto), str_replace('\\','/',$base).'/')) return;
 
         if (file_exists($caminhoAbsoluto) && is_file($caminhoAbsoluto)) {
             @unlink($caminhoAbsoluto);

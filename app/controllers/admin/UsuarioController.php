@@ -13,7 +13,27 @@ class UsuarioController extends Controller
     public function __construct()
     {
         $this->autenticacaoRequired(['administrador']);
+        $this->validarCsrf();
         $this->adminService = new UsuarioAdminService();
+    }
+
+    public function classificacao(): void
+    {
+        $this->validarCsrf();
+        $id=(int)($_POST['usuario_id'] ?? $_GET['id'] ?? 0);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $valor=$_POST['inadimplente'] ?? '';
+                if (!in_array($valor,['0','1'],true)) throw new \DomainException('Classificação inválida.');
+                (new \app\services\ClassificacaoProtetorService())->classificar($id,(int)$_SESSION['usuario_id'],$valor === '1',(string)($_POST['motivo'] ?? ''));
+                $this->redirecionarComMensagem('sucesso','Classificação registrada.','/admin/gerenciar-usuarios');
+            } catch (\Throwable $e) {
+                $this->redirecionarComMensagem('erro',$e instanceof \DomainException ? $e->getMessage() : 'Não foi possível registrar a classificação.','/admin/protetores/classificacao?id='.$id);
+            }
+        }
+        $p=(new \app\repositories\ProtetorRepository())->buscarPorUsuarioId($id);
+        if (!$p) { http_response_code(404); return; }
+        $this->view('admin/classificacao_protetor',['titulo'=>'Classificação do protetor','protetor'=>$p,'usuarioId'=>$id]);
     }
 
     // Usado por: rota GET /admin/gerenciar-usuarios
