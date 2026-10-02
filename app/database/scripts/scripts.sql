@@ -248,16 +248,6 @@ CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     CONSTRAINT fk_codigo_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS LOG_SISTEMA (
-    log_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT UNSIGNED NOT NULL,
-    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    acao VARCHAR(255) NOT NULL,
-    classe_afetada VARCHAR(100) NOT NULL,
-    registro_id INT UNSIGNED NOT NULL,
-    ip_usuario VARCHAR(45) NOT NULL,
-    CONSTRAINT fk_log_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- INICIO ATUALIZAR BANCO EXISTENTE
 -- Para banco já instalado: após backup, executar APENAS este bloco.
