@@ -214,116 +214,11 @@ CREATE TABLE IF NOT EXISTS HISTORICO_SOLICITACAO (
     CONSTRAINT fk_hist_usuario_resp FOREIGN KEY (usuario_responsavel_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS CHAT (
-    chat_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    solicitacao_id INT UNSIGNED NOT NULL,
-    status ENUM(
-        'ativo',
-        'encerrado',
-        'arquivado'
-    ) NOT NULL DEFAULT 'ativo',
-    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_chat_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS MENSAGEM (
-    mensagem_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    chat_id INT UNSIGNED NOT NULL,
-    remetente_id INT UNSIGNED NOT NULL,
-    texto TEXT NOT NULL,
-    lida BOOLEAN NOT NULL DEFAULT FALSE,
-    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_mensagem_chat FOREIGN KEY (chat_id) REFERENCES CHAT (chat_id) ON UPDATE CASCADE,
-    CONSTRAINT fk_mensagem_usuario FOREIGN KEY (remetente_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS NOTIFICACAO (
-    notificacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    referencia_id INT UNSIGNED NULL,
-    usuario_id INT UNSIGNED NOT NULL,
-    tipo_notificacao ENUM(
-        'solicitacao',
-        'mensagem',
-        'denuncia',
-        'contestacao',
-        'advertencia',
-        'sistema'
-    ) NOT NULL,
-    lida BOOLEAN NOT NULL DEFAULT FALSE,
-    txt_notificacao TEXT NOT NULL,
-    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_notificacao_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS DENUNCIA (
-    denuncia_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    denunciante_id INT UNSIGNED NOT NULL,
-    denunciado_id INT UNSIGNED NOT NULL,
-    perfil_denunciado ENUM(
-        'usuario',
-        'adotante',
-        'protetor',
-        'ong'
-    ) NOT NULL,
-    solicitacao_id INT UNSIGNED NULL,
-    chat_id INT UNSIGNED NULL,
-    motivo ENUM(
-        'maus_tratos',
-        'abandono',
-        'fraude',
-        'assedio',
-        'outro'
-    ) NOT NULL,
-    descricao TEXT NOT NULL,
-    status_denuncia ENUM(
-        'aberta',
-        'em_analise',
-        'aprovada',
-        'reprovada',
-        'arquivada'
-    ) NOT NULL DEFAULT 'aberta',
-    decisao_admin ENUM(
-        'aprovar',
-        'reprovar',
-        'colocar_em_analise'
-    ) NULL,
-    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_denuncia_denunciante FOREIGN KEY (denunciante_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE,
-    CONSTRAINT fk_denuncia_denunciado FOREIGN KEY (denunciado_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE,
-    CONSTRAINT fk_denuncia_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES SOLICITACAO_ADOCAO (solicitacao_id) ON UPDATE CASCADE,
-    CONSTRAINT fk_denuncia_chat FOREIGN KEY (chat_id) REFERENCES CHAT (chat_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS ADVERTENCIA (
-    advertencia_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT UNSIGNED NOT NULL,
-    denuncia_id INT UNSIGNED NOT NULL,
-    perfil_afetado ENUM(
-        'usuario',
-        'adotante',
-        'protetor',
-        'ong'
-    ) NOT NULL,
-    data_fim DATE NULL,
-    status ENUM(
-        'ativa',
-        'suspensa',
-        'encerrada'
-    ) NOT NULL DEFAULT 'ativa',
-    peso_status ENUM('leve', 'media', 'grave') NOT NULL DEFAULT 'leve',
-    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_advertencia_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE,
-    CONSTRAINT fk_advertencia_denuncia FOREIGN KEY (denuncia_id) REFERENCES DENUNCIA (denuncia_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS CONTESTACAO (
-    contestacao_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    advertencia_id INT UNSIGNED NOT NULL,
-    justificativa TEXT NOT NULL,
-    parecer_admin TEXT NULL,
-    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_contestacao_advertencia FOREIGN KEY (advertencia_id) REFERENCES ADVERTENCIA (advertencia_id) ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ANIMAL_TRACO (
     animal_traco_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -380,61 +275,6 @@ CREATE TABLE IF NOT EXISTS HISTORICO_CLASSIFICACAO_PROTETOR (
     CONSTRAINT fk_classificacao_admin FOREIGN KEY (admin_id) REFERENCES USUARIO(usuario_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_recusa'),
-    'SELECT 1',
-    'ALTER TABLE PROTETOR ADD COLUMN motivo_recusa TEXT NULL'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'inadimplente'),
-    'SELECT 1',
-    'ALTER TABLE PROTETOR ADD COLUMN inadimplente BOOLEAN NOT NULL DEFAULT FALSE'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_inadimplencia'),
-    'SELECT 1',
-    'ALTER TABLE PROTETOR ADD COLUMN motivo_inadimplencia TEXT NULL'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.STATISTICS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_adotante_dia'),
-    'SELECT 1',
-    'CREATE INDEX idx_solicitacao_adotante_dia ON SOLICITACAO_ADOCAO (adotante_id, data_solicitacao)'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.STATISTICS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_animal_estado'),
-    'SELECT 1',
-    'CREATE INDEX idx_solicitacao_animal_estado ON SOLICITACAO_ADOCAO (animal_id, status_solicitacao)'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
--- Corrigir perfis ativos antigos sem apagar cadastros, animais ou históricos.
-UPDATE USUARIO
-SET tipo_atual = 'administrador', perfis_ativos = 'administrador'
-WHERE tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos) > 0;
--- FIM ATUALIZAR BANCO EXISTENTE
 
 -- ===========================================
 -- USUÁRIO EXCLUSIVAMENTE ADMINISTRADOR
@@ -453,7 +293,7 @@ INSERT INTO USUARIO (
     nome
 ) VALUES (
     1,
-    NULL, -- CORRIGIDO: Passando NULL para evitar erro de chave estrangeira
+    NULL, 
     'Av. Brasil',
     '1000',
     '45900000000',
