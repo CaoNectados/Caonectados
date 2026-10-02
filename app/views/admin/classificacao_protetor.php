@@ -3,7 +3,7 @@
 <h1 class="font-shantell text-xl">Classificação de <?= htmlspecialchars($protetor['nome_fantasia']) ?></h1>
 <p>Classificação atual: <?= !empty($protetor['inadimplente']) ? 'Inadimplente' : 'Regular' ?></p>
 <?php $classificacaoDisponivel = array_key_exists('inadimplente', $protetor); ?>
-<?php if (!$classificacaoDisponivel): ?><p role="status">A classificação estará disponível após a aplicação da migração pós-banca.</p><?php endif; ?>
+<?php if (!$classificacaoDisponivel): ?><p role="status">A classificação estará disponível após a atualização do banco pelo scripts.sql.</p><?php endif; ?>
 <p>Registre a decisão administrativa e sua justificativa. O bloqueio global permanece uma ação separada.</p>
 <form method="POST" action="<?= URL_BASE ?>/admin/protetores/classificacao" class="space-y-4 mt-4">
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">

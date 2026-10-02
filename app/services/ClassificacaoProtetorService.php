@@ -11,7 +11,7 @@ class ClassificacaoProtetorService
     {
         if (trim($motivo) === '' || mb_strlen($motivo) > 2000) throw new DomainException('Informe motivo de até 2000 caracteres.');
         $db=ConnectionFactory::getConnection();
-        if (!$db->query("SHOW COLUMNS FROM PROTETOR LIKE 'inadimplente'")->fetch()) throw new DomainException('Classificação disponível após aplicação da migração pós-banca.');
+        if (!$db->query("SHOW COLUMNS FROM PROTETOR LIKE 'inadimplente'")->fetch()) throw new DomainException('Classificação disponível após atualização do banco pelo scripts.sql.');
         $db->beginTransaction();
         try {
             $stmt=$db->prepare('SELECT * FROM USUARIO WHERE usuario_id=? FOR UPDATE');

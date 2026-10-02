@@ -107,7 +107,7 @@ class SolicitacaoService
         if (trim($motivo) === '' || mb_strlen($motivo) > 2000) throw new Exception('Informe motivo de até 2000 caracteres.');
         $db = ConnectionFactory::getConnection();
         $coluna = $db->query("SHOW COLUMNS FROM PROTETOR LIKE 'motivo_recusa'")->fetch();
-        if (!$coluna) throw new Exception('A recusa exige a migração pós-banca para persistir o motivo.');
+        if (!$coluna) throw new Exception('Atualize o banco pelo scripts.sql para persistir o motivo da recusa.');
         $db->beginTransaction();
         try {
             $stmt = $db->prepare('SELECT validado, deletado_em FROM PROTETOR WHERE protetor_id = ? FOR UPDATE');
