@@ -3,6 +3,7 @@
 namespace app\services;
 
 use app\repositories\ProtetorRepository;
+use app\database\ConnectionFactory;
 use Exception;
 
 class SolicitacaoService
@@ -53,7 +54,29 @@ class SolicitacaoService
             return false;
         }
 
-        $sucesso = $this->protetorRepository->aprovarSolicitacao($protetorId);
+        $db = ConnectionFactory::getConnection();
+        $db->beginTransaction();
+        try {
+            $lock = $db->prepare('SELECT * FROM PROTETOR WHERE protetor_id = ? FOR UPDATE');
+            $lock->execute([$protetorId]);
+            $atual = $lock->fetch(\PDO::FETCH_ASSOC);
+            if (!$atual || !empty($atual['deletado_em']) || !empty($atual['validado'])) throw new Exception('Solicitação não está pendente.');
+            $lock = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
+            $lock->execute([$atual['usuario_id']]);
+            $usuario = $lock->fetch(\PDO::FETCH_ASSOC);
+            if (!$usuario || $usuario['status_conta'] !== 'ativo' || !empty($usuario['deletado_em'])) throw new Exception('Conta não habilitada.');
+            PerfilPolicy::exigirPerfilComum($usuario);
+            $sucesso = $this->protetorRepository->aprovarSolicitacao($protetorId);
+            $tipo = $atual['tipo_documento'] === 'cnpj' ? 'ong' : 'protetor';
+            $perfis = array_filter(explode(',', $usuario['perfis_ativos']), fn($p) => $p !== '' && $p !== 'usuario');
+            $perfis[] = $tipo;
+            $stmt = $db->prepare('UPDATE USUARIO SET perfis_ativos = ? WHERE usuario_id = ?');
+            $stmt->execute([implode(',', array_unique($perfis)), $usuario['usuario_id']]);
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $e;
+        }
 
         if ($sucesso && !empty($solicitacao['usuario_email'])) {
             try {
@@ -81,10 +104,24 @@ class SolicitacaoService
             return false;
         }
 
-        $sucesso = $this->protetorRepository->recusarSolicitacao($protetorId);
+        if (trim($motivo) === '' || mb_strlen($motivo) > 2000) throw new Exception('Informe motivo de até 2000 caracteres.');
+        $db = ConnectionFactory::getConnection();
+        $coluna = $db->query("SHOW COLUMNS FROM PROTETOR LIKE 'motivo_recusa'")->fetch();
+        if (!$coluna) throw new Exception('Atualize o banco pelo scripts.sql para persistir o motivo da recusa.');
+        $db->beginTransaction();
+        try {
+            $stmt = $db->prepare('SELECT validado, deletado_em FROM PROTETOR WHERE protetor_id = ? FOR UPDATE');
+            $stmt->execute([$protetorId]);
+            $atual = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$atual || !empty($atual['validado']) || !empty($atual['deletado_em'])) throw new Exception('Solicitação não está pendente.');
+            $sucesso = $this->protetorRepository->recusarSolicitacao($protetorId, trim($motivo));
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $e;
+        }
 
         if ($sucesso && !empty($solicitacao['usuario_email'])) {
-            $_SESSION['motivo_recusa_protetor_' . $protetorId] = $motivo;
             try {
                 MailService::enviarNotificacaoRecusa(
                     $solicitacao['usuario_email'],

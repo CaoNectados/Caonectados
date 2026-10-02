@@ -69,14 +69,38 @@ Repository (app/repositories/**)      única camada que sabe falar com o banco (
 ## Como Executar o Projeto Localmente
 1. Clone o repositório para a pasta `htdocs` do XAMPP.
 2. Abra o XAMPP Control Panel e garanta que o **Apache** e o **MySQL** estejam em execução.
-3. Acesse o arquivo [app/config/config.php](app/config/config.php) e ajuste as constantes de conexão, se necessário (por padrão usa `localhost`, banco `caonectados`, usuário `root` sem senha, e `URL_BASE` apontando para a pasta `public`).
+3. Acesse o arquivo [app/config/config.php](app/config/config.php) e ajuste as constantes de conexão, se necessário (por padrão usa `localhost`, banco `caonectados`, usuário `root` sem senha, e `URL_BASE` apontando para `http://localhost/Caonectados`, sem `/public`).
 4. No phpMyAdmin (ou client MySQL de sua preferência), crie o banco `caonectados` e importe o script [app/database/scripts/scripts.sql](app/database/scripts/scripts.sql) para criar as tabelas.
 5. Instale o [Composer](https://getcomposer.org/) (ele detecta automaticamente o PHP do XAMPP em `C:\xampp\php\php.exe`).
 6. No terminal, na raiz do projeto, rode:
    ```bash
    composer install
    ```
-7. Acesse a aplicação pelo navegador em `http://localhost/Caonectados/public` (ou pelo caminho equivalente ao nome da pasta do projeto dentro de `htdocs`).
+7. Acesse a aplicação pelo navegador em `http://localhost/Caonectados/` (ou pelo caminho equivalente ao nome da pasta do projeto dentro de `htdocs`).
+
+### Configuração para cada integrante
+
+- Atualize o código da `main` depois que o merge for enviado ao GitHub.
+- **Banco novo:** importe `app/database/scripts/scripts.sql` completo uma vez.
+- **Banco existente:** faça backup e execute apenas o trecho entre `INICIO ATUALIZAR BANCO EXISTENTE` e `FIM ATUALIZAR BANCO EXISTENTE` desse mesmo arquivo. Ele adiciona os campos/tabela/índices necessários sem recriar dados. Pode ser repetido. Não execute novamente os INSERTs de exemplos.
+- **Email:** crie `app/config/smtp.local.php`, que é privado e ignorado pelo Git, com a configuração abaixo. No Gmail, use uma senha de app da conta remetente.
+
+```php
+<?php
+return [
+    'SMTP_HOST' => 'smtp.gmail.com',
+    'SMTP_USERNAME' => 'email-da-conta-remetente@gmail.com',
+    'SMTP_PASSWORD' => 'senha-de-app-da-conta-remetente',
+    'SMTP_PORT' => '587',
+    'SMTP_ENCRYPTION' => 'tls',
+];
+```
+
+Variáveis de ambiente SMTP têm prioridade sobre o arquivo local. `SMTP_FROM` é opcional e usa o remetente configurado quando omitido. Não envie credenciais ao GitHub.
+
+A pasta padrão é `htdocs/Caonectados`, com acesso por `http://localhost/Caonectados/`, sem `/public`. Se a pasta/host for diferente, configure `URL_BASE` no ambiente ou ajuste seu valor padrão em `app/config/config.php`; revise também as constantes do banco se não estiver usando o XAMPP padrão. O Apache precisa de `mod_rewrite` e `AllowOverride All` para os `.htaccess`. O servidor não foi reconfigurado por esta alteração.
+
+As dependências já estão versionadas em `vendor`; use `composer install` se estiverem ausentes ou precisarem ser reinstaladas. Não é necessário criar pasta de migrações nem executar inicialização automática do banco.
 
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista

@@ -15,7 +15,7 @@ use app\repositories\PaginaRepository;
 use app\repositories\RedeRepository;
 use Exception;
 
-class OnboardingService
+class OnBoardingService
 {
     private UsuarioRepository $usuarioRepo;
     private AdotanteRepository $adotanteRepo;
@@ -181,9 +181,20 @@ class OnboardingService
         }
 
         $conexao = ConnectionFactory::getConnection();
+        $arquivosNovos = [];
 
         try {
             $conexao->beginTransaction();
+            $stmt=$conexao->prepare('SELECT * FROM USUARIO WHERE usuario_id=? FOR UPDATE');
+            $stmt->execute([$usuarioId]);
+            $original=$stmt->fetch(\PDO::FETCH_ASSOC);
+            // Cadastros antigos confirmados podem continuar como usuario/pendente.
+            $statusPermitido = $original && ($original['status_conta'] === 'ativo'
+                || ($original['tipo_atual'] === 'usuario' && $original['status_conta'] === 'pendente'));
+            if (!$statusPermitido || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
+            PerfilPolicy::exigirPerfilComum($original);
+            $adicional=in_array($original['tipo_atual'],['ong','protetor'],true);
+            if ($this->adotanteRepo->buscarPorUsuarioId($usuarioId)) throw new Exception('Perfil de adotante já existe.');
 
             $usuario = new Usuario();
             $usuario->setUsuarioId($usuarioId);
@@ -196,13 +207,21 @@ class OnboardingService
             $usuario->setTipoAtual('adotante');
             $usuario->setStatusConta('ativo');
 
-            $this->usuarioRepo->atualizarOnboarding($usuario, 'adotante');
+            if (!$adicional) {
+                $this->usuarioRepo->atualizarOnboarding($usuario,'adotante');
+            } else {
+                $perfis=array_unique(array_merge(explode(',',$original['perfis_ativos']),['adotante']));
+                $stmt=$conexao->prepare('UPDATE USUARIO SET perfis_ativos=? WHERE usuario_id=?');
+                $stmt->execute([implode(',',$perfis),$usuarioId]);
+            }
 
             $caminhoFoto = null;
             if (!empty($dados['foto_perfil_cortada'])) {
                 $caminhoFoto = $this->uploadService->salvar($dados['foto_perfil_cortada'], 'foto_perfil');
+                if ($caminhoFoto) $arquivosNovos[] = $caminhoFoto;
             } elseif (isset($arquivos['foto_perfil']) && $arquivos['foto_perfil']['error'] === UPLOAD_ERR_OK) {
                 $caminhoFoto = $this->uploadService->salvar($arquivos['foto_perfil'], 'foto_perfil');
+                if ($caminhoFoto) $arquivosNovos[] = $caminhoFoto;
             }
 
             $adotante = new Adotante();
@@ -231,6 +250,7 @@ class OnboardingService
 
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
+            if (!$adicional) {
             $_SESSION['tipo_perfil']  = 'adotante';
             $_SESSION['status_conta'] = 'ativo';
             $_SESSION['adotante_id']  = $adotanteId;
@@ -245,8 +265,13 @@ class OnboardingService
             }
             $_SESSION['perfis_ativos'] = $perfisAtivos;
 
+            } else { $_SESSION['perfis_ativos']=$perfis; }
+
         } catch (Exception $e) {
-            $conexao->rollBack();
+            if ($conexao->inTransaction()) {
+                $conexao->rollBack();
+                foreach ($arquivosNovos as $novo) $this->uploadService->remover($novo);
+            }
             throw $e;
         }
     }
@@ -287,9 +312,22 @@ class OnboardingService
         }
 
         $conexao = ConnectionFactory::getConnection();
+        $arquivosNovos = [];
 
         try {
             $conexao->beginTransaction();
+            $stmt = $conexao->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
+            $stmt->execute([$usuarioId]);
+            $original = $stmt->fetch(\PDO::FETCH_ASSOC);
+            // Cadastros antigos confirmados podem continuar como usuario/pendente.
+            $statusPermitido = $original && ($original['status_conta'] === 'ativo'
+                || ($original['tipo_atual'] === 'usuario' && $original['status_conta'] === 'pendente'));
+            if (!$statusPermitido || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
+            PerfilPolicy::exigirPerfilComum($original);
+            $upgrade = $original['tipo_atual'] === 'adotante';
+            $existente = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            if ($existente && (!empty($existente['validado']) || empty($existente['deletado_em']))) throw new Exception('Já existe perfil aprovado ou solicitação pendente.');
+            if ($existente && $existente['tipo_documento'] !== $tipoDoc) throw new Exception('O tipo de documento do reenvio deve ser preservado.');
 
             $usuario = new Usuario();
             $usuario->setUsuarioId($usuarioId);
@@ -302,11 +340,12 @@ class OnboardingService
             $usuario->setTipoAtual($tipoPerfil);
             $usuario->setStatusConta('ativo');
 
-            $this->usuarioRepo->atualizarOnboarding($usuario, $tipoPerfil);
+            if (!$upgrade) $this->usuarioRepo->atualizarOnboarding($usuario, $tipoPerfil);
 
             $caminhoDocumento = null;
             if (isset($arquivos['comprovante_documento']) && $arquivos['comprovante_documento']['error'] === UPLOAD_ERR_OK) {
                 $caminhoDocumento = $this->uploadService->salvar($arquivos['comprovante_documento'], 'comprovante');
+                if ($caminhoDocumento) $arquivosNovos[] = $caminhoDocumento;
             }
 
             // Arquivos antigos só são apagados do disco depois que a transação for
@@ -351,11 +390,13 @@ class OnboardingService
             $caminhoFotoPerfil = null;
             if (!empty($dados['foto_perfil_cortada'])) {
                 $caminhoFotoPerfil = $this->uploadService->salvar($dados['foto_perfil_cortada'], 'foto_pagina');
+                if ($caminhoFotoPerfil) $arquivosNovos[] = $caminhoFotoPerfil;
             }
 
             $caminhoFotoFundo = null;
             if (!empty($dados['foto_fundo_cortada'])) {
                 $caminhoFotoFundo = $this->uploadService->salvar($dados['foto_fundo_cortada'], 'foto_pagina');
+                if ($caminhoFotoFundo) $arquivosNovos[] = $caminhoFotoFundo;
             }
 
             $paginaExistente = $this->paginaRepo->buscarPorProtetorId($protetorId);
@@ -402,6 +443,7 @@ class OnboardingService
 
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
+            if (!$upgrade) {
             $_SESSION['tipo_perfil']  = $tipoPerfil;
             $_SESSION['protetor_id']  = $protetorId;
             $_SESSION['usuario_nome'] = trim($dados['nome_fantasia']);
@@ -414,8 +456,13 @@ class OnboardingService
             }
             $_SESSION['perfis_ativos'] = $perfisAtivos;
 
+            }
+
         } catch (Exception $e) {
-            $conexao->rollBack();
+            if ($conexao->inTransaction()) {
+                $conexao->rollBack();
+                foreach ($arquivosNovos as $novo) $this->uploadService->remover($novo);
+            }
             throw $e;
         }
     }

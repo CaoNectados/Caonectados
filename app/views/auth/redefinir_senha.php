@@ -12,22 +12,23 @@
         <strong class="text-text-dark"><?= htmlspecialchars($email ?? '') ?></strong>
     </p>
 
-    <form action="<?= URL_BASE ?>/redefinir-senha/processar" method="POST" class="space-y-4 text-left">
+    <form action="<?= URL_BASE ?>/redefinir-senha/processar" method="POST" data-no-autosave class="space-y-4 text-left">
+        <input type="hidden" name="email" value="<?= htmlspecialchars($email ?? '', ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="codigo" value="<?= htmlspecialchars($codigo ?? '') ?>">
         <div>
             <label for="senha" class="label-padrao">Nova Senha</label>
-            <input type="password" name="senha" id="senha" minlength="8" placeholder="Digite sua nova senha"
+            <input type="password" name="senha" id="senha" required autocomplete="new-password" minlength="8" placeholder="Digite sua nova senha"
                 class="input-padrao">
         </div>
 
         <div>
             <label for="senha_confirmacao" class="label-padrao">Confirme a Nova Senha</label>
-            <input type="password" name="senha_confirmacao" id="senha_confirmacao" minlength="8" placeholder="Repita a senha"
+            <input type="password" name="senha_confirmacao" id="senha_confirmacao" required autocomplete="new-password" minlength="8" placeholder="Repita a senha"
                 class="input-padrao">
         </div>
 
         <button type="submit" class="btn-primario w-full mt-2">
-            Salvar e Entrar
+            Salvar Senha
         </button>
     </form>
 </div>

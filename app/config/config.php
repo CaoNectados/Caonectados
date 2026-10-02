@@ -16,10 +16,11 @@ if (DEV_ENVIRONMENT === true) {
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+$_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
 
 // Configuração do Sistema
 define('APP_NAME', 'CaoNectados');
-define('URL_BASE', 'http://localhost/Caonectados/public');
+define('URL_BASE', rtrim(getenv('URL_BASE') ?: 'http://localhost/Caonectados', '/'));
 // Configurações do Banco de Dados
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'caonectados');

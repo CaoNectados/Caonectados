@@ -7,6 +7,7 @@ require_once __DIR__ . '/../templates/header.php';
 <!-- min-h + flex centraliza verticalmente a etapa visível do wizard (só uma fica sem "hidden"
      por vez, então o grupo inteiro — progresso, seta de voltar e a etapa atual — centraliza junto) -->
 <form id="form-onboarding-adotante" action="<?= URL_BASE ?>/onboarding/salvar-adotante" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4 text-text-dark min-h-[80vh] flex flex-col justify-center">
+<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
     <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
 

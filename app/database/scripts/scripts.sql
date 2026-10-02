@@ -88,6 +88,9 @@ CREATE TABLE IF NOT EXISTS PROTETOR (
     nome_fantasia VARCHAR(45) NOT NULL,
     data_abertura_cnpj DATE NULL,
     comprovante_documento VARCHAR(255) NULL,
+    motivo_recusa TEXT NULL,
+    inadimplente BOOLEAN NOT NULL DEFAULT FALSE,
+    motivo_inadimplencia TEXT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_protetor_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
@@ -182,6 +185,8 @@ CREATE TABLE IF NOT EXISTS SOLICITACAO_ADOCAO (
     data_solicitacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     justificativa_recusa TEXT NULL,
     data_finalizacao TIMESTAMP NULL DEFAULT NULL,
+    INDEX idx_solicitacao_adotante_dia (adotante_id, data_solicitacao),
+    INDEX idx_solicitacao_animal_estado (animal_id, status_solicitacao),
     CONSTRAINT fk_solicitacao_adotante FOREIGN KEY (adotante_id) REFERENCES ADOTANTE (adotante_id) ON UPDATE CASCADE,
     CONSTRAINT fk_solicitacao_animal FOREIGN KEY (animal_id) REFERENCES ANIMAL (animal_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
@@ -359,8 +364,80 @@ CREATE TABLE IF NOT EXISTS LOG_SISTEMA (
     CONSTRAINT fk_log_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+-- INICIO ATUALIZAR BANCO EXISTENTE
+-- Para banco já instalado: após backup, executar APENAS este bloco.
+-- Não reaplicar os INSERTs de exemplos abaixo em um banco com dados.
+USE caonectados;
+
+CREATE TABLE IF NOT EXISTS HISTORICO_CLASSIFICACAO_PROTETOR (
+    historico_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    protetor_id INT UNSIGNED NOT NULL,
+    admin_id INT UNSIGNED NOT NULL,
+    inadimplente BOOLEAN NOT NULL,
+    motivo TEXT NOT NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_classificacao_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR(protetor_id),
+    CONSTRAINT fk_classificacao_admin FOREIGN KEY (admin_id) REFERENCES USUARIO(usuario_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_recusa'),
+    'SELECT 1',
+    'ALTER TABLE PROTETOR ADD COLUMN motivo_recusa TEXT NULL'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'inadimplente'),
+    'SELECT 1',
+    'ALTER TABLE PROTETOR ADD COLUMN inadimplente BOOLEAN NOT NULL DEFAULT FALSE'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_inadimplencia'),
+    'SELECT 1',
+    'ALTER TABLE PROTETOR ADD COLUMN motivo_inadimplencia TEXT NULL'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_adotante_dia'),
+    'SELECT 1',
+    'CREATE INDEX idx_solicitacao_adotante_dia ON SOLICITACAO_ADOCAO (adotante_id, data_solicitacao)'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_animal_estado'),
+    'SELECT 1',
+    'CREATE INDEX idx_solicitacao_animal_estado ON SOLICITACAO_ADOCAO (animal_id, status_solicitacao)'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+-- Corrigir perfis ativos antigos sem apagar cadastros, animais ou históricos.
+UPDATE USUARIO
+SET tipo_atual = 'administrador', perfis_ativos = 'administrador'
+WHERE tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos) > 0;
+-- FIM ATUALIZAR BANCO EXISTENTE
+
 -- ===========================================
--- USUÁRIO ADMINISTRADOR COM MULTIPERFIS
+-- USUÁRIO EXCLUSIVAMENTE ADMINISTRADOR
 -- ===========================================
 INSERT INTO USUARIO (
     usuario_id,
@@ -382,59 +459,10 @@ INSERT INTO USUARIO (
     '45900000000',
     '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
     'administrador',
-    'adotante,protetor,ong,administrador',
+    'administrador',
     'ativo',
     'caonectados2026@gmail.com',
     'Admin CãoNectados'
-);
-
--- PERFIL ADOTANTE PARA O ADMIN (Monitoramento e Testes)
-INSERT INTO ADOTANTE (
-    adotante_id,
-    usuario_id,
-    tipo_moradia,
-    tamanho_interno_moradia,
-    descricao,
-    detalhes
-) VALUES (
-    1,
-    1,
-    'casa',
-    'grande',
-    'Perfil Adotante do Administrador para Testes e Monitoramento',
-    '{"possui_criancas":"nao","possui_outros_pets":"sim","espaco_externo":"grande"}'
-);
-
--- PERFIL PROTETOR / ONG PARA O ADMIN (Monitoramento e Testes)
-INSERT INTO PROTETOR (
-    protetor_id,
-    usuario_id,
-    validado,
-    codigo_documento,
-    tipo_documento,
-    nome_fantasia,
-    data_validacao
-) VALUES (
-    1,
-    1,
-    TRUE,
-    '00000000000191',
-    'cnpj',
-    'ONG Administrativa CãoNectados',
-    CURRENT_TIMESTAMP
-);
-
--- PÁGINA INSTITUCIONAL DA ONG/PROTETOR ADMIN
-INSERT INTO PAGINA (
-    pagina_id,
-    protetor_id,
-    descricao,
-    chave_pix
-) VALUES (
-    1,
-    1,
-    'Página de testes e monitoramento institucional da ONG do Admin',
-    'admin@caonectados.com.br'
 );
 
 INSERT INTO

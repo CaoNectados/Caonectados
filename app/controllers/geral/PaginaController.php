@@ -18,6 +18,7 @@ class PaginaController extends Controller
 
     public function __construct()
     {
+        $this->validarCsrf();
         $this->paginaService = new PaginaService();
         $this->protetorRepo = new ProtetorRepository();
     }
@@ -55,13 +56,15 @@ class PaginaController extends Controller
                 trim($_POST['chave_pix'] ?? '')
             );
 
-            $fotoPerfil = $_FILES['foto_perfil'] ?? ($_POST['foto_perfil_cortada'] ?? null);
-            if (!empty($fotoPerfil)) {
+            $fotoPerfil = !empty($_POST['foto_perfil_cortada'])
+                ? $_POST['foto_perfil_cortada'] : ($_FILES['foto_perfil'] ?? null);
+            if (!empty($fotoPerfil) && (!is_array($fotoPerfil) || ($fotoPerfil['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)) {
                 $this->paginaService->atualizarFoto($protetorId, 'foto_perfil', $fotoPerfil);
             }
 
-            $fotoFundo = $_FILES['foto_fundo'] ?? ($_POST['foto_fundo_cortada'] ?? null);
-            if (!empty($fotoFundo)) {
+            $fotoFundo = !empty($_POST['foto_fundo_cortada'])
+                ? $_POST['foto_fundo_cortada'] : ($_FILES['foto_fundo'] ?? null);
+            if (!empty($fotoFundo) && (!is_array($fotoFundo) || ($fotoFundo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)) {
                 $this->paginaService->atualizarFoto($protetorId, 'foto_fundo', $fotoFundo);
             }
 
@@ -142,10 +145,6 @@ class PaginaController extends Controller
     /** Resolve o protetor_id do usuário logado. Mesmo padrão de AnimalController::obterProtetorIdAutenticado(). */
     private function obterProtetorIdAutenticado(): int
     {
-        if (isset($_SESSION['protetor_id']) && (int) $_SESSION['protetor_id'] > 0) {
-            return (int) $_SESSION['protetor_id'];
-        }
-
         $usuarioId = (int) ($_SESSION['usuario_id'] ?? 0);
         $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
 

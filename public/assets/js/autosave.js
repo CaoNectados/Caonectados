@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const storageKey = 'caonectados_backup_' + window.location.pathname + window.location.search;
     const stepKey = storageKey + '_etapa';
+    // Tokens pertencem à sessão atual; backups antigos nunca devem substituí-los.
+    const camposProtegidos = new Set(['csrf_token', 'codigo', 'token']);
 
     // Função auxiliar para restaurar valores salvos
     function restaurarValoresFormulario() {
@@ -17,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const parsedData = JSON.parse(savedData);
             
             Object.keys(parsedData).forEach(key => {
+                if (camposProtegidos.has(key)) return;
                 const elements = form.querySelectorAll(`[name="${key}"]`);
                 
                 elements.forEach(element => {
@@ -88,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         for (let [key, value] of formData.entries()) {
             // Ignora senhas e arquivos
-            if (key.includes('senha') || key.includes('foto') || key.includes('comprovante')) continue;
+            if (camposProtegidos.has(key) || key.includes('senha') || key.includes('foto') || key.includes('comprovante')) continue;
 
             if (key.endsWith('[]')) {
                 if (!data[key]) data[key] = [];

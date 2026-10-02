@@ -1,0 +1,13 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+RewriteEngine On
+
+# Apenas public pode ser servido, inclusive quando existem arquivos na raiz.
+RewriteRule (^|/)\. - [F,L]
+RewriteRule ^(?:public/)?(?:app|vendor|config|logs?|storage|tests?|docs?)(?:/|$) - [F,L,NC]
+RewriteRule \.(?:sql|log|ini|env|bak|lock|md|json|ya?ml|sh|bat|ps1)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:public/)?assets/uploads/comprovantes(?:/|$) - [F,L,NC]
+
+# Segunda passagem da reescrita: public/.htaccess assume o processamento.
+RewriteRule ^public(?:/|$) - [L]
+RewriteRule ^(.*)$ public/$1 [L]

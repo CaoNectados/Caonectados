@@ -7,8 +7,6 @@ $mesesPt = [1=>'Janeiro',2=>'Fevereiro',3=>'Março',4=>'Abril',5=>'Maio',6=>'Jun
 $mesRotulo = $mesesPt[(int) date('n')] . ' de ' . date('Y');
 
 $metricasGrafico = [
-    ['rotulo' => 'Animais Disponíveis', 'valor' => $stats['animais_disponiveis'] ?? 0, 'cor' => 'bg-red-300'],
-    ['rotulo' => 'Animais Adotados',    'valor' => $stats['animais_adotados'] ?? 0,    'cor' => 'bg-teal-400'],
     ['rotulo' => 'Usuários Ativos',     'valor' => $stats['usuarios_ativos'] ?? 0,     'cor' => 'bg-green-500'],
 ];
 $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evita divisão por 0
@@ -61,31 +59,6 @@ $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evit
                 <p class="text-xs text-text-muted">Cadastros Pendentes</p>
             </a>
 
-            <!-- Card 2 -->
-            <a href="<?= URL_BASE ?>/admin/denuncias" class="card-padrao text-center border-t-8 border-red-800 bg-white shadow rounded-lg p-4 hover:shadow-md transition block">
-                <span class="text-xs font-bold uppercase bg-red-800 text-white px-6 py-1 rounded-full inline-block mb-4">Prioridade</span>
-                <div class="my-3 text-4xl">⚠️</div>
-                <h3 class="text-sm font-bold text-gray-800"><?= (int) $stats['denuncias_abertas'] ?></h3>
-                <p class="text-xs text-text-muted">Denúncias em Aberto</p>
-            </a>
-
-            <!-- Card 3 -->
-            <a href="<?= URL_BASE ?>/admin/relatorios?periodo=mes_atual&status=adotado" class="card-padrao text-center border-t-8 border-blue-600 bg-white shadow rounded-lg p-4 hover:shadow-md transition block">
-                <span class="text-xs font-bold uppercase bg-blue-600 text-white px-6 py-1 rounded-full inline-block mb-4">Monitorar</span>
-                <div class="my-3 text-4xl">🤍</div>
-                <h3 class="text-sm font-bold text-gray-800"><?= (int) $stats['adocoes_concluidas_no_mes'] ?></h3>
-                <p class="text-xs text-text-muted">Adoções Concluídas no Mês</p>
-            </a>
-        </div>
-
-        <!-- BOTÕES DE RELATÓRIO (RF 12) -->
-        <div class="flex flex-col items-center gap-2 max-w-md mx-auto">
-            <a href="<?= URL_BASE ?>/admin/relatorios/exportar-csv" class="w-full text-center border border-gray-400 bg-white text-black font-bold py-2 rounded-lg shadow-sm hover:bg-gray-50">
-                Exportar CSV
-            </a>
-            <a href="<?= URL_BASE ?>/admin/relatorios" class="w-full text-center bg-black text-white font-bold py-2 rounded-lg shadow-sm hover:bg-gray-800">
-                Gerar Relatório Geral do Sistema
-            </a>
         </div>
     </div>
 
@@ -112,29 +85,6 @@ $maiorValorGrafico = max(1, ...array_column($metricasGrafico, 'valor')); // evit
                 <span class="text-gray-400">🔍 📄</span>
             </a>
 
-            <!-- Atalho 2 -->
-            <a href="<?= URL_BASE ?>/admin/denuncias" class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl text-amber-500">⚠️</span>
-                    <div>
-                        <strong class="block text-sm text-gray-800">Tratar denúncias em aberto</strong>
-                        <span class="text-xs text-text-muted"><?= (int) $stats['denuncias_abertas'] ?> denúncia(s) aguardando análise</span>
-                    </div>
-                </div>
-                <span class="text-gray-400">🔍 📄</span>
-            </a>
-
-            <!-- Atalho 3 -->
-            <a href="<?= URL_BASE ?>/admin/relatorios?periodo=mes_atual&status=adotado" class="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:bg-gray-50 transition">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl text-gray-600">📊</span>
-                    <div>
-                        <strong class="block text-sm text-gray-800">Acompanhar adoções do mês</strong>
-                        <span class="text-xs text-text-muted"><?= (int) $stats['adocoes_concluidas_no_mes'] ?> concluída(s) em <?= htmlspecialchars($mesRotulo) ?></span>
-                    </div>
-                </div>
-                <span class="text-gray-400">🔍 📄</span>
-            </a>
         </div>
     </div>
 </div>

@@ -3,28 +3,32 @@
 namespace app\controllers\onboarding;
 
 use app\core\Controller;
-use app\services\OnboardingService;
+use app\services\OnBoardingService;
 use app\repositories\RegiaoRepository;
 use app\repositories\EspecieRepository;
 use app\repositories\UsuarioRepository;
 use app\services\ValidationService;
 use Exception;
 
-class OnboardingController extends Controller
+class OnBoardingController extends Controller
 {
-    private OnboardingService $onboardingService;
+    private OnBoardingService $onboardingService;
     private RegiaoRepository $regiaoRepo;
     private EspecieRepository $especieRepo;
     private UsuarioRepository $usuarioRepo;
 
     public function __construct()
     {
-        $this->onboardingService = new OnboardingService();
+        $this->onboardingService = new OnBoardingService();
         $this->regiaoRepo = new RegiaoRepository();
         $this->especieRepo = new EspecieRepository();
         $this->usuarioRepo = new UsuarioRepository();
 
         $this->autenticacaoRequired();
+        if ($_SESSION['tipo_perfil'] === 'administrador') {
+            $this->json(403, ['status' => 'erro', 'mensagem' => 'Administradores não podem criar outros perfis.']);
+        }
+        $this->validarCsrf();
         $this->verificarSeJaPossuiPerfil();
     }
 
@@ -67,16 +71,12 @@ class OnboardingController extends Controller
                 // pessoais compartilhados em USUARIO — precisa restaurar do mesmo jeito.
                 $tipoAnterior = $_SESSION['tipo_perfil'] ?? 'usuario';
                 $ehUpgradeDeProtetorOuOng = in_array($tipoAnterior, ['protetor', 'ong'], true);
-                $usuarioOriginal = $ehUpgradeDeProtetorOuOng
-                    ? $this->usuarioRepo->buscarPorId((int)$usuarioId)
-                    : null;
+
 
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, (int)$usuarioId);
 
-                if ($ehUpgradeDeProtetorOuOng && $usuarioOriginal) {
-                    $this->onboardingService->restaurarPerfilAtivoOriginal((int)$usuarioId, $usuarioOriginal, $tipoAnterior);
-                }
+
 
                 $this->json(200, [
                     'status'       => 'sucesso',
@@ -142,16 +142,12 @@ class OnboardingController extends Controller
                 // um perfil ADICIONAL de Protetor/ONG, não se cadastrando do zero. Precisa
                 // continuar navegando como Adotante enquanto a solicitação está pendente.
                 $ehUpgradeDeAdotante = ($_SESSION['tipo_perfil'] ?? 'usuario') === 'adotante';
-                $usuarioOriginal = $ehUpgradeDeAdotante
-                    ? $this->usuarioRepo->buscarPorId((int)$usuarioId)
-                    : null;
+
 
                 $dadosLimpos = ValidationService::sanitizarArray($_POST);
                 $this->onboardingService->processarOng($dadosLimpos, $_FILES, (int)$usuarioId);
 
-                if ($ehUpgradeDeAdotante && $usuarioOriginal) {
-                    $this->onboardingService->restaurarPerfilAtivoOriginal((int)$usuarioId, $usuarioOriginal, 'adotante');
-                }
+
 
                 $this->json(200, [
                     'status'       => 'sucesso',
@@ -215,7 +211,9 @@ class OnboardingController extends Controller
         }
 
         $dadosProtetor = $this->onboardingService->obterDadosPreenchidosProtetor($usuarioId);
-        $motivoRecusa = $_SESSION['motivo_recusa_protetor_' . ($dadosProtetor['protetor_id'] ?? 0)] ?? 'Documentação incompleta ou inconsistente.';
+        $motivoRecusa = $dadosProtetor['motivo_recusa']
+            ?? $_SESSION['motivo_recusa_protetor_' . ($dadosProtetor['protetor_id'] ?? 0)]
+            ?? 'Documentação incompleta ou inconsistente.';
 
         $this->view('onboarding/aguardando_aprovacao', [
             'titulo'        => 'Status da Solicitação',

@@ -31,14 +31,15 @@ class Router
     {
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        $basePath = dirname($_SERVER['SCRIPT_NAME']);
+        // SCRIPT_NAME inclui /public após reescrita interna; a URL externa não.
+        $basePath = parse_url(URL_BASE, PHP_URL_PATH) ?: '';
         $basePath = str_replace('\\', '/', $basePath);
 
         if ($basePath === '/') {
             $basePath = '';
         }
 
-        if (strpos($uri, $basePath) === 0) {
+        if ($basePath !== '' && ($uri === $basePath || strpos($uri, $basePath . '/') === 0)) {
             $uri = substr($uri, strlen($basePath));
         }
 

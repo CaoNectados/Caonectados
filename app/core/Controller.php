@@ -7,6 +7,21 @@ use app\repositories\UsuarioRepository;
 use app\repositories\ProtetorRepository;
 class Controller
 {
+    protected function validarCsrf(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return;
+        }
+        $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!is_string($token) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+            $this->json(403, ['status' => 'erro', 'mensagem' => 'Sessão do formulário inválida. Recarregue a página.']);
+        }
+    }
+
+    protected function exigirContaNaoBloqueada(): void
+    {
+        $this->autenticacaoRequired(['adotante', 'protetor', 'ong']);
+    }
     public function view(string $view, ?array $data = null): void
     {
         if ($data) {
@@ -39,13 +54,13 @@ class Controller
     protected function getUriLimpa(): string
     {
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-        $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        $basePath = parse_url(URL_BASE, PHP_URL_PATH) ?: '';
 
         if ($basePath === '/') {
             $basePath = '';
         }
 
-        if (!empty($basePath) && strpos($uri, $basePath) === 0) {
+        if ($basePath !== '' && ($uri === $basePath || strpos($uri, $basePath . '/') === 0)) {
             $uri = substr($uri, strlen($basePath));
         }
 
@@ -213,6 +228,12 @@ class Controller
         $tipoAtual = strtolower((string)($usuario['tipo_atual'] ?? 'usuario'));
         $perfisAtivos = array_values(array_filter(array_map('trim', explode(',', strtolower((string)($usuario['perfis_ativos'] ?? ''))))));
 
+        if (\app\services\PerfilPolicy::ehAdministrador($tipoAtual, $usuario['perfis_ativos'] ?? '')) {
+            $tipoAtual = 'administrador';
+            $perfisAtivos = ['administrador'];
+        }
+        $_SESSION['usuario']['is_admin'] = $tipoAtual === 'administrador';
+        $_SESSION['perfis'] = array_map(static fn($tipo) => ['id' => $usuarioId, 'tipo' => $tipo], $perfisAtivos);
         $_SESSION['tipo_perfil']   = $tipoAtual;
         $_SESSION['perfis_ativos'] = $perfisAtivos;
         $_SESSION['status_conta']  = $statusConta;

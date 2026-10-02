@@ -351,14 +351,14 @@ class PerfilController extends Controller
     // Usado por: rota POST /perfil/trocar
    public function alternar(): void
     {
-        $tipo = strtolower(trim($_POST['tipo'] ?? ''));
+        if ($_SESSION['tipo_perfil'] === 'administrador') {
+            $this->json(403, ['status' => 'erro', 'mensagem' => 'Administradores não podem alternar perfil.']);
+        }
+        $this->validarCsrf();
+        $tipo = strtolower(trim(is_string($_POST['tipo'] ?? null) ? $_POST['tipo'] : ''));
         $perfisAtivos = $_SESSION['perfis_ativos'] ?? [];
 
-        // RN 20 não é violada aqui: 'administrador' só entra em perfis_ativos via back-office
-        // (nunca por auto-cadastro/onboarding), então a segunda checagem abaixo
-        // (in_array($tipo, $perfisAtivos)) já garante que só quem JÁ é administrador legítimo
-        // consegue alternar para esse perfil — ninguém consegue se autopromover por aqui.
-        $perfisPermitidos = ['adotante', 'protetor', 'ong', 'administrador'];
+        $perfisPermitidos = ['adotante', 'protetor', 'ong'];
         if (
             $tipo === '' ||
             !in_array($tipo, $perfisPermitidos, true) ||

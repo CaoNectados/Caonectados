@@ -102,7 +102,8 @@ class AnimalController extends Controller
 
             $this->service->cadastrarAnimal($animal);
 
-            $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
+            $fotoEnviada = !empty($_POST['foto_cortada'])
+                ? $_POST['foto_cortada'] : ($_FILES['foto'] ?? null);
             if (!empty($fotoEnviada)) {
                 $this->service->salvarFoto($fotoEnviada, (int) $animal->getAnimalId());
             }
@@ -148,7 +149,8 @@ class AnimalController extends Controller
             $animal->setAnimalId($id);
             $this->service->editarAnimal($animal);
 
-            $fotoEnviada = $_FILES['foto'] ?? ($_POST['foto_cortada'] ?? null);
+            $fotoEnviada = !empty($_POST['foto_cortada'])
+                ? $_POST['foto_cortada'] : ($_FILES['foto'] ?? null);
             if (!empty($fotoEnviada)) {
                 $this->service->salvarFoto($fotoEnviada, $id);
             }

@@ -333,8 +333,9 @@ class AuthController extends Controller
                 'mensagem'     => 'Se o e-mail existir em nossa base, enviaremos um link de recuperação.',
                 'redirect_url' => URL_BASE . '/login'
             ]);
-        } catch (Exception $e) {
-            $this->json(500, ['status' => 'erro', 'mensagem' => 'Ocorreu um erro interno. Tente novamente mais tarde.']);
+        } catch (\Throwable $e) {
+            error_log('Falha na recuperação de senha: ' . $e->getMessage());
+            $this->json(503, ['status' => 'erro', 'mensagem' => 'Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.']);
         }
     }
 
