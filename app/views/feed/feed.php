@@ -206,19 +206,6 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     <?php endif; ?>
 </div>
 
-<!-- BARRA INFERIOR (só mobile — desktop já usa a sidebar padrão do site) -->
-<nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-primary flex items-center justify-around h-16 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]">
-    <a href="<?= $urlBase ?>/feed" class="flex flex-col items-center justify-center text-white">
-        <img src="<?= $urlBase ?>/assets/icons/navbar/home.svg" alt="" class="w-6 h-6 brightness-0 invert">
-    </a>
-    <button type="button" onclick="document.getElementById('modal-filtros-feed').classList.remove('hidden')" class="flex flex-col items-center justify-center text-white/70">
-        <img src="<?= $urlBase ?>/assets/icons/navbar/pesquisar.svg" alt="Buscar" class="w-6 h-6 brightness-0 invert opacity-70">
-    </button>
-    <a href="<?= $urlBase ?>/perfil" class="flex flex-col items-center justify-center text-white/70">
-        <img src="<?= $urlBase ?>/assets/icons/navbar/perfil.svg" alt="Perfil" class="w-6 h-6 brightness-0 invert opacity-70">
-    </a>
-</nav>
-
 <!-- MODAL DE FILTROS -->
 <div id="modal-filtros-feed" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-branco dark:bg-preto1 rounded-3xl max-w-md w-full p-6 max-h-[85vh] overflow-y-auto border border-rosa-3">
