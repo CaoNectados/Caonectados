@@ -25,6 +25,39 @@
     
     </div> 
 
+    <!-- Navegação mobile compartilhada, fora da área que rola. -->
+    <?php
+    $perfilMenuInferior = $_SESSION['tipo_perfil'] ?? null;
+    $inicioMenuInferior = $perfilMenuInferior === 'adotante' ? '/feed' : '/';
+    $perfilDestinoInferior = $perfilMenuInferior === null ? '/login' : '/perfil';
+    ?>
+    <nav id="menu-inferior-mobile" aria-label="Navegação inferior"
+         class="fixed bottom-0 inset-x-0 z-30 bg-primary flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.2)] lg:hidden"
+         style="padding-bottom: env(safe-area-inset-bottom)">
+        <a href="<?= e(URL_BASE . $inicioMenuInferior) ?>" aria-label="Início"
+           class="flex h-16 flex-1 items-center justify-center text-white">
+            <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/home.svg" alt="" class="w-6 h-6 brightness-0 invert">
+        </a>
+        <?php if ($perfilMenuInferior === 'adotante'): ?>
+            <a href="<?= e(URL_BASE) ?>/pesquisar" id="busca-menu-inferior" aria-label="Pesquisar animais"
+               class="flex h-16 flex-1 items-center justify-center text-white">
+                <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-6 h-6 brightness-0 invert">
+            </a>
+        <?php else: ?>
+            <button type="button" id="botao-menu-inferior" aria-label="Abrir menu de navegação"
+                    aria-controls="menu-mobile" aria-expanded="false"
+                    class="flex h-16 flex-1 items-center justify-center text-white">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        <?php endif; ?>
+        <a href="<?= e(URL_BASE . $perfilDestinoInferior) ?>" aria-label="<?= $perfilMenuInferior === null ? 'Entrar' : 'Meu perfil' ?>"
+           class="flex h-16 flex-1 items-center justify-center text-white">
+            <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/perfil.svg" alt="" class="w-6 h-6 brightness-0 invert">
+        </a>
+    </nav>
+
     <!-- Modal Unificado de Feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
         <div class="bg-surface rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">
