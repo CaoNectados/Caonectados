@@ -102,6 +102,18 @@ A pasta padrão é `htdocs/Caonectados`, com acesso por `http://localhost/Caonec
 
 As dependências já estão versionadas em `vendor`; use `composer install` se estiverem ausentes ou precisarem ser reinstaladas. Não é necessário criar pasta de migrações nem executar inicialização automática do banco.
 
+### Solicitar novo perfil (RF15)
+
+Na página de perfil, **Solicitar novo perfil** reutiliza o onboarding com `?modo=adicao`.
+A autorização é conferida pela conta autenticada no servidor, independentemente desse parâmetro.
+
+- Adotante verificado pode solicitar Protetor ou ONG. O pedido fica pendente em `PROTETOR` (`validado = 0`), vinculado ao mesmo usuário, para análise em `/admin/solicitacoes`.
+- O perfil mostra pendência, aprovação ou recusa e o motivo. Após recusa, o reenvio atualiza o mesmo registro e preserva o tipo de documento.
+- ONG/Protetor aprovado pode preencher o onboarding de Adotante e obter esse perfil imediatamente, sem análise administrativa.
+- A adição preserva os dados pessoais e o perfil atual; **Alternar Perfil** permite acessar o perfil autorizado. Administrador permanece exclusivo.
+
+Este fluxo usa as tabelas e campos existentes do `scripts.sql`, sem nova alteração de estrutura. Os comprovantes continuam protegidos e acessíveis apenas ao administrador autenticado.
+
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista
 - Ana Júlia Souza Toledo

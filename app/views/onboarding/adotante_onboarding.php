@@ -8,6 +8,10 @@ require_once __DIR__ . '/../templates/header.php';
      por vez, então o grupo inteiro — progresso, seta de voltar e a etapa atual — centraliza junto) -->
 <form id="form-onboarding-adotante" action="<?= URL_BASE ?>/onboarding/salvar-adotante" method="POST" enctype="multipart/form-data" class="max-w-md mx-auto p-4 text-text-dark min-h-[80vh] flex flex-col justify-center">
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+<input type="hidden" name="modo" value="<?= !empty($modoAdicao) ? 'adicao' : 'cadastro' ?>">
+<?php if (!empty($modoAdicao)): ?>
+<p class="mb-4 rounded-xl bg-rosa-1 p-3 text-sm" role="status">Preencha os dados para adicionar Adotante à sua conta. Não é necessária aprovação.</p>
+<?php endif; ?>
 
     <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
 

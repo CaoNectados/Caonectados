@@ -25,6 +25,14 @@ $perfis = [
         'url'      => URL_BASE . '/onboarding/ong',
     ],
 ];
+// O modo é derivado da conta autenticada; o parâmetro apenas identifica o fluxo na URL.
+if (!empty($modoAdicao)) {
+    $tipoAtual = $_SESSION['tipo_perfil'];
+    $perfis = array_filter($perfis, fn($p) => $tipoAtual === 'adotante'
+        ? in_array($p['id'], ['protetor', 'ong'], true) : $p['id'] === 'adotante');
+    foreach ($perfis as &$opcao) $opcao['url'] .= '?modo=adicao';
+    unset($opcao);
+}
 ?>
 
 <main class="flex flex-col items-center justify-center min-h-[75vh] px-4 py-10">
@@ -62,7 +70,7 @@ $perfis = [
         </div>
 
         <p class="text-xs text-text-muted text-center mt-6">
-            Todos os perfis passam por validação para garantir a segurança da nossa comunidade.
+            Pedidos de Protetor e ONG passam por análise administrativa. O perfil de Adotante é liberado após o preenchimento.
         </p>
     </div>
 </main>

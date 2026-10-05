@@ -44,7 +44,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <!-- Título da Seção -->
         <div class="mb-6">
-            <h2 class="font-shantell text-2xl font-bold text-text-dark tracking-tight">Solicitações de ONGs</h2>
+            <h2 class="font-shantell text-2xl font-bold text-text-dark tracking-tight">Solicitações de Protetores e ONGs</h2>
             <p class="text-xs sm:text-sm text-text-muted mt-0.5">Clique em um card para ver documentos e fotos</p>
         </div>
 

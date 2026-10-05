@@ -76,6 +76,7 @@ $router->get('/admin/solicitacoes/documento', 'admin/SolicitacaoProtetorControll
 
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
+$router->get('/perfil/solicitar-perfil', 'geral/PerfilController@solicitarPerfil');
 $router->get('/perfil/editar', 'geral/PerfilController@editar');
 $router->post('/perfil/atualizar', 'geral/PerfilController@atualizar');
 $router->post('/perfil/atualizar-foto', 'geral/PerfilController@atualizarFoto');
