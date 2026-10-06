@@ -168,7 +168,7 @@ $paginasBotoes = array_chunk($botoes, 6);
 
         <?php if ($statusSolicitacaoProtetor !== null): ?>
             <?php if ($statusSolicitacaoProtetor === 'recusada' && !empty($solicitacaoProtetor['motivo_recusa'])): ?>
-                <p class="text-sm">Motivo: <?= htmlspecialchars($solicitacaoProtetor['motivo_recusa']) ?></p>
+                <p class="w-full mb-3 text-sm text-text-dark break-words">Motivo: <?= htmlspecialchars($solicitacaoProtetor['motivo_recusa']) ?></p>
             <?php endif; ?>
             <!-- RF 15: Status da solicitação de upgrade para Protetor/ONG -->
             <?php
@@ -191,9 +191,9 @@ $paginasBotoes = array_chunk($botoes, 6);
                 ][$statusSolicitacaoProtetor] ?? null;
             ?>
             <?php if ($bannerConfig): ?>
-                <div class="w-full flex items-start gap-2 rounded-2xl border px-4 py-3 mb-6 text-sm font-poppins font-medium <?= $bannerConfig['classes'] ?>">
-                    <span class="text-lg leading-none"><?= $bannerConfig['icone'] ?></span>
-                    <span class="text-text-dark dark:text-white"><?= htmlspecialchars($bannerConfig['texto']) ?></span>
+                <div role="status" class="w-full flex items-start gap-2 rounded-2xl border px-4 py-3 mb-6 text-sm font-poppins font-medium <?= $bannerConfig['classes'] ?>">
+                    <span aria-hidden="true" class="shrink-0 text-lg leading-none"><?= $bannerConfig['icone'] ?></span>
+                    <span class="min-w-0 break-words text-text-dark"><?= htmlspecialchars($bannerConfig['texto']) ?></span>
                 </div>
             <?php endif; ?>
         <?php endif; ?>
@@ -208,11 +208,11 @@ $paginasBotoes = array_chunk($botoes, 6);
             <!-- Grid de Botões -->
             <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide hide-scroll gap-4" id="slider-botoes">
                 <?php foreach ($paginasBotoes as $pagina): ?>
-                    <div class="min-w-full snap-center grid grid-cols-3 gap-3 auto-rows-max">
+                    <div class="min-w-full snap-center grid grid-cols-2 min-[360px]:grid-cols-3 gap-3 auto-rows-max">
                         <?php foreach ($pagina as $botao): ?>
                             <?php if (isset($botao['action'])): ?>
                                 <button type="button" onclick="<?= htmlspecialchars($botao['action']) ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-28 cursor-pointer border border-rosa-2 dark:border-preto3 w-full">
-                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-11 w-11 mb-2 object-contain">
+                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="" class="h-11 w-11 mb-2 object-contain dark:brightness-0 dark:invert">
                                     <?php if (isset($botao['valor'])): ?>
                                         <span class="text-sm font-bold leading-none text-primary dark:text-roxinhoFofo mb-0.5"><?= (int)$botao['valor'] ?></span>
                                     <?php endif; ?>
@@ -220,7 +220,7 @@ $paginasBotoes = array_chunk($botoes, 6);
                                 </button>
                             <?php else: ?>
                                 <a href="<?= $urlBase . $botao['url'] ?>" class="flex flex-col items-center justify-center bg-branco dark:bg-preto2 rounded-2xl p-3 shadow-sm hover:shadow-md transition text-center h-28 border border-rosa-2 dark:border-preto3">
-                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="<?= htmlspecialchars($botao['label']) ?>" class="h-11 w-11 mb-2 object-contain">
+                                    <img src="<?= $urlBase ?>/assets/icons/perfil/<?= $botao['icone'] ?>" alt="" class="h-11 w-11 mb-2 object-contain dark:brightness-0 dark:invert">
                                     <?php if (isset($botao['valor'])): ?>
                                         <span class="text-sm font-bold leading-none text-primary dark:text-roxinhoFofo mb-0.5"><?= (int)$botao['valor'] ?></span>
                                     <?php endif; ?>

@@ -39,7 +39,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 <input type="hidden" name="modo" value="<?= !empty($modoAdicao) ? 'adicao' : 'cadastro' ?>">
 <?php if (!empty($modoAdicao)): ?>
-<p class="mb-4 rounded-xl bg-rosa-1 p-3 text-sm" role="status">Solicite Protetor/ONG para sua conta. Seu perfil atual será mantido durante a análise.</p>
+<p class="mb-4 rounded-xl border border-rosa-3 bg-surface dark:bg-preto2 p-3 text-sm text-text-dark break-words" role="status">Solicite Protetor/ONG para sua conta. Seu perfil atual será mantido durante a análise.</p>
 <?php endif; ?>
 
     <input type="hidden" name="tipo_documento" id="tipo_documento" value="<?= htmlspecialchars($tipo_perfil, ENT_QUOTES, 'UTF-8') ?>">
@@ -60,7 +60,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
     <!-- BOTÃO VOLTAR -->
     <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-xl font-bold cursor-pointer transition hover:opacity-75 text-primary" title="Voltar">
-        <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="Voltar" class="w-8 h-8">
+        <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="Voltar" class="w-8 h-8 dark:brightness-0 dark:invert">
     </button>
 
 

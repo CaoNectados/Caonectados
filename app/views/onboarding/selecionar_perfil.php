@@ -40,7 +40,7 @@ if (!empty($modoAdicao)) {
 
         <div class="text-center mb-8">
             <h1 class="font-shantell text-2xl md:text-3xl font-bold text-text-dark dark:text-white">
-                Como você vai usar o CãoNectados?
+                <?= !empty($modoAdicao) ? 'Solicitar novo perfil' : 'Como você vai usar o CãoNectados?' ?>
             </h1>
             <p class="text-sm text-text-muted mt-2">
                 Escolha o perfil que melhor descreve você para personalizarmos a sua experiência.
@@ -51,18 +51,18 @@ if (!empty($modoAdicao)) {
         <div class="space-y-3" id="lista-perfis">
             <?php foreach ($perfis as $p): ?>
                 <div class="perfil-opcao group rounded-xl overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300" data-perfil="<?= $p['id'] ?>">
-                    <div class="flex items-stretch <?= $p['cor'] ?>">
-                        <a href="<?= $p['url'] ?>" class="flex-1 px-5 py-4 font-shantell font-bold text-text-dark hover:brightness-95 transition">
+                    <div class="flex items-stretch <?= $p['cor'] ?> dark:bg-preto2">
+                        <a href="<?= $p['url'] ?>" class="flex-1 min-w-0 px-5 py-4 font-shantell font-bold text-black dark:text-white hover:brightness-95 transition break-words">
                             <?= htmlspecialchars($p['titulo']) ?>
                         </a>
                         <button type="button"
                                 onclick="OnboardingSelecao.toggleInfo('<?= $p['id'] ?>')"
                                 class="px-4 text-white flex items-center justify-center hover:brightness-95 transition cursor-pointer"
                                 aria-label="Saiba mais sobre o perfil <?= htmlspecialchars($p['titulo']) ?>">
-                            <img src="<?= $urlBase ?>/assets/icons/info.svg" alt="" class="w-5 h-5">
+                            <img src="<?= $urlBase ?>/assets/icons/info.svg" alt="" class="w-5 h-5 brightness-0 dark:invert">
                         </button>
                     </div>
-                    <div class="perfil-descricao hidden group-hover:block bg-branco dark:bg-preto2 border-t border-black/5 dark:border-white/5 px-5 py-3 transition-all duration-300">
+                    <div class="perfil-descricao hidden bg-branco dark:bg-preto2 border-t border-black/5 dark:border-white/5 px-5 py-3 transition-all duration-300">
                         <p class="text-xs text-text-dark dark:text-white/90 leading-relaxed"><?= htmlspecialchars($p['descricao']) ?></p>
                     </div>
                 </div>

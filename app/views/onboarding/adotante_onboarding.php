@@ -10,7 +10,7 @@ require_once __DIR__ . '/../templates/header.php';
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 <input type="hidden" name="modo" value="<?= !empty($modoAdicao) ? 'adicao' : 'cadastro' ?>">
 <?php if (!empty($modoAdicao)): ?>
-<p class="mb-4 rounded-xl bg-rosa-1 p-3 text-sm" role="status">Preencha os dados para adicionar Adotante à sua conta. Não é necessária aprovação.</p>
+<p class="mb-4 rounded-xl border border-rosa-3 bg-surface dark:bg-preto2 p-3 text-sm text-text-dark break-words" role="status">Preencha os dados para adicionar Adotante à sua conta. Não é necessária aprovação.</p>
 <?php endif; ?>
 
     <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
@@ -29,7 +29,7 @@ require_once __DIR__ . '/../templates/header.php';
 
     <!-- BOTÃO VOLTAR -->
     <button type="button" id="btn-voltar-global" onclick="OnboardingManager.voltarEtapa()" class="mb-4 text-xl font-bold cursor-pointer transition hover:opacity-75 text-primary" title="Voltar">
-        <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="Voltar" class="w-8 h-8">
+        <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="Voltar" class="w-8 h-8 dark:brightness-0 dark:invert">
     </button>
 
     <!-- ETAPA 1: Como podemos te chamar? -->

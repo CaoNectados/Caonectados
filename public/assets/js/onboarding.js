@@ -43,11 +43,12 @@ const OnboardingManager = {
 
             if (elProgresso) {
                 if (i <= this.etapaAtual) {
-                    elProgresso.classList.remove('bg-gray-300');
+                    elProgresso.classList.remove('bg-gray-300', 'dark:bg-preto3', 'dark:bg-gray-500');
                     elProgresso.classList.add('bg-green-500');
                 } else {
                     elProgresso.classList.remove('bg-green-500');
-                    elProgresso.classList.add('bg-gray-300');
+                    elProgresso.classList.remove('dark:bg-preto3');
+                    elProgresso.classList.add('bg-gray-300', 'dark:bg-gray-500');
                 }
             }
         }
