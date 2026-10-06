@@ -189,10 +189,10 @@ function definirSidebarAberta(estaAberta) {
     var buscaMenuInferior = document.getElementById('busca-menu-inferior');
     if (buscaMenuInferior) {
         buscaMenuInferior.addEventListener('click', function (evento) {
-            var filtrosFeed = document.getElementById('modal-filtros-feed');
-            if (filtrosFeed) {
+            var campoPesquisa = document.getElementById('termo-pesquisa');
+            if (campoPesquisa) {
                 evento.preventDefault();
-                filtrosFeed.classList.remove('hidden');
+                campoPesquisa.focus();
             }
         });
     }

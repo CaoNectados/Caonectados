@@ -30,9 +30,10 @@
     $perfilMenuInferior = $_SESSION['tipo_perfil'] ?? null;
     $inicioMenuInferior = $perfilMenuInferior === 'adotante' ? '/feed' : '/';
     $perfilDestinoInferior = $perfilMenuInferior === null ? '/login' : '/perfil';
+    $pesquisaAtivaInferior = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/') === rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: '', '/') . '/pesquisar';
     ?>
     <nav id="menu-inferior-mobile" aria-label="Navegação inferior"
-         class="fixed bottom-0 inset-x-0 z-30 bg-primary flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.2)] lg:hidden"
+         class="fixed <?= $pesquisaAtivaInferior ? 'bottom-2 left-3 right-3 rounded-3xl' : 'bottom-0 inset-x-0' ?> z-30 bg-primary flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.2)] lg:hidden"
          style="padding-bottom: env(safe-area-inset-bottom)">
         <a href="<?= e(URL_BASE . $inicioMenuInferior) ?>" aria-label="Início"
            class="flex h-16 flex-1 items-center justify-center text-white">
@@ -40,8 +41,8 @@
         </a>
         <?php if ($perfilMenuInferior === 'adotante'): ?>
             <a href="<?= e(URL_BASE) ?>/pesquisar" id="busca-menu-inferior" aria-label="Pesquisar animais"
-               class="flex h-16 flex-1 items-center justify-center text-white">
-                <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-6 h-6 brightness-0 invert">
+               <?= $pesquisaAtivaInferior ? 'aria-current="page"' : '' ?> class="flex h-16 flex-1 items-center justify-center <?= $pesquisaAtivaInferior ? 'text-accent' : 'text-white' ?>">
+                <?= renderIconeMenu('pesquisar.svg', '', 'w-6 h-6') ?>
             </a>
         <?php else: ?>
             <button type="button" id="botao-menu-inferior" aria-label="Abrir menu de navegação"

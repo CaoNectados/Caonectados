@@ -7,6 +7,23 @@ use PDO;
 
 class FeedRepository extends BaseRepository
 {
+    public function buscarOngsPesquisa(array $filtros): array
+    {
+        $params = [];
+        $filtroSql = $this->montarFiltros($filtros, $params);
+        $correspondencia = $filtroSql === '' ? '' : " AND EXISTS (
+            SELECT 1 FROM ANIMAL a JOIN RACA r ON r.raca_id=a.raca_id JOIN ESPECIE e ON e.especie_id=r.especie_id
+            WHERE a.protetor_id=p.protetor_id AND a.status='disponivel' AND a.deletado_em IS NULL $filtroSql
+        )";
+        $st = $this->db->prepare("SELECT p.protetor_id,p.nome_fantasia,pag.foto_perfil
+            FROM PROTETOR p JOIN USUARIO u ON u.usuario_id=p.usuario_id
+            LEFT JOIN PAGINA pag ON pag.protetor_id=p.protetor_id
+            WHERE p.tipo_documento='cnpj' AND p.validado=1 AND p.deletado_em IS NULL
+              AND u.status_conta='ativo' AND u.deletado_em IS NULL AND FIND_IN_SET('ong',u.perfis_ativos)>0
+              $correspondencia ORDER BY p.nome_fantasia,p.protetor_id LIMIT 6");
+        $st->execute($params);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
     /**
      * Catálogo de animais disponíveis para adoção (RF 10 / UC 14 e UC 14.1).
      *
@@ -50,7 +67,7 @@ class FeedRepository extends BaseRepository
                       SELECT 1 FROM SOLICITACAO_ADOCAO sa
                       WHERE sa.animal_id = a.animal_id
                         AND sa.adotante_id = :adotante_id
-                        AND sa.status_solicitacao IN ('pendente', 'em_analise')
+                        AND sa.status_solicitacao IN ('pendente', 'em_analise', 'aprovada')
                   )
                   $whereSql
                 ORDER BY score_preferencia DESC, " . $this->clausulaOrdemEstavel() . "
@@ -123,8 +140,15 @@ class FeedRepository extends BaseRepository
     {
         $sql = '';
         if (!empty($filtros['q'])) {
-            $sql .= ' AND (a.nome LIKE :f_q1 OR r.nome LIKE :f_q2 OR e.nome LIKE :f_q3 OR p.nome_fantasia LIKE :f_q4)';
-            for ($i=1;$i<=4;$i++) $params[':f_q'.$i] = '%' . $filtros['q'] . '%';
+            $sql .= ' AND (a.nome LIKE :f_q1 OR r.nome LIKE :f_q2 OR e.nome LIKE :f_q3 OR p.nome_fantasia LIKE :f_q4 OR a.comportamento LIKE :f_q5 OR a.descricao LIKE :f_q6)';
+            for ($i=1;$i<=6;$i++) $params[':f_q'.$i] = '%' . $filtros['q'] . '%';
+            // Termos comuns da pesquisa também reconhecem a espécie cadastrada.
+            $termo = mb_strtolower(trim($filtros['q']));
+            $especie = ['cachorro'=>'cão','cachorros'=>'cão','caes'=>'cão','cães'=>'cão','gatinho'=>'gato','gatinhos'=>'gato'][$termo] ?? null;
+            if ($especie !== null) {
+                $sql = substr($sql, 0, -1) . ' OR e.nome LIKE :f_q_especie)';
+                $params[':f_q_especie'] = '%' . $especie . '%';
+            }
         }
 
         if (!empty($filtros['porte'])) {

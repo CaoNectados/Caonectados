@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
-echo renderVoltar(($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
+$retorno = $_GET['retorno'] ?? '';
+$retornoSeguro = is_string($retorno) && str_starts_with($retorno, '/pesquisar?') && strlen($retorno) <= 2000;
+$destinoVoltar = $retornoSeguro ? $retorno : (($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
+echo renderVoltar($destinoVoltar);
 
 /** @var \app\models\Animal|null $animal */
 $animal = $animal ?? null;
@@ -96,8 +99,8 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
                     Editar
                 </a>
             <?php endif; ?>
-            <a href="<?= URL_BASE ?>/<?= $podeEditar ? 'animal' : 'feed' ?>" class="font-poppins text-sm font-medium text-text-muted dark:text-dark/60 hover:text-rosaAlerta dark:hover:text-dark transition-colors underline">
-                &larr; Voltar
+            <a href="<?= e(rtrim(URL_BASE, '/') . $destinoVoltar) ?>" class="inline-flex min-h-11 items-center gap-2 font-poppins text-sm font-medium text-text-dark hover:text-rosaAlerta transition-colors underline">
+                <img src="<?= e(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">Voltar
             </a>
         </div>
     </div>
