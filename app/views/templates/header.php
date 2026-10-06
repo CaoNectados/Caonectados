@@ -299,5 +299,5 @@ $itemAuth   = $estaLogado
         })();
     </script>
 
-    <div id="area-conteudo" class="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom))] transition-[margin] duration-300 lg:ml-60 lg:pb-0">
+    <div id="area-conteudo" class="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] transition-[margin] duration-300 lg:ml-60 lg:pb-0">
         <main id="conteudo-dinamico" class="mx-auto w-full max-w-figma flex-1 px-4 sm:px-6">
