@@ -51,6 +51,34 @@ class Controller
         exit();
     }
 
+    /** Entrega o JSON e libera a sessão antes de executar um aviso não crítico. */
+    protected function jsonAposResposta(int $statusCode, array $payload, callable $aposResposta): void
+    {
+        $corpo = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        ignore_user_abort(true);
+        ini_set('zlib.output_compression', '0');
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Length: ' . strlen($corpo));
+        echo $corpo;
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            // Apache/XAMPP: o tamanho completo permite ao cliente concluir a leitura.
+            while (ob_get_level() > 0) {
+                if (!ob_end_flush()) break;
+            }
+            flush();
+        }
+        try {
+            $aposResposta();
+        } catch (\Throwable $e) {
+            error_log('Falha em notificação após a resposta HTTP.');
+        }
+        exit;
+    }
+
     protected function getUriLimpa(): string
     {
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);

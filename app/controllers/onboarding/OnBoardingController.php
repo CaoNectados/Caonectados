@@ -37,6 +37,7 @@ class OnBoardingController extends Controller
     {
         $this->view('onboarding/selecionar_perfil', [
             'titulo'    => 'Selecionar Perfil',
+            'modoAdicao' => ($_SESSION['tipo_perfil'] ?? 'usuario') !== 'usuario',
             'descricao' => 'Escolha o tipo de perfil que deseja criar.'
         ]);
     }
@@ -49,6 +50,7 @@ class OnBoardingController extends Controller
 
         $this->view('onboarding/adotante_onboarding', [
             'titulo'   => 'Cadastro de Adotante',
+            'modoAdicao' => in_array($_SESSION['tipo_perfil'], ['protetor', 'ong'], true),
             'regioes'  => $regioes,
             'especies' => $especies
         ]);
@@ -104,6 +106,7 @@ class OnBoardingController extends Controller
 
         $this->view('onboarding/protetor_onboarding', [
             'titulo'        => 'Cadastro de ONG',
+            'modoAdicao' => $_SESSION['tipo_perfil'] === 'adotante',
             'regioes'       => $regioes,
             'tipo_perfil'   => 'cnpj',
             'modoEdicao'    => !empty($dadosExistentes),
@@ -120,6 +123,7 @@ class OnBoardingController extends Controller
 
         $this->view('onboarding/protetor_onboarding', [
             'titulo'        => 'Cadastro de Protetor',
+            'modoAdicao' => $_SESSION['tipo_perfil'] === 'adotante',
             'regioes'       => $regioes,
             'tipo_perfil'   => 'cpf',
             'modoEdicao'    => !empty($dadosExistentes),
@@ -309,6 +313,10 @@ class OnBoardingController extends Controller
                 }
 
                 // Sem solicitação ainda, ou recusada (reenvio): libera o formulário.
+                if ($solicitacaoAtual && in_array($uriAtual, ['/onboarding/protetor', '/onboarding/ong'], true)) {
+                    $rotaDocumento = $solicitacaoAtual['tipo_documento'] === 'cnpj' ? '/onboarding/ong' : '/onboarding/protetor';
+                    if ($uriAtual !== $rotaDocumento) $this->redirect($rotaDocumento . '?modo=adicao');
+                }
                 return;
             }
         }

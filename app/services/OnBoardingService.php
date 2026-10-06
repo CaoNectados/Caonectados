@@ -194,6 +194,12 @@ class OnBoardingService
             if (!$statusPermitido || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
             PerfilPolicy::exigirPerfilComum($original);
             $adicional=in_array($original['tipo_atual'],['ong','protetor'],true);
+            if ($adicional) {
+                $protetorAtual = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+                if (!$protetorAtual || empty($protetorAtual['validado']) || !empty($protetorAtual['deletado_em'])) {
+                    throw new Exception('Seu perfil atual precisa estar aprovado para criar o perfil de Adotante.');
+                }
+            }
             if ($this->adotanteRepo->buscarPorUsuarioId($usuarioId)) throw new Exception('Perfil de adotante já existe.');
 
             $usuario = new Usuario();
@@ -282,6 +288,7 @@ class OnBoardingService
         ValidationService::validarNome($dados['nome_fantasia'] ?? '');
 
         $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
+        if (!in_array($tipoDoc, ['cpf', 'cnpj'], true)) throw new Exception('Tipo de documento inválido.');
         $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
 
         if ($tipoDoc === 'cnpj') {
@@ -325,6 +332,7 @@ class OnBoardingService
             if (!$statusPermitido || !empty($original['deletado_em'])) throw new Exception('Conta não habilitada.');
             PerfilPolicy::exigirPerfilComum($original);
             $upgrade = $original['tipo_atual'] === 'adotante';
+            if ($upgrade && !$this->adotanteRepo->buscarPorUsuarioId($usuarioId)) throw new Exception('Perfil de adotante não disponível.');
             $existente = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($existente && (!empty($existente['validado']) || empty($existente['deletado_em']))) throw new Exception('Já existe perfil aprovado ou solicitação pendente.');
             if ($existente && $existente['tipo_documento'] !== $tipoDoc) throw new Exception('O tipo de documento do reenvio deve ser preservado.');

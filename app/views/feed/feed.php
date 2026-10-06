@@ -323,10 +323,12 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     async function enviarPetisco(botao) {
         const card = botao.closest('.feed-card');
         const animalId = card ? card.dataset.animalId : null;
-        if (!animalId) return;
+        if (!animalId || botao.disabled) return;
 
         const textoOriginal = botao.textContent;
         botao.disabled = true;
+        botao.setAttribute('aria-busy', 'true');
+        botao.classList.add('animate-pulse', 'motion-reduce:animate-none');
         botao.textContent = 'Enviando...';
 
         try {
@@ -351,6 +353,9 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             botao.disabled = false;
             botao.textContent = textoOriginal;
             mostrarModalFeedback('erro', 'Erro de conexão ao enviar o petisco.');
+        } finally {
+            botao.removeAttribute('aria-busy');
+            botao.classList.remove('animate-pulse', 'motion-reduce:animate-none');
         }
     }
 

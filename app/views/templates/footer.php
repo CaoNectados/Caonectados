@@ -118,6 +118,12 @@
 
             elBtn.className = 'w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins';
             elBtn.style.backgroundColor = cor;
+            const canais = getComputedStyle(document.documentElement).getPropertyValue(nomeVar).trim().split(/\s+/).map(Number).map(valor => {
+                const canal = valor / 255;
+                return canal <= 0.04045 ? canal / 12.92 : Math.pow((canal + 0.055) / 1.055, 2.4);
+            });
+            const luminancia = 0.2126 * canais[0] + 0.7152 * canais[1] + 0.0722 * canais[2];
+            elBtn.style.color = luminancia > 0.179 ? '#000' : '#fff';
 
             elTitulo.innerText = titulos[tipoFeedback] || titulos.informativo;
             elTexto.innerText = mensagem;

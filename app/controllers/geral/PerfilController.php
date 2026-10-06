@@ -60,6 +60,29 @@ class PerfilController extends Controller
         ]);
     }
 
+    public function solicitarPerfil(): void
+    {
+        $tipo = $_SESSION['tipo_perfil'];
+        if (!in_array($tipo, ['adotante', 'protetor', 'ong'], true)
+            || ($_SESSION['status_conta'] ?? '') !== 'ativo' || empty($_SESSION['validado'])) {
+            $this->redirecionarComMensagem('erro', 'Somente usuários verificados podem solicitar outro perfil.', '/perfil');
+        }
+        if ($tipo === 'adotante') {
+            $pedido = $this->protetorRepo->buscarPorUsuarioId((int)$_SESSION['usuario_id']);
+            if ($pedido && (empty($pedido['deletado_em']) || !empty($pedido['validado']))) {
+                $this->redirecionarComMensagem('aviso', 'Você já possui perfil aprovado ou solicitação em análise.', '/perfil');
+            }
+            $destino = $pedido ? '/onboarding/' . ($pedido['tipo_documento'] === 'cnpj' ? 'ong' : 'protetor') : '/onboarding';
+        } else {
+            $repo = new AdotanteRepository();
+            if ($repo->buscarPorUsuarioId((int)$_SESSION['usuario_id'])) {
+                $this->redirecionarComMensagem('aviso', 'Você já possui perfil aprovado ou solicitação em análise.', '/perfil');
+            }
+            $destino = '/onboarding/adotante';
+        }
+        $this->redirect($destino . '?modo=adicao');
+    }
+
     // Usado por: (não referenciado atualmente)
     public function perfil(): void
     {
@@ -370,6 +393,17 @@ class PerfilController extends Controller
 
         $usuarioId = (int)$_SESSION['usuario_id'];
 
+        if ($tipo === 'adotante') {
+            if (!(new AdotanteRepository())->buscarPorUsuarioId($usuarioId)) {
+                $this->redirecionarComMensagem('erro', 'Perfil de Adotante indisponível.', '/perfil');
+            }
+        } else {
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            $tipoAutorizado = ($protetor['tipo_documento'] ?? '') === 'cnpj' ? 'ong' : 'protetor';
+            if (!$protetor || empty($protetor['validado']) || !empty($protetor['deletado_em']) || $tipo !== $tipoAutorizado) {
+                $this->redirecionarComMensagem('erro', 'Perfil ainda não aprovado ou indisponível.', '/perfil');
+            }
+        }
         $this->usuarioRepo->atualizarTipoAtual($usuarioId, $tipo);
 
         // $tipo já foi validado contra a lista de perfis permitidos e ativos do usuário
