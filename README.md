@@ -114,6 +114,12 @@ A autorização é conferida pela conta autenticada no servidor, independentemen
 
 Este fluxo usa as tabelas e campos existentes do `scripts.sql`, sem nova alteração de estrutura. Os comprovantes continuam protegidos e acessíveis apenas ao administrador autenticado.
 
+### Confirmação do petisco
+
+O pedido é confirmado depois do commit no banco. O aviso por email é enviado após a resposta HTTP, com a sessão liberada para a pessoa continuar navegando. Uma falha no SMTP não desfaz o pedido e é registrada no log do PHP.
+
+O envio ainda ocupa um processo PHP durante o SMTP; não há fila ou serviço extra para configurar. Apache/XAMPP usa envio completo do JSON e flush; PHP-FPM usa `fastcgi_finish_request`. Caso a hospedagem tenha proxy com buffer de respostas, valide o tempo de confirmação nesse ambiente.
+
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista
 - Ana Júlia Souza Toledo

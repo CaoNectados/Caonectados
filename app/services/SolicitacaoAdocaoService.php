@@ -14,7 +14,8 @@ class SolicitacaoAdocaoService
     private SolicitacaoAdocaoRepository $repo;
     private HistoricoSolicitacaoRepository $historico;
     private $avisar;
-    public function __construct(?PDO $db = null, ?callable $avisar = null)
+    private array $avisosPendentes = [];
+    public function __construct(?PDO $db = null, ?callable $avisar = null, private bool $adiarAvisos = false)
     {
         $this->db = $db ?? ConnectionFactory::getConnection();
         $this->repo = new SolicitacaoAdocaoRepository($this->db);
@@ -61,11 +62,19 @@ class SolicitacaoAdocaoService
             if ($this->db->inTransaction()) $this->db->rollBack();
             throw $e;
         }
+        $this->avisosPendentes = array_merge($this->avisosPendentes, $eventos);
+        if (!$this->adiarAvisos) $this->enviarAvisosPendentes();
+        return $resultado;
+    }
+    /** O controller pode enviar estes avisos depois de entregar a confirmação HTTP. */
+    public function enviarAvisosPendentes(): void
+    {
+        $eventos = $this->avisosPendentes;
+        $this->avisosPendentes = [];
         foreach ($eventos as [$id, $estado]) {
             try { ($this->avisar)($id, $estado); }
             catch (Throwable $e) { error_log('RF11: falha no aviso da solicitação #' . $id); }
         }
-        return $resultado;
     }
     public function solicitarAdocao(int $adotanteId, int $usuarioId, int $animalId): int
     {
