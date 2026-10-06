@@ -39,7 +39,7 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
             <?php if ($protetorId > 0): ?>
                 <a href="<?= $urlBase ?>/pagina?id=<?= $protetorId ?>" target="_blank" class="text-xs font-bold text-primary dark:text-roxinhoFofo underline">Ver página pública</a>
             <?php endif; ?>
-            <a href="<?= $urlBase ?>/perfil" class="text-xs font-bold text-text-muted underline hover:text-text-dark dark:hover:text-white">&larr; Voltar</a>
+            <a href="<?= $urlBase ?>/perfil" class="inline-flex min-h-11 items-center gap-2 rounded-lg p-2 text-sm text-text-dark hover:bg-primary/10"><img src="<?= e(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">Voltar</a>
         </div>
     </div>
 

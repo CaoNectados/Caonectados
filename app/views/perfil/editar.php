@@ -12,7 +12,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
     <!-- CABEÇALHO -->
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem] mb-6">
-        <a href="<?= URL_BASE ?>/perfil" class="text-2xl hover:scale-110 transition-transform text-text-dark dark:text-white">&larr;</a>
+        <a href="<?= URL_BASE ?>/perfil" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-primary/10" aria-label="Voltar ao perfil"><img src="<?= e(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-7 w-7 dark:brightness-0 dark:invert"></a>
     </div>
 
     <div class="px-4">

@@ -9,6 +9,15 @@ if (!function_exists('e')) {
     }
 }
 
+// Retorno acessível para telas secundárias, com o ícone compartilhado da aplicação.
+function renderVoltar(string $rota, string $rotulo = 'Voltar'): string
+{
+    return '<nav aria-label="Voltar" class="mt-3 mb-2"><a href="' . e(rtrim(URL_BASE, '/') . $rota)
+        . '" class="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-text-dark hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">'
+        . '<img src="' . e(asset('assets/icons/geral/seta-voltar.svg'))
+        . '" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">' . e($rotulo) . '</a></nav>';
+}
+
 // Usado por: templates/footer.php e views com <script>/<link> próprios — versiona arquivos
 // estáticos (JS/CSS) via query string a partir do horário de modificação do arquivo, para
 // que o navegador busque a versão nova assim que o arquivo é editado em vez de servir uma

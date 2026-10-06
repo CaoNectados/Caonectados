@@ -5,7 +5,7 @@
 <div class="max-w-md mx-auto bg-background min-h-screen pb-20 flex flex-col">
 
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem]">
-        <a href="<?= URL_BASE ?>/perfil/editar" class="text-2xl hover:scale-110 transition-transform text-text-dark">&larr;</a>
+        <a href="<?= URL_BASE ?>/perfil/editar" class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-primary/10" aria-label="Voltar à edição de perfil"><img src="<?= e(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-7 w-7 dark:brightness-0 dark:invert"></a>
     </div>
 
     <div class="px-6 flex-1 flex flex-col justify-center text-center">

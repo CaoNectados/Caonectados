@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/login');
 $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 ?>
 

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar(($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
 
 /** @var \app\models\Animal|null $animal */
 $animal = $animal ?? null;

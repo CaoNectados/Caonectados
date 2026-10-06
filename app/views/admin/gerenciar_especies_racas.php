@@ -1,4 +1,5 @@
-<?php require_once __DIR__ . '/../templates/header.php'; ?>
+<?php require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/admin/dashboard'); ?>
 
 <div class="mx-auto max-w-figma p-4 sm:p-6 lg:p-8 min-h-screen">
     <!-- Cabeçalho da Página -->

@@ -2,6 +2,7 @@
 $abaAtual = $abaAtual ?? 'pendentes';
 $solicitacoes = $solicitacoes ?? [];
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/perfil');
 
 $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 

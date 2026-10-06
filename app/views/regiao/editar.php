@@ -1,5 +1,6 @@
 <?php 
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/admin/regiao');
 /** @var \app\models\Regiao $regiao */
 
 ?>

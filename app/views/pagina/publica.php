@@ -31,9 +31,9 @@ $iconesRede = ['instagram' => '📷', 'facebook' => '📘', 'whatsapp' => '💬'
             <img src="<?= htmlspecialchars($fotoFundoUrl) ?>" alt="" class="w-full h-full object-cover">
         <?php endif; ?>
 
-        <a href="<?= $urlBase ?>/" onclick="if(document.referrer){history.back();return false;}"
-           class="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-text-dark shadow" aria-label="Voltar">
-            &larr;
+        <a href="<?= $urlBase ?>/" onclick="if(document.referrer && new URL(document.referrer).origin === location.origin){history.back();return false;}"
+           class="absolute top-4 left-4 w-11 h-11 rounded-full bg-surface flex items-center justify-center text-text-dark shadow" aria-label="Voltar">
+            <img src="<?= e(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">
         </a>
     </div>
 
