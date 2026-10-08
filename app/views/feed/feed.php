@@ -132,25 +132,22 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             </button>
 
             <div id="feed-track" class="flex flex-col lg:flex-row gap-6 overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto w-full h-[72vh] max-h-[700px] items-stretch lg:items-center py-2">
-                <?php foreach ($animais as $indice => $animal): ?>
+                <?php foreach ($animais as $indice =>$animal): ?>
                     <?php
                     $fotos = array_values(array_filter(array_map(
-                        fn(array $f) => feedMontarUrlFoto($f['caminho_foto'], $urlBase),
-                        $animal['fotos'] ?? []
+                        fn(array $f) => feedMontarUrlFoto($f['caminho_foto'], $urlBase),$animal['fotos'] ?? []
                     )));
                     if (empty($fotos)) {
                         $fotos = [$urlBase . '/assets/img/perfil-placeholder.png'];
                     }
-                    $porte = $porteLabels[$animal['porte']] ?? ucfirst((string) $animal['porte']);
-                    $comportamento = $comportamentoLabels[$animal['comportamento']] ?? null;
+                    $porte = $porteLabels[$animal['porte']] ?? ucfirst((string) $animal['porte']);$comportamento = $comportamentoLabels[$animal['comportamento']] ?? null;
 
                     // Validação de destaques por filtro ativo
-                    $fPorteAtivo = !empty($filtrosAtuais['porte']) && $filtrosAtuais['porte'] === $animal['porte'];
-                    $fSexoAtivo = !empty($filtrosAtuais['sexo']) && $filtrosAtuais['sexo'] === $animal['sexo'];
+                    $fPorteAtivo = !empty($filtrosAtuais['porte']) && $filtrosAtuais['porte'] ===$animal['porte'];
+                    $fSexoAtivo = !empty($filtrosAtuais['sexo']) && $filtrosAtuais['sexo'] ===$animal['sexo'];
                     $fCastradoAtivo = !empty($filtrosAtuais['castrado']);
                     $fVacinadoAtivo = !empty($filtrosAtuais['vacinado']);
-                    $fRacaEspecieAtivo = !empty($filtrosAtuais['raca_id']) || !empty($filtrosAtuais['especie_id']);
-                    $urlPerfilAnimal = $urlBase . '/animal/mostrar?id=' . (int) $animal['animal_id'];
+                    $fRacaEspecieAtivo = !empty($filtrosAtuais['raca_id']) || !empty($filtrosAtuais['especie_id']);$urlPerfilAnimal = $urlBase . '/animal/mostrar?id=' . (int) $animal['animal_id'];
                     ?>
                     <div class="feed-card <?= $indice === 0 ? 'is-active' : '' ?> shrink-0 w-full lg:w-[480px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 relative flex flex-col"
                         data-animal-id="<?= (int) $animal['animal_id'] ?>">
@@ -158,7 +155,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                         <!-- Área de foto otimizada (Clique na imagem redireciona para o perfil) -->
                         <div class="relative flex-1 bg-preto1/5 dark:bg-preto2/40 overflow-hidden flex items-center justify-center">
                             <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5 pointer-events-none">
-                                <?php foreach ($fotos as $idxFoto => $foto): ?>
+                                <?php foreach ($fotos as $idxFoto =>$foto): ?>
                                     <div class="h-1 flex-1 rounded-full bg-white/40 overflow-hidden">
                                         <div class="h-full bg-white foto-segmento <?= $idxFoto === 0 ? 'w-full' : 'w-0' ?>"></div>
                                     </div>
@@ -178,7 +175,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
 
                             <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer"
                                 onclick="window.location.href='<?= $urlPerfilAnimal ?>'">
-                                <?php foreach ($fotos as $idxFoto => $foto): ?>
+                                <?php foreach ($fotos as $idxFoto =>$foto): ?>
                                     <img src="<?= htmlspecialchars($foto) ?>"
                                         alt="Foto de <?= htmlspecialchars($animal['nome']) ?>"
                                         class="foto-item absolute inset-0 w-full h-full object-cover object-top <?= $idxFoto === 0 ? '' : 'hidden' ?>"
@@ -289,109 +286,11 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     </a>
 </nav>
 
-<!-- MODAL DE FILTROS -->
-<div id="modal-filtros-feed" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-branco dark:bg-preto1 rounded-3xl max-w-md w-full p-6 max-h-[85vh] overflow-y-auto border border-rosa-3">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-shantell text-xl font-bold text-text-dark dark:text-white">Filtros</h3>
-            <button type="button" onclick="document.getElementById('modal-filtros-feed').classList.add('hidden')" class="text-text-muted hover:text-erro text-3xl font-bold">&times;</button>
-        </div>
-
-        <form method="GET" action="<?= $urlBase ?>/feed" class="space-y-4">
-            <div>
-                <label for="busca-feed" class="label-padrao">Buscar animal ou responsável</label>
-                <input class="input-padrao" id="busca-feed" name="q" maxlength="100" value="<?= htmlspecialchars($filtrosAtuais['q'] ?? '') ?>">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="label-padrao">Porte</label>
-                    <select name="porte" class="input-padrao">
-                        <option value="">Todos</option>
-                        <option value="pequeno" <?= ($filtrosAtuais['porte'] ?? '') === 'pequeno' ? 'selected' : '' ?>>Pequeno</option>
-                        <option value="medio" <?= ($filtrosAtuais['porte'] ?? '') === 'medio' ? 'selected' : '' ?>>Médio</option>
-                        <option value="grande" <?= ($filtrosAtuais['porte'] ?? '') === 'grande' ? 'selected' : '' ?>>Grande</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="label-padrao">Sexo</label>
-                    <select name="sexo" class="input-padrao">
-                        <option value="">Todos</option>
-                        <option value="macho" <?= ($filtrosAtuais['sexo'] ?? '') === 'macho' ? 'selected' : '' ?>>Macho</option>
-                        <option value="femea" <?= ($filtrosAtuais['sexo'] ?? '') === 'femea' ? 'selected' : '' ?>>Fêmea</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="label-padrao">Espécie</label>
-                    <select name="especie_id" id="filtro-especie" class="input-padrao">
-                        <option value="">Todas</option>
-                        <?php foreach ($especies as $especie): ?>
-                            <option value="<?= $especie['especie_id'] ?>" <?= (string) ($filtrosAtuais['especie_id'] ?? '') === (string) $especie['especie_id'] ? 'selected' : '' ?>><?= htmlspecialchars($especie['nome']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label class="label-padrao">Raça</label>
-                    <select name="raca_id" id="filtro-raca" data-old-value="<?= htmlspecialchars((string) ($filtrosAtuais['raca_id'] ?? '')) ?>" class="input-padrao">
-                        <option value="">Todas</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="relative">
-                <label class="label-padrao" for="feed-input-busca-bairro">Bairro / Região</label>
-                <?php
-                $regiaoNomeAtual = '';
-                foreach ($regioes as $regiao) {
-                    if ((string) $regiao->getRegiaoId() === (string) ($filtrosAtuais['regiao_id'] ?? '')) {
-                        $regiaoNomeAtual = $regiao->getNomeRegiao();
-                        break;
-                    }
-                }
-                ?>
-                <input type="text" id="feed-input-busca-bairro" list="feed-lista-regioes"
-                    value="<?= htmlspecialchars($regiaoNomeAtual) ?>"
-                    placeholder="Digite o nome do bairro..." autocomplete="off"
-                    class="input-padrao input-com-seta">
-                <datalist id="feed-lista-regioes">
-                    <?php foreach ($regioes as $regiao): ?>
-                        <option data-id="<?= $regiao->getRegiaoId() ?>" value="<?= htmlspecialchars($regiao->getNomeRegiao()) ?>"></option>
-                    <?php endforeach; ?>
-                </datalist>
-                <input type="hidden" name="regiao_id" id="feed-regiao-id-hidden" value="<?= htmlspecialchars((string) ($filtrosAtuais['regiao_id'] ?? '')) ?>">
-            </div>
-
-            <div>
-                <label class="label-padrao">ONG / Protetor</label>
-                <select name="protetor_id" class="input-padrao">
-                    <option value="">Todos</option>
-                    <?php foreach ($protetores as $p): ?>
-                        <option value="<?= $p['protetor_id'] ?>" <?= (string) ($filtrosAtuais['protetor_id'] ?? '') === (string) $p['protetor_id'] ? 'selected' : '' ?>><?= htmlspecialchars($p['nome_fantasia']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="flex items-center gap-6">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="castrado" value="1" <?= ($filtrosAtuais['castrado'] ?? '') === '1' ? 'checked' : '' ?> class="w-5 h-5 accent-primary">
-                    <span class="text-sm font-bold text-text-dark dark:text-white">Castrado</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="vacinado" value="1" <?= ($filtrosAtuais['vacinado'] ?? '') === '1' ? 'checked' : '' ?> class="w-5 h-5 accent-primary">
-                    <span class="text-sm font-bold text-text-dark dark:text-white">Vacinado</span>
-                </label>
-            </div>
-
-            <div class="flex gap-3 pt-2">
-                <a href="<?= $urlBase ?>/feed" class="flex-1 text-center bg-cinzaMarrom/20 text-text-dark dark:text-white py-3 rounded-full font-bold text-sm">Limpar</a>
-                <button type="submit" class="flex-1 btn-primario justify-center">Aplicar</button>
-            </div>
-        </form>
-    </div>
-</div>
+<!-- MODAL DE FILTROS MODULARIZADO -->
+<?php 
+$idModalFiltros = 'modal-filtros-feed';$destinoFiltros = '/feed'; 
+require __DIR__ . '/filtros.php'; 
+?>
 
 <script>
     (function() {
@@ -732,12 +631,12 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             if (typeof window.registrarNovoCardParaObservador === 'function') window.registrarNovoCardParaObservador(card);
         }
 
-        // Filtro Raça assíncrono
-        // Filtro Raça assíncrono
+        // Filtro Raça assíncrono conectado à rota correta (/raca/json)
         const selEspecie = document.getElementById('filtro-especie');
         const selRaca = document.getElementById('filtro-raca');
+        
         if (selEspecie && selRaca) {
-            let racaInicialCarregada = false; // Controla se é o carregamento inicial da página
+            let racaInicialCarregada = false;
 
             selEspecie.addEventListener('change', async function() {
                 const eId = this.value;
@@ -751,24 +650,25 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                         }
                     });
                     const res = await r.json();
-                    if (r.ok && res.sucesso === true)  {
+                    
+                    if (r.ok && res.sucesso === true) {
                         const oldRaca = selRaca.dataset.oldValue;
                         res.dados.forEach(raca => {
                             const opt = document.createElement('option');
                             opt.value = raca.raca_id;
                             opt.textContent = raca.nome;
-                            // Aplica o valor antigo apenas na primeira vez que a página carrega
                             if (!racaInicialCarregada && String(raca.raca_id) === String(oldRaca)) {
                                 opt.selected = true;
                             }
                             selRaca.appendChild(opt);
                         });
-                        racaInicialCarregada = true; // Evita que selecione a raça antiga ao trocar de espécie manualmente
+                        racaInicialCarregada = true;
                     }
                 } catch (e) {
                     console.error('Erro ao carregar raças:', e);
                 }
             });
+
             if (selEspecie.value) {
                 selEspecie.dispatchEvent(new Event('change'));
             }
