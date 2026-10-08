@@ -34,7 +34,8 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
         </h1>
 
         <?php if (!empty($animal->getFotoPrincipal())): ?>
-            <img src="<?= URL_BASE ?>/<?= htmlspecialchars($animal->getFotoPrincipal()) ?>" alt="Foto de <?= htmlspecialchars($animal->getNome()) ?>" class="w-full max-h-80 object-cover rounded-2xl mb-6 border-2 border-cinzaMarrom/20 dark:border-branco/10">
+            <!-- O 'w-full' foi removido e substituído por w-auto, h-auto, max-h-[28rem] e mx-auto para manter a proporção e evitar o efeito de caixa -->
+            <img src="<?= URL_BASE ?>/<?= htmlspecialchars($animal->getFotoPrincipal()) ?>" alt="Foto de <?= htmlspecialchars($animal->getNome()) ?>" class="w-auto h-auto max-w-full max-h-[28rem] mx-auto rounded-2xl mb-6 border-2 border-cinzaMarrom/20 dark:border-branco/10 shadow-sm">
         <?php endif; ?>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 font-poppins text-text-dark dark:text-dark/90">
@@ -84,19 +85,24 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
         </div>
         <?php endif; ?>
 
-        <div class="flex flex-col sm:flex-row items-center gap-4 mt-10">
-            <a href="<?= URL_BASE ?>/pagina?id=<?= (int)$animal->getProtetorId() ?>" class="btn-primario">Ver responsável</a>
+        <div class="flex flex-col sm:flex-row items-stretch justify-center gap-4 mt-10">
+            <a href="<?= URL_BASE ?>/pagina?id=<?= (int)$animal->getProtetorId() ?>" class="btn-primario flex items-center justify-center px-6">Ver responsável</a>
+            
             <?php if (($_SESSION['tipo_perfil'] ?? '') === 'adotante' && $animal->getStatus() === 'disponivel'): ?>
-                <button type="button" id="petisco-detalhe" class="btn-primario" data-animal="<?= (int)$animal->getAnimalId() ?>">Dar Petisco!</button>
-                <span id="feedback-petisco" role="status" aria-live="polite"></span>
+                <button type="button" id="petisco-detalhe" class="btn-primario flex items-center justify-center px-6" data-animal="<?= (int)$animal->getAnimalId() ?>">Dar Petisco!</button>
+                <span id="feedback-petisco" role="status" aria-live="polite" class="hidden"></span>
             <?php endif; ?>
+            
             <?php if ($podeEditar): ?>
-                <a href="<?= URL_BASE ?>/animal/editar?id=<?= $animal->getAnimalId() ?>" class="w-full sm:w-auto text-center px-8 py-3 bg-rosaAlerta hover:bg-rosa-2 text-white dark:hover:text-text-dark font-bold rounded-full shadow-md transition-all duration-300 hover:-translate-y-1">
+                <a href="<?= URL_BASE ?>/animal/editar?id=<?= $animal->getAnimalId() ?>" class="w-full sm:w-auto flex items-center justify-center text-center px-6 bg-rosaAlerta hover:bg-rosa-2 text-white dark:hover:text-text-dark font-bold rounded-full shadow-md transition-all duration-300 hover:-translate-y-1">
                     Editar
                 </a>
             <?php endif; ?>
-            <a href="<?= URL_BASE ?>/<?= $podeEditar ? 'animal' : 'feed' ?>" class="font-poppins text-sm font-medium text-text-muted dark:text-dark/60 hover:text-rosaAlerta dark:hover:text-dark transition-colors underline">
-                &larr; Voltar
+            
+            <a href="<?= URL_BASE ?>/<?= $podeEditar ? 'animal' : 'feed' ?>" class="flex items-center justify-center gap-1.5 rounded-full bg-cinzaMarrom/20 dark:bg-preto3 text-text-dark dark:text-white px-6 font-bold transition hover:bg-cinzaMarrom/35 dark:hover:bg-preto2 active:scale-95 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8" />
+                </svg> Voltar
             </a>
         </div>
     </div>
@@ -107,6 +113,7 @@ document.getElementById('petisco-detalhe')?.addEventListener('click', async func
     this.disabled = true;
     const feedback = document.getElementById('feedback-petisco');
     feedback.textContent = 'Enviando...';
+    feedback.classList.remove('hidden');
     try {
         const resposta = await fetch(<?= json_encode(URL_BASE . '/solicitacoes/criar', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>, {
             method: 'POST', headers: {Accept: 'application/json'},

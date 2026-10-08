@@ -33,7 +33,7 @@ if ($tipoPerfil === 'administrador') {
     $menuItens[] = ['url' => URL_BASE . '/admin/gerenciar-especies-racas', 'label' => 'Gerenciar Espécies e Raças', 'icone' => 'gerenciar-animais.png'];
     $menuItens[] = ['url' => URL_BASE . '/perfil', 'label' => 'Perfil', 'icone' => 'perfil.svg', 'apenas_desktop' => true];
 
-// ---------------- PERFIL: PROTETOR OU ONG ----------------
+    // ---------------- PERFIL: PROTETOR OU ONG ----------------
 } elseif ($tipoPerfil === 'protetor' || $tipoPerfil === 'ong') {
 
     // Se estiver validado (1/true), exibe todas as opções do painel
@@ -50,16 +50,16 @@ if ($tipoPerfil === 'administrador') {
         $menuItens[] = ['url' => URL_BASE . '/aguardando-aprovacao', 'label' => 'Aguardando Aprovação',   'icone' => 'auditoria.svg'];
     }
 
-// ---------------- PERFIL: ADOTANTE ----------------
+    // ---------------- PERFIL: ADOTANTE ----------------
 } elseif ($tipoPerfil === 'adotante') {
     // Feed ainda não implementado nesta etapa (rota desligada em index.php) — item
     // mantido no header a pedido, só pra já apresentar a navegação final do produto.
     $menuItens[] = ['url' => URL_BASE . '/feed',      'label' => 'Feed',      'icone' => 'dashboard.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/pesquisar', 'label' => 'Pesquisar', 'icone' => 'pesquisar.svg', 'apenas_desktop' => true];
     $menuItens[] = ['url' => URL_BASE . '/minhas-solicitacoes', 'label' => 'Minhas Solicitações', 'icone' => 'solicitacoes.png'];
-    $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Meu Perfil','icone' => 'perfil.svg',    'apenas_desktop' => true];
+    $menuItens[] = ['url' => URL_BASE . '/perfil',    'label' => 'Meu Perfil', 'icone' => 'perfil.svg',    'apenas_desktop' => true];
 
-// ---------------- PERFIL: USUÁRIO GENÉRICO ----------------
+    // ---------------- PERFIL: USUÁRIO GENÉRICO ----------------
 } elseif ($tipoPerfil === 'usuario') {
     $menuItens[] = ['url' => URL_BASE . '/onboarding', 'label' => 'Completar Perfil', 'icone' => 'perfil.svg'];
 }

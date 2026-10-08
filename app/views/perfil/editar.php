@@ -12,7 +12,11 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
     <!-- CABEÇALHO -->
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem] mb-6">
-        <a href="<?= URL_BASE ?>/perfil" class="text-2xl hover:scale-110 transition-transform text-text-dark dark:text-white">&larr;</a>
+        <a href="<?= URL_BASE ?>/perfil" class="text-text-dark dark:text-white hover:scale-110 transition-transform flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+        </a>
     </div>
 
     <div class="px-4">
@@ -41,8 +45,11 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
                     <!-- Lápis flutuante APENAS se NÃO for administrador -->
                     <?php if ($tipoPerfil !== 'administrador'): ?>
-                        <div class="absolute bottom-1 right-1 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted group-hover:bg-rosa-1 transition">
-                            ✏️
+                        <div class="absolute bottom-1 right-1 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted group-hover:bg-rosa-1 transition flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                            </svg>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -58,7 +65,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <!-- ACORDEÃO 1: SOBRE MIM -->
             <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                 <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-sobre')">
-                    <span class="font-bold text-lg text-text-dark dark:text-white">👤 Dados Principais</span>
+                    <span class="font-bold text-lg text-text-dark dark:text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                          <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                        </svg>
+                        Dados Principais
+                    </span>
                     <span id="icon-acc-sobre" class="text-text-muted transition-transform duration-300">▼</span>
                 </button>
                 <div id="acc-sobre" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -97,7 +109,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                             <div class="flex justify-between items-center mb-1">
                                 <label class="label-padrao mb-0"><?= $labelDoc ?></label>
                                 <button type="button" onclick="toggleEditarDocumento()" id="btn-trava-doc" class="text-xs text-roxinhoFofo font-bold flex items-center gap-1 hover:underline cursor-pointer">
-                                    <span id="icone-trava">🔒</span> <span id="texto-trava">Alterar documento</span>
+                                    <span id="icone-trava" class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-lock-fill" viewBox="0 0 16 16">
+                                          <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2"/>
+                                        </svg>
+                                    </span>
+                                    <span id="texto-trava">Alterar documento</span>
                                 </button>
                             </div>
 
@@ -112,8 +129,11 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                         </div>
 
                         <div id="container-novo-comprovante" class="hidden p-3 bg-aviso/10 border border-aviso/30 rounded-xl space-y-2">
-                            <p class="text-xs font-semibold text-aviso flex items-center gap-1">
-                                ⚠️ <strong>Atenção:</strong> Ao alterar o documento, é obrigatório enviar o novo comprovante e sua conta entrará em análise novamente.
+                            <p class="text-xs font-semibold text-aviso flex items-start gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-0.5" viewBox="0 0 16 16">
+                                  <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                                </svg>
+                                <span><strong>Atenção:</strong> Ao alterar o documento, é obrigatório enviar o novo comprovante e sua conta entrará em análise novamente.</span>
                             </p>
                             <div>
                                 <label class="block text-xs font-bold text-text-dark dark:text-white mb-1">Novo Comprovante de Atividade (PDF ou Imagem) *</label>
@@ -134,7 +154,13 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <?php if ($tipoPerfil !== 'administrador'): ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-local')">
-                        <span class="font-bold text-lg text-text-dark dark:text-white">📍 Localização</span>
+                        <span class="font-bold text-lg text-text-dark dark:text-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
+                              <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
+                              <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                            </svg>
+                            Localização
+                        </span>
                         <span id="icon-acc-local" class="text-text-muted transition-transform duration-300">▼</span>
                     </button>
                     <div id="acc-local" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -213,7 +239,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-pref')">
-                        <span class="font-bold text-lg text-text-dark dark:text-white">🏠 Sua Casa e Preferências</span>
+                        <span class="font-bold text-lg text-text-dark dark:text-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-house" viewBox="0 0 16 16">
+                              <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
+                            </svg>
+                            Sua Casa e Preferências
+                        </span>
                         <span id="icon-acc-pref" class="text-text-muted transition-transform duration-300">▼</span>
                     </button>
                     <div id="acc-pref" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -330,7 +361,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <?php elseif (in_array($tipoPerfil, ['ong', 'protetor'])): ?>
                 <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                     <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-pref')">
-                        <span class="font-bold text-lg text-text-dark dark:text-white">❤️ Doações e Redes</span>
+                        <span class="font-bold text-lg text-text-dark dark:text-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                              <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                            </svg>
+                            Doações e Redes
+                        </span>
                         <span id="icon-acc-pref" class="text-text-muted transition-transform duration-300">▼</span>
                     </button>
                     <div id="acc-pref" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
@@ -353,23 +389,35 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             <!-- ACORDEÃO 4: SEGURANÇA -->
             <div class="bg-surface dark:bg-preto1 rounded-2xl shadow-sm overflow-hidden border border-rosa-2 dark:border-preto3">
                 <button type="button" class="w-full px-5 py-4 flex justify-between items-center bg-rosa-1/20 dark:bg-preto2 hover:bg-rosa-1/30 transition focus:outline-none" onclick="toggleAccordion('acc-seguranca')">
-                    <span class="font-bold text-lg text-text-dark dark:text-white">🔒 Segurança</span>
+                    <span class="font-bold text-lg text-text-dark dark:text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-lock" viewBox="0 0 16 16">
+                          <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2M5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1"/>
+                        </svg>
+                        Segurança
+                    </span>
                     <span id="icon-acc-seguranca" class="text-text-muted transition-transform duration-300">▼</span>
                 </button>
                 <div id="acc-seguranca" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
                     <div>
                         <label class="label-padrao">E-mail Atual</label>
                         <p class="text-sm font-bold text-text-dark dark:text-white mb-2"><?= htmlspecialchars($emailMascarado ?? '') ?></p>
-                        <a href="<?= URL_BASE ?>/perfil/trocar-email" class="inline-block bg-roxinhoFofo text-primary py-2 px-4 rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
-                            ✉️ Trocar E-mail
+                        <a href="<?= URL_BASE ?>/perfil/trocar-email" class="inline-flex items-center gap-2 bg-roxinhoFofo text-primary py-2 px-4 rounded-xl font-bold text-xs hover:opacity-90 transition shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+                              <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                            </svg>
+                            Trocar E-mail
                         </a>
                     </div>
                     <hr class="border-rosa-2 dark:border-preto3 my-2">
                     <div>
                         <label class="label-padrao">Senha de Acesso</label>
                         <p class="text-xs text-text-muted mb-3">Para garantir sua segurança, a troca de senha exige verificação por e-mail.</p>
-                        <a href="<?= URL_BASE ?>/perfil/redefinir-senha" class="inline-block bg-roxinhoFofo text-primary py-2 px-5 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-sm">
-                            🔑 Redefinir Senha
+                        <a href="<?= URL_BASE ?>/perfil/redefinir-senha" class="inline-flex items-center gap-2 bg-roxinhoFofo text-primary py-2 px-5 rounded-xl font-bold text-sm hover:opacity-90 transition shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16">
+                              <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8m4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5"/>
+                              <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                            </svg>
+                            Redefinir Senha
                         </a>
                     </div>
                 </div>
@@ -440,7 +488,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             inputDoc.classList.remove('bg-surface/50', 'text-text-muted', 'cursor-not-allowed');
             inputDoc.classList.add('bg-surface', 'text-text-dark', 'dark:text-white', 'border-roxinhoFofo', 'ring-2', 'ring-roxinhoFofo/20');
             containerComprovante.classList.remove('hidden');
-            iconeTrava.innerText = '🔓';
+            iconeTrava.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-unlock-fill" viewBox="0 0 16 16"><path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2"/></svg>';
             textoTrava.innerText = 'Cancelar alteração';
             inputDoc.focus();
         } else {
@@ -448,7 +496,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
             inputDoc.classList.add('bg-surface/50', 'text-text-muted', 'cursor-not-allowed');
             inputDoc.classList.remove('bg-surface', 'text-text-dark', 'dark:text-white', 'border-roxinhoFofo', 'ring-2', 'ring-roxinhoFofo/20');
             containerComprovante.classList.add('hidden');
-            iconeTrava.innerText = '🔒';
+            iconeTrava.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-lock-fill" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2"/></svg>';
             textoTrava.innerText = 'Alterar documento';
 
             const docAtual = document.querySelector('input[name="codigo_documento_atual"]');

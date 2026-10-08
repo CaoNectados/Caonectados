@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once __DIR__ . '/../templates/header.php';
 
 $tipoPerfil = $_SESSION['perfil_ativo']['tipo'] ?? $_SESSION['tipo_perfil'] ?? 'adotante';
@@ -82,7 +82,7 @@ if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
         ['label' => 'Editar Perfil',    'icone' => 'editar-perfil.svg', 'url' => '/perfil/editar'],
         ['label' => 'Alternar Perfil',  'icone' => 'alternar.svg',      'action' => 'abrirModalTrocaPerfil()'],
         ['label' => 'Página ' . ucfirst($tipoPerfil), 'icone' => 'pagina.svg', 'url' => '/pagina-perfil'],
-        ['label' => 'Gerenciar Animais','icone' => 'patinha.svg',       'url' => '/animal'],
+        ['label' => 'Gerenciar Animais', 'icone' => 'patinha.svg',       'url' => '/animal'],
         ['label' => 'Solicitações',     'icone' => 'solicitacoes.svg',  'url' => '/solicitacoes'],
         ['label' => 'Termos de Uso',    'icone' => 'termos.svg',        'action' => 'abrirModalTermos()'],
         ['label' => 'Excluir Conta',    'icone' => 'excluir.svg',       'action' => 'abrirModalExcluirConta()'],
@@ -147,18 +147,21 @@ $paginasBotoes = array_chunk($botoes, 6);
         <div class="relative mb-4">
             <div class="w-32 h-32 rounded-full border-[6px] border-roxoApagado dark:border-preto3 overflow-hidden bg-surface dark:bg-preto2 flex items-center justify-center shadow-md">
                 <img src="<?= htmlspecialchars($srcFoto) ?>"
-                     id="foto-perfil-display"
-                     alt="Foto de perfil"
-                     class="w-full h-full rounded-full <?= ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') ? 'object-contain p-2 bg-white' : 'object-cover' ?>"
-                     onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
+                    id="foto-perfil-display"
+                    alt="Foto de perfil"
+                    class="w-full h-full rounded-full <?= ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') ? 'object-contain p-2 bg-white' : 'object-cover' ?>"
+                    onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
             </div>
 
             <?php if (!in_array($tipoPerfil, ['administrador', 'admin', 'usuario'], true)): ?>
                 <button type="button"
-                        onclick="document.getElementById('input-foto-direta').click()"
-                        class="absolute top-0 right-0 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted hover:bg-rosa-1 transition hover:scale-105 cursor-pointer"
-                        title="Alterar foto">
-                    ✏️
+                    onclick="document.getElementById('input-foto-direta').click()"
+                    class="absolute top-0 right-0 bg-surface dark:bg-preto1 p-2 rounded-full shadow border border-rosa-2 text-text-muted hover:bg-rosa-1 transition hover:scale-105 cursor-pointer"
+                    title="Alterar foto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                    </svg>
                 </button>
                 <input type="file" id="input-foto-direta" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden" onchange="processarSelecaoFoto(event)">
             <?php endif; ?>
@@ -175,20 +178,20 @@ $paginasBotoes = array_chunk($botoes, 6);
             <?php endif; ?>
             <!-- RF 15: Status da solicitação de upgrade para Protetor/ONG -->
             <?php
-                $bannerConfig = [
-                    'pendente' => [
-                        'classes' => 'bg-amarelo/30 dark:bg-preto2 border-amarelo/60 text-text-dark',
-                        'icone'   => '🕓',
-                        'texto'   => "Sua solicitação para se tornar {$tipoSolicitacaoProtetor} está em análise (pendente).",
-                    ],
-                    'recusada' => [
-                        'classes' => 'bg-erro/10 border-erro/30 text-erro',
-                        'icone'   => '❌',
-                        'texto'   => "Sua solicitação para se tornar {$tipoSolicitacaoProtetor} foi recusada. Verifique seu e-mail para mais detalhes e reenvie os dados corrigidos.",
-                    ],
-                    // 'aprovada' não tem banner aqui — o aviso de aprovação vai virar uma
-                    // notificação (sistema de notificações), não um card fixo no perfil.
-                ][$statusSolicitacaoProtetor] ?? null;
+            $bannerConfig = [
+                'pendente' => [
+                    'classes' => 'bg-amarelo/30 dark:bg-preto2 border-amarelo/60 text-text-dark',
+                    'icone'   => '🕓',
+                    'texto'   => "Sua solicitação para se tornar {$tipoSolicitacaoProtetor} está em análise (pendente).",
+                ],
+                'recusada' => [
+                    'classes' => 'bg-erro/10 border-erro/30 text-erro',
+                    'icone'   => '❌',
+                    'texto'   => "Sua solicitação para se tornar {$tipoSolicitacaoProtetor} foi recusada. Verifique seu e-mail para mais detalhes e reenvie os dados corrigidos.",
+                ],
+                // 'aprovada' não tem banner aqui — o aviso de aprovação vai virar uma
+                // notificação (sistema de notificações), não um card fixo no perfil.
+            ][$statusSolicitacaoProtetor] ?? null;
             ?>
             <?php if ($bannerConfig): ?>
                 <div class="w-full flex items-start gap-2 rounded-2xl border px-4 py-3 mb-6 text-sm font-poppins font-medium <?= $bannerConfig['classes'] ?>">
@@ -201,7 +204,10 @@ $paginasBotoes = array_chunk($botoes, 6);
         <!-- Container de Ações -->
         <div class="w-full bg-gray-200 dark:bg-preto1 rounded-3xl p-5 shadow-inner relative border border-gray-300 dark:border-preto3">
             <div class="flex items-center justify-center gap-2 mb-4">
-                <span class="text-xl">⚙️</span>
+                <span class="text-xl"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+                        <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0" />
+                        <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z" />
+                    </svg></span>
                 <h3 class="font-bold text-lg text-text-dark dark:text-white"><?= htmlspecialchars($tituloCabecalho) ?></h3>
             </div>
 
@@ -247,60 +253,60 @@ $paginasBotoes = array_chunk($botoes, 6);
 </div>
 
 <?php if (!in_array($tipoPerfil, ['administrador', 'admin'], true)): ?>
-<!-- Modal Trocar Perfil (Sem fotos listadas, apenas seleção de texto/papel) -->
-<div id="modalTrocarPerfil" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-surface dark:bg-preto1 rounded-3xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 border border-rosa-3">
-        <div class="flex justify-between items-center mb-4 border-b border-cinzaMarrom/20 pb-3">
-            <h3 class="text-xl font-shantell font-bold text-text-dark dark:text-white">Trocar Perfil</h3>
-            <button onclick="fecharModalTrocaPerfil()" class="text-text-muted hover:text-erro text-3xl font-bold transition">&times;</button>
-        </div>
-        
-        <p class="text-sm font-poppins text-text-muted mb-5">Selecione o perfil desejado para navegar:</p>
+    <!-- Modal Trocar Perfil (Sem fotos listadas, apenas seleção de texto/papel) -->
+    <div id="modalTrocarPerfil" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-surface dark:bg-preto1 rounded-3xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 border border-rosa-3">
+            <div class="flex justify-between items-center mb-4 border-b border-cinzaMarrom/20 pb-3">
+                <h3 class="text-xl font-shantell font-bold text-text-dark dark:text-white">Trocar Perfil</h3>
+                <button onclick="fecharModalTrocaPerfil()" class="text-text-muted hover:text-erro text-3xl font-bold transition">&times;</button>
+            </div>
 
-        <div class="space-y-3">
-            <?php
-            // O pseudo-perfil "usuario" (estado transitório pré-onboarding) nunca é uma
-            // opção real de navegação — filtrado da listagem de troca de perfil.
-            //
-            // Lê de perfis_ativos (refrescado do banco a cada requisição autenticada em
-            // Controller::sincronizarSessaoComBanco()), não de $_SESSION['perfis'] — esse
-            // último só é montado uma vez, no login (AuthService::iniciarSessao), e nunca
-            // mais é atualizado depois. Um perfil concedido durante a sessão (ex: RF 20 —
-            // virar Protetor/ONG ou Adotante sem precisar logar de novo) nunca aparecia
-            // aqui pra trocar, mesmo já valendo pra tudo mais no sistema.
-            $perfis = array_values(array_filter($_SESSION['perfis_ativos'] ?? [], fn($tipo) => in_array($tipo, ['adotante', 'protetor', 'ong'], true)));
-            $perfis = array_map(fn($tipo) => ['tipo' => $tipo], $perfis);
-            if (!empty($perfis)):
-                foreach ($perfis as $p):
-                    $isCurrent = (isset($_SESSION['perfil_ativo']['tipo']) && $_SESSION['perfil_ativo']['tipo'] === $p['tipo']);
-            ?>
-                <div class="flex items-center justify-between p-4 rounded-xl transition border <?= $isCurrent ? 'bg-rosa-1/40 border-primary dark:bg-preto2' : 'bg-branco dark:bg-preto2 border-cinzaMarrom/30' ?>">
-                    <div>
-                        <p class="font-bold text-text-dark dark:text-white"><?= htmlspecialchars($labelsPerfil[$p['tipo']] ?? ucfirst($p['tipo'])) ?></p>
+            <p class="text-sm font-poppins text-text-muted mb-5">Selecione o perfil desejado para navegar:</p>
+
+            <div class="space-y-3">
+                <?php
+                // O pseudo-perfil "usuario" (estado transitório pré-onboarding) nunca é uma
+                // opção real de navegação — filtrado da listagem de troca de perfil.
+                //
+                // Lê de perfis_ativos (refrescado do banco a cada requisição autenticada em
+                // Controller::sincronizarSessaoComBanco()), não de $_SESSION['perfis'] — esse
+                // último só é montado uma vez, no login (AuthService::iniciarSessao), e nunca
+                // mais é atualizado depois. Um perfil concedido durante a sessão (ex: RF 20 —
+                // virar Protetor/ONG ou Adotante sem precisar logar de novo) nunca aparecia
+                // aqui pra trocar, mesmo já valendo pra tudo mais no sistema.
+                $perfis = array_values(array_filter($_SESSION['perfis_ativos'] ?? [], fn($tipo) => in_array($tipo, ['adotante', 'protetor', 'ong'], true)));
+                $perfis = array_map(fn($tipo) => ['tipo' => $tipo], $perfis);
+                if (!empty($perfis)):
+                    foreach ($perfis as $p):
+                        $isCurrent = (isset($_SESSION['perfil_ativo']['tipo']) && $_SESSION['perfil_ativo']['tipo'] === $p['tipo']);
+                ?>
+                        <div class="flex items-center justify-between p-4 rounded-xl transition border <?= $isCurrent ? 'bg-rosa-1/40 border-primary dark:bg-preto2' : 'bg-branco dark:bg-preto2 border-cinzaMarrom/30' ?>">
+                            <div>
+                                <p class="font-bold text-text-dark dark:text-white"><?= htmlspecialchars($labelsPerfil[$p['tipo']] ?? ucfirst($p['tipo'])) ?></p>
+                            </div>
+                            <?php if ($isCurrent): ?>
+                                <span class="text-xs bg-primary text-white font-bold px-3 py-1.5 rounded-full shadow-sm">Ativo</span>
+                            <?php else: ?>
+                                <form action="<?= $urlBase ?>/perfil/trocar" method="POST" class="m-0">
+                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                                    <input type="hidden" name="tipo" value="<?= htmlspecialchars($p['tipo']) ?>">
+                                    <button type="submit" class="bg-text-dark hover:opacity-90 dark:bg-primary text-white text-xs font-bold px-4 py-2 rounded-full transition shadow cursor-pointer">
+                                        Acessar
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    <?php
+                    endforeach;
+                else:
+                    ?>
+                    <div class="p-4 bg-erro/10 text-erro border border-erro/20 rounded-xl text-center text-sm font-medium">
+                        Nenhum outro perfil disponível.
                     </div>
-                    <?php if ($isCurrent): ?>
-                        <span class="text-xs bg-primary text-white font-bold px-3 py-1.5 rounded-full shadow-sm">Ativo</span>
-                    <?php else: ?>
-                        <form action="<?= $urlBase ?>/perfil/trocar" method="POST" class="m-0">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                            <input type="hidden" name="tipo" value="<?= htmlspecialchars($p['tipo']) ?>">
-                            <button type="submit" class="bg-text-dark hover:opacity-90 dark:bg-primary text-white text-xs font-bold px-4 py-2 rounded-full transition shadow cursor-pointer">
-                                Acessar
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </div>
-            <?php 
-                endforeach; 
-            else: 
-            ?>
-                <div class="p-4 bg-erro/10 text-erro border border-erro/20 rounded-xl text-center text-sm font-medium">
-                    Nenhum outro perfil disponível.
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
-</div>
 
 <?php endif; ?>
 <!-- Modal Cropper Direto -->
@@ -308,7 +314,7 @@ $paginasBotoes = array_chunk($botoes, 6);
     <div class="bg-surface dark:bg-preto1 rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl border border-rosa-3">
         <h3 class="font-shantell text-xl font-bold mb-1 text-text-dark dark:text-white">Ajustar Foto</h3>
         <p class="text-xs text-text-muted mb-4 text-center">Enquadre sua foto de perfil perfeitamente.</p>
-        
+
         <div class="w-full h-64 bg-branco dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
             <img id="imagem-cropper-direto" src="" alt="Recorte" class="max-w-full max-h-full">
         </div>
@@ -389,9 +395,19 @@ $paginasBotoes = array_chunk($botoes, 6);
 </div>
 
 <style>
-    .hide-scroll::-webkit-scrollbar { display: none; }
-    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-    .cropper-view-box, .cropper-face { border-radius: 50%; }
+    .hide-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hide-scroll {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -399,6 +415,7 @@ $paginasBotoes = array_chunk($botoes, 6);
     function abrirModalTrocaPerfil() {
         document.getElementById('modalTrocarPerfil').classList.remove('hidden');
     }
+
     function fecharModalTrocaPerfil() {
         document.getElementById('modalTrocarPerfil').classList.add('hidden');
     }
@@ -406,6 +423,7 @@ $paginasBotoes = array_chunk($botoes, 6);
     function abrirModalTermos() {
         document.getElementById('modalTermos').classList.remove('hidden');
     }
+
     function fecharModalTermos() {
         document.getElementById('modalTermos').classList.add('hidden');
     }
@@ -413,6 +431,7 @@ $paginasBotoes = array_chunk($botoes, 6);
     function abrirModalExcluirConta() {
         document.getElementById('modalExcluirConta').classList.remove('hidden');
     }
+
     function fecharModalExcluirConta() {
         document.getElementById('modalExcluirConta').classList.add('hidden');
     }
@@ -427,7 +446,9 @@ $paginasBotoes = array_chunk($botoes, 6);
         try {
             const response = await fetch('<?= $urlBase ?>/perfil/excluir', {
                 method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
             const result = await response.json();
 
@@ -477,18 +498,18 @@ $paginasBotoes = array_chunk($botoes, 6);
         if (btnNext) {
             btnNext.addEventListener('click', () => {
                 let curr = Math.round(slider.scrollLeft / slider.clientWidth);
-                slider.scrollTo({ 
-                    left: curr >= indicadores.length - 1 ? 0 : (curr + 1) * slider.clientWidth, 
-                    behavior: 'smooth' 
+                slider.scrollTo({
+                    left: curr >= indicadores.length - 1 ? 0 : (curr + 1) * slider.clientWidth,
+                    behavior: 'smooth'
                 });
             });
         }
         if (btnPrev) {
             btnPrev.addEventListener('click', () => {
                 let curr = Math.round(slider.scrollLeft / slider.clientWidth);
-                slider.scrollTo({ 
-                    left: curr === 0 ? (indicadores.length - 1) * slider.clientWidth : (curr - 1) * slider.clientWidth, 
-                    behavior: 'smooth' 
+                slider.scrollTo({
+                    left: curr === 0 ? (indicadores.length - 1) * slider.clientWidth : (curr - 1) * slider.clientWidth,
+                    behavior: 'smooth'
                 });
             });
         }
@@ -515,9 +536,9 @@ $paginasBotoes = array_chunk($botoes, 6);
 
                 if (cropperInstancia) cropperInstancia.destroy();
                 cropperInstancia = new Cropper(imgEl, {
-                    aspectRatio: 1, 
-                    viewMode: 1, 
-                    dragMode: 'move', 
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
                     autoCropArea: 0.8
                 });
             };
@@ -527,9 +548,9 @@ $paginasBotoes = array_chunk($botoes, 6);
 
     function fecharCropperDireto() {
         document.getElementById('modal-cropper-direto').classList.add('hidden');
-        if (cropperInstancia) { 
-            cropperInstancia.destroy(); 
-            cropperInstancia = null; 
+        if (cropperInstancia) {
+            cropperInstancia.destroy();
+            cropperInstancia = null;
         }
         document.getElementById('input-foto-direta').value = '';
     }
@@ -537,17 +558,20 @@ $paginasBotoes = array_chunk($botoes, 6);
     async function salvarFotoDireta() {
         if (!cropperInstancia) return;
         const btn = document.getElementById('btn-salvar-foto-direta');
-        btn.disabled = true; 
+        btn.disabled = true;
         btn.innerText = 'Enviando...';
 
-        const base64Image = cropperInstancia.getCroppedCanvas({ width: 400, height: 400 }).toDataURL('image/png');
-        const formData = new FormData(); 
+        const base64Image = cropperInstancia.getCroppedCanvas({
+            width: 400,
+            height: 400
+        }).toDataURL('image/png');
+        const formData = new FormData();
         formData.append('foto_cortada', base64Image);
 
         try {
-            const response = await fetch('<?= $urlBase ?>/perfil/atualizar-foto', { 
-                method: 'POST', 
-                body: formData 
+            const response = await fetch('<?= $urlBase ?>/perfil/atualizar-foto', {
+                method: 'POST',
+                body: formData
             });
             const result = await response.json();
 
@@ -572,7 +596,7 @@ $paginasBotoes = array_chunk($botoes, 6);
                 alert('Erro de conexão com o servidor.');
             }
         } finally {
-            btn.disabled = false; 
+            btn.disabled = false;
             btn.innerText = 'Aplicar';
         }
     }
