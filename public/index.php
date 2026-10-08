@@ -58,7 +58,8 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 // mantidos no código para reativação futura — só a rota está desligada).
 $router->get('/feed', 'geral/FeedController@index');
 $router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
-$router->get('/pesquisar', 'geral/FeedController@index');
+$router->get('/pesquisar', 'geral/FeedController@pesquisar');
+$router->get('/pesquisar/carregar-mais', 'geral/FeedController@carregarMaisPesquisa');
 $router->get('/pagina', 'geral/PaginaController@publica');
 $router->get('/pagina-perfil', 'geral/PaginaController@editar');
 $router->post('/pagina-perfil/atualizar', 'geral/PaginaController@atualizar');
@@ -76,6 +77,7 @@ $router->get('/admin/solicitacoes/documento', 'admin/SolicitacaoProtetorControll
 
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
+$router->get('/perfil/solicitar-perfil', 'geral/PerfilController@solicitarPerfil');
 $router->get('/perfil/editar', 'geral/PerfilController@editar');
 $router->post('/perfil/atualizar', 'geral/PerfilController@atualizar');
 $router->post('/perfil/atualizar-foto', 'geral/PerfilController@atualizarFoto');

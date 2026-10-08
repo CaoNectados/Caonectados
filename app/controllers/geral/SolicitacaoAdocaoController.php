@@ -41,13 +41,14 @@ class SolicitacaoAdocaoController extends Controller
             $adotanteId = $this->obterAdotanteIdAutenticado();
             $usuarioId = (int) $_SESSION['usuario_id'];
 
-            $id = $this->service->solicitarAdocao($adotanteId, $usuarioId, $animalId);
+            $service = new SolicitacaoAdocaoService(null, null, true);
+            $id = $service->solicitarAdocao($adotanteId, $usuarioId, $animalId);
 
-            $this->json(200, [
+            $this->jsonAposResposta(200, [
                 'status'   => 'sucesso',
                 'solicitacao_id' => $id,
                 'mensagem' => 'Petisco registrado! Acompanhe sua solicitação.',
-            ]);
+            ], [$service, 'enviarAvisosPendentes']);
         } catch (\Throwable $e) {
             $this->json(400, ['status' => 'erro', 'mensagem' => $e instanceof \DomainException ? $e->getMessage() : 'Não foi possível registrar o pedido. Tente novamente.']);
         }

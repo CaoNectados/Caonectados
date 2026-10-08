@@ -88,7 +88,7 @@ if (!empty($fotoNomeDet)) {
 
             <!-- Informações da Organização -->
             <div class="mb-8">
-                <h3 class="text-lg font-bold text-text-dark mb-1">Informações da ONG</h3>
+                <h3 class="text-lg font-bold text-text-dark mb-1">Informações do Protetor/ONG</h3>
                 <p class="text-xs text-text-muted mb-4">Verifique os dados antes de decidir</p>
 
                 <div class="space-y-4 divide-y divide-cinzaMarrom/20">

@@ -102,6 +102,7 @@ A pasta padrão é `htdocs/Caonectados`, com acesso por `http://localhost/Caonec
 
 As dependências já estão versionadas em `vendor`; use `composer install` se estiverem ausentes ou precisarem ser reinstaladas. Não é necessário criar pasta de migrações nem executar inicialização automática do banco.
 
+
 ## Membros da Equipe
 - Ana Clara Cordeiro Batista
 - Ana Júlia Souza Toledo

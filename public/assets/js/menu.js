@@ -12,6 +12,7 @@
     var iconeSeta = document.getElementById('icone-seta');
 
     var botaoMobile = document.getElementById('botao-menu-mobile');
+    var botaoMenuInferior = document.getElementById('botao-menu-inferior');
     var menuMobile = document.getElementById('menu-mobile');
     var backdropMenu = document.getElementById('backdrop-menu');
     var iconeHamburguer = document.getElementById('icone-menu-hamburguer');
@@ -75,6 +76,10 @@ function definirSidebarAberta(estaAberta) {
 
         botaoMobile.setAttribute('aria-expanded', 'true');
         botaoMobile.setAttribute('aria-label', 'Fechar menu de navegação');
+        if (botaoMenuInferior) {
+            botaoMenuInferior.setAttribute('aria-expanded', 'true');
+            botaoMenuInferior.setAttribute('aria-label', 'Fechar menu de navegação');
+        }
 
         if (iconeHamburguer) {
             iconeHamburguer.classList.add('hidden');
@@ -102,6 +107,10 @@ function definirSidebarAberta(estaAberta) {
 
         botaoMobile.setAttribute('aria-expanded', 'false');
         botaoMobile.setAttribute('aria-label', 'Abrir menu de navegação');
+        if (botaoMenuInferior) {
+            botaoMenuInferior.setAttribute('aria-expanded', 'false');
+            botaoMenuInferior.setAttribute('aria-label', 'Abrir menu de navegação');
+        }
 
         if (iconeHamburguer) {
             iconeHamburguer.classList.remove('hidden');
@@ -155,6 +164,7 @@ function definirSidebarAberta(estaAberta) {
 
     if (botaoMobile && menuMobile) {
         botaoMobile.addEventListener('click', alternarMenuMobile);
+        if (botaoMenuInferior) botaoMenuInferior.addEventListener('click', alternarMenuMobile);
 
         menuMobile.addEventListener('click', function (evento) {
             var elementoClicado = evento.target.closest('a');
@@ -172,6 +182,17 @@ function definirSidebarAberta(estaAberta) {
             if (evento.key === 'Escape' && !menuMobile.hidden) {
                 esconderMenuMobile();
                 botaoMobile.focus();
+            }
+        });
+    }
+
+    var buscaMenuInferior = document.getElementById('busca-menu-inferior');
+    if (buscaMenuInferior) {
+        buscaMenuInferior.addEventListener('click', function (evento) {
+            var campoPesquisa = document.getElementById('termo-pesquisa');
+            if (campoPesquisa) {
+                evento.preventDefault();
+                campoPesquisa.focus();
             }
         });
     }

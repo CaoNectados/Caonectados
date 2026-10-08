@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/animal');
 
 $animalRaw = $_SESSION['animal'] ?? null;
 $old = $_SESSION['old'] ?? [];

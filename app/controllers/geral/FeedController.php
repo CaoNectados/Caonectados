@@ -20,6 +20,46 @@ class FeedController extends Controller
     private AdotanteRepository $adotanteRepo;
 
     private const TAMANHO_PAGINA = 6;
+    private const TAMANHO_PESQUISA = 18;
+
+    public function pesquisar(): void
+    {
+        try {
+            $filtros = $this->filtrosDaRequisicao();
+            $_SESSION['pesquisa_seed'] = random_int(1, 999999);
+            $animais = $this->feedRepo->buscarFeed($this->obterAdotanteIdAutenticado(), [], $filtros, $_SESSION['pesquisa_seed'], 0, self::TAMANHO_PESQUISA);
+            $this->view('feed/pesquisa', [
+                'titulo' => 'Pesquisa', 'animais' => $this->anexarFotos($animais),
+                'ongs' => $this->feedRepo->buscarOngsPesquisa($filtros), 'filtrosAtuais' => $filtros,
+                'temMais' => count($animais) === self::TAMANHO_PESQUISA, 'proximoOffset' => self::TAMANHO_PESQUISA,
+                'especies' => (new EspecieRepository())->buscarAtivas(),
+                'regioes' => (new RegiaoRepository())->buscarTodas(),
+                'protetores' => (new ProtetorRepository())->listarValidados(),
+            ]);
+        } catch (\DomainException $e) {
+            $this->redirecionarComMensagem('erro', $e->getMessage(), '/pesquisar');
+        } catch (\Throwable $e) {
+            $this->redirecionarComMensagem('erro', 'Não foi possível carregar a pesquisa.', '/perfil', $e->getMessage());
+        }
+    }
+
+    public function carregarMaisPesquisa(): void
+    {
+        try {
+            $seed = $_SESSION['pesquisa_seed'] ??= random_int(1, 999999);
+            $offset = $_GET['offset'] ?? '0';
+            if (!is_scalar($offset) || !ctype_digit((string)$offset) || (int)$offset > 100000) throw new \DomainException('Página inválida.');
+            $animais = $this->feedRepo->buscarFeed($this->obterAdotanteIdAutenticado(), [], $this->filtrosDaRequisicao(), (int)$seed, (int)$offset, self::TAMANHO_PESQUISA);
+            $this->json(200, [
+                'status' => 'sucesso', 'animais' => array_map(fn($a) => $this->formatarAnimalParaJson($a), $this->anexarFotos($animais)),
+                'temMais' => count($animais) === self::TAMANHO_PESQUISA, 'proximoOffset' => (int)$offset + self::TAMANHO_PESQUISA,
+            ]);
+        } catch (\DomainException $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => 'Não foi possível carregar mais animais.']);
+        }
+    }
 
     public function __construct()
     {
@@ -114,6 +154,12 @@ class FeedController extends Controller
         if (!is_string($q) || mb_strlen($q) > 100) throw new \DomainException('Pesquisa inválida.');
         foreach (['porte','sexo','castrado','vacinado','regiao_id','especie_id','raca_id','protetor_id'] as $chave) {
             if (isset($_GET[$chave]) && !is_scalar($_GET[$chave])) throw new \DomainException('Filtro inválido.');
+        }
+        foreach (['porte' => ['pequeno','medio','grande'], 'sexo' => ['macho','femea'], 'castrado' => ['0','1'], 'vacinado' => ['0','1']] as $chave => $valores) {
+            if (isset($_GET[$chave]) && $_GET[$chave] !== '' && !in_array((string)$_GET[$chave], $valores, true)) throw new \DomainException('Filtro inválido.');
+        }
+        foreach (['regiao_id','especie_id','raca_id','protetor_id'] as $chave) {
+            if (isset($_GET[$chave]) && $_GET[$chave] !== '' && (!ctype_digit((string)$_GET[$chave]) || (int)$_GET[$chave] < 1)) throw new \DomainException('Filtro inválido.');
         }
         return [
             'q' => trim($q),

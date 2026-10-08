@@ -1,4 +1,5 @@
-<?php require_once __DIR__ . '/../templates/header.php'; 
+<?php require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/admin/gerenciar-especies-racas');
 /** @var \app\models\Especie $especie */
 $especie = $especie ?? new \app\models\Especie();
 ?>

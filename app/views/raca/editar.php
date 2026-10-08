@@ -1,4 +1,5 @@
-<?php require_once __DIR__ . '/../templates/header.php'; 
+<?php require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/admin/gerenciar-especies-racas');
 
 /** @var \app\models\Raca $especies */
 ?>
@@ -11,7 +12,7 @@
         <p class="text-sm text-text-muted mb-6">Atualize os dados da raça selecionada.</p>
 
         <form action="<?= URL_BASE ?>/admin/raca/atualizar?id=<?= $raca->getId(); ?>" method="POST" autocomplete="off" class="space-y-5">
-          
+
             <div>
                 <label for="especie_id" class="label-padrao">Espécie Pertencente <span class="text-rosaAlerta">*</span></label>
                 <select id="especie_id" name="especie_id" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">

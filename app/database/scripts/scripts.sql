@@ -265,6 +265,61 @@ CREATE TABLE IF NOT EXISTS HISTORICO_CLASSIFICACAO_PROTETOR (
     CONSTRAINT fk_classificacao_admin FOREIGN KEY (admin_id) REFERENCES USUARIO(usuario_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_recusa'),
+    'SELECT 1',
+    'ALTER TABLE PROTETOR ADD COLUMN motivo_recusa TEXT NULL'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'inadimplente'),
+    'SELECT 1',
+    'ALTER TABLE PROTETOR ADD COLUMN inadimplente BOOLEAN NOT NULL DEFAULT FALSE'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_inadimplencia'),
+    'SELECT 1',
+    'ALTER TABLE PROTETOR ADD COLUMN motivo_inadimplencia TEXT NULL'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_adotante_dia'),
+    'SELECT 1',
+    'CREATE INDEX idx_solicitacao_adotante_dia ON SOLICITACAO_ADOCAO (adotante_id, data_solicitacao)'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.STATISTICS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_animal_estado'),
+    'SELECT 1',
+    'CREATE INDEX idx_solicitacao_animal_estado ON SOLICITACAO_ADOCAO (animal_id, status_solicitacao)'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+-- Corrigir perfis ativos antigos sem apagar cadastros, animais ou históricos.
+UPDATE USUARIO
+SET tipo_atual = 'administrador', perfis_ativos = 'administrador'
+WHERE tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos) > 0;
+-- FIM ATUALIZAR BANCO EXISTENTE
 
 -- ===========================================
 -- USUÁRIO EXCLUSIVAMENTE ADMINISTRADOR

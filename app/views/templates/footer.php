@@ -25,6 +25,40 @@
     
     </div> 
 
+    <!-- Navegação mobile compartilhada, fora da área que rola. -->
+    <?php
+    $perfilMenuInferior = $_SESSION['tipo_perfil'] ?? null;
+    $inicioMenuInferior = $perfilMenuInferior === 'adotante' ? '/feed' : '/';
+    $perfilDestinoInferior = $perfilMenuInferior === null ? '/login' : '/perfil';
+    $pesquisaAtivaInferior = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/') === rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: '', '/') . '/pesquisar';
+    ?>
+    <nav id="menu-inferior-mobile" aria-label="Navegação inferior"
+         class="fixed <?= $pesquisaAtivaInferior ? 'bottom-2 left-3 right-3 rounded-3xl' : 'bottom-0 inset-x-0' ?> z-30 bg-primary flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.2)] lg:hidden"
+         style="padding-bottom: env(safe-area-inset-bottom)">
+        <a href="<?= e(URL_BASE . $inicioMenuInferior) ?>" aria-label="Início"
+           class="flex h-16 flex-1 items-center justify-center text-white">
+            <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/home.svg" alt="" class="w-6 h-6 brightness-0 invert">
+        </a>
+        <?php if ($perfilMenuInferior === 'adotante'): ?>
+            <a href="<?= e(URL_BASE) ?>/pesquisar" id="busca-menu-inferior" aria-label="Pesquisar animais"
+               <?= $pesquisaAtivaInferior ? 'aria-current="page"' : '' ?> class="flex h-16 flex-1 items-center justify-center <?= $pesquisaAtivaInferior ? 'text-accent' : 'text-white' ?>">
+                <?= renderIconeMenu('pesquisar.svg', '', 'w-6 h-6') ?>
+            </a>
+        <?php else: ?>
+            <button type="button" id="botao-menu-inferior" aria-label="Abrir menu de navegação"
+                    aria-controls="menu-mobile" aria-expanded="false"
+                    class="flex h-16 flex-1 items-center justify-center text-white">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        <?php endif; ?>
+        <a href="<?= e(URL_BASE . $perfilDestinoInferior) ?>" aria-label="<?= $perfilMenuInferior === null ? 'Entrar' : 'Meu perfil' ?>"
+           class="flex h-16 flex-1 items-center justify-center text-white">
+            <img src="<?= e(URL_BASE) ?>/assets/icons/navbar/perfil.svg" alt="" class="w-6 h-6 brightness-0 invert">
+        </a>
+    </nav>
+
     <!-- Modal Unificado de Feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
         <div class="bg-surface rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">
@@ -85,6 +119,12 @@
 
             elBtn.className = 'w-full text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 hover:opacity-90 font-poppins';
             elBtn.style.backgroundColor = cor;
+            const canais = getComputedStyle(document.documentElement).getPropertyValue(nomeVar).trim().split(/\s+/).map(Number).map(valor => {
+                const canal = valor / 255;
+                return canal <= 0.04045 ? canal / 12.92 : Math.pow((canal + 0.055) / 1.055, 2.4);
+            });
+            const luminancia = 0.2126 * canais[0] + 0.7152 * canais[1] + 0.0722 * canais[2];
+            elBtn.style.color = luminancia > 0.179 ? '#000' : '#fff';
 
             elTitulo.innerText = titulos[tipoFeedback] || titulos.informativo;
             elTexto.innerText = mensagem;

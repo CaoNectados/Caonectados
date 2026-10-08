@@ -75,7 +75,7 @@ $itemAuth   = $estaLogado
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?= e($titulo) ?></title>
 
     <script>
@@ -98,7 +98,7 @@ $itemAuth   = $estaLogado
 </head>
 
 <body class="flex h-[100dvh] overflow-hidden flex-col bg-background dark:bg-corFundo-escuro transition-colors">
-    <header class="sticky top-0 z-50 h-16 bg-primary shadow-md">
+    <header class="sticky top-0 z-50 h-16 shrink-0 bg-primary shadow-md">
         <div class="relative flex h-full items-center gap-3 px-4 sm:px-6">
 
             <a href="<?= URL_BASE ?>/" id="logo-header" class="flex items-center shrink-0 gap-2" aria-label="CãoNectados — página inicial">
@@ -299,5 +299,5 @@ $itemAuth   = $estaLogado
         })();
     </script>
 
-    <div id="area-conteudo" class="flex flex-1 flex-col overflow-y-auto transition-[margin] duration-300 lg:ml-60">
+    <div id="area-conteudo" class="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] transition-[margin] duration-300 lg:ml-60 lg:pb-0">
         <main id="conteudo-dinamico" class="mx-auto w-full max-w-figma flex-1 px-4 sm:px-6">

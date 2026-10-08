@@ -1,4 +1,5 @@
-<?php require_once __DIR__ . '/../templates/header.php'; ?>
+<?php require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/login'); ?>
 
 <!-- Wrapper centraliza o card na altura visível da área de conteúdo (mesmo padrão de login/cadastro) -->
 <div class="min-h-[75vh] flex flex-col items-center justify-center px-4 py-10">

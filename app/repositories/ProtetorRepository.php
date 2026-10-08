@@ -273,6 +273,7 @@ class ProtetorRepository extends BaseRepository
                     comprovante_documento = COALESCE(:comprovante, comprovante_documento),
                     validado = 0,
                     data_validacao = NULL,
+                    motivo_recusa = NULL,
                     deletado_em = NULL
                 WHERE protetor_id = :protetor_id";
 

@@ -291,6 +291,7 @@
 ============================================================= -->
 <style>
     :root {
+        color-scheme: light;
         --color-primary: 79 72 115;
         --color-secondary: 113 108 147;
         --color-accent: 250 86 114;
@@ -357,6 +358,7 @@
     }
 
     .dark {
+        color-scheme: dark;
         --color-primary: 79 72 115;
         --color-secondary: 79 72 115;
         --color-background: 25 24 62;

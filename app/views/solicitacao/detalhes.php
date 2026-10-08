@@ -1,6 +1,7 @@
 <?php
 $solicitacao = $solicitacao ?? [];
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/solicitacoes');
 
 $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 

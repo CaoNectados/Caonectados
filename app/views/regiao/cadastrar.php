@@ -1,5 +1,6 @@
 <?php 
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/admin/regiao');
 ?>
 
 <div class="min-h-[80vh] flex flex-col items-center justify-center p-4">
