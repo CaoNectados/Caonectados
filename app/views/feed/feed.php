@@ -120,10 +120,8 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         </div>
     <?php else: ?>
 
-        <!-- ÁREA DO FEED: setas grandes (desktop) + trilha de cards -->
         <div class="relative flex items-center justify-center mt-4 lg:mt-6 px-2 lg:px-4">
 
-            <!-- Botão Anterior estilizado -->
             <button type="button" id="btn-anterior-animal" aria-label="Animal anterior"
                 class="hidden lg:flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition hover:bg-rosaClaro2 dark:bg-preto2 dark:text-branco shrink-0 mr-4 z-10 disabled:opacity-30 disabled:cursor-not-allowed">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.75" aria-hidden="true">
@@ -132,30 +130,32 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             </button>
 
             <div id="feed-track" class="flex flex-col lg:flex-row gap-6 overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto w-full h-[72vh] max-h-[700px] items-stretch lg:items-center py-2">
-                <?php foreach ($animais as $indice =>$animal): ?>
+                <?php foreach ($animais as $indice => $animal): ?>
                     <?php
                     $fotos = array_values(array_filter(array_map(
-                        fn(array $f) => feedMontarUrlFoto($f['caminho_foto'], $urlBase),$animal['fotos'] ?? []
+                        fn(array $f) => feedMontarUrlFoto($f['caminho_foto'], $urlBase),
+                        $animal['fotos'] ?? []
                     )));
                     if (empty($fotos)) {
                         $fotos = [$urlBase . '/assets/img/perfil-placeholder.png'];
                     }
-                    $porte = $porteLabels[$animal['porte']] ?? ucfirst((string) $animal['porte']);$comportamento = $comportamentoLabels[$animal['comportamento']] ?? null;
+                    $porte = $porteLabels[$animal['porte']] ?? ucfirst((string) $animal['porte']);
+                    $comportamento = $comportamentoLabels[$animal['comportamento']] ?? null;
 
                     // Validação de destaques por filtro ativo
-                    $fPorteAtivo = !empty($filtrosAtuais['porte']) && $filtrosAtuais['porte'] ===$animal['porte'];
-                    $fSexoAtivo = !empty($filtrosAtuais['sexo']) && $filtrosAtuais['sexo'] ===$animal['sexo'];
+                    $fPorteAtivo = !empty($filtrosAtuais['porte']) && $filtrosAtuais['porte'] === $animal['porte'];
+                    $fSexoAtivo = !empty($filtrosAtuais['sexo']) && $filtrosAtuais['sexo'] === $animal['sexo'];
                     $fCastradoAtivo = !empty($filtrosAtuais['castrado']);
                     $fVacinadoAtivo = !empty($filtrosAtuais['vacinado']);
-                    $fRacaEspecieAtivo = !empty($filtrosAtuais['raca_id']) || !empty($filtrosAtuais['especie_id']);$urlPerfilAnimal = $urlBase . '/animal/mostrar?id=' . (int) $animal['animal_id'];
+                    $fRacaEspecieAtivo = !empty($filtrosAtuais['raca_id']) || !empty($filtrosAtuais['especie_id']);
+                    $urlPerfilAnimal = $urlBase . '/animal/mostrar?id=' . (int) $animal['animal_id'];
                     ?>
                     <div class="feed-card <?= $indice === 0 ? 'is-active' : '' ?> shrink-0 w-full lg:w-[480px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 relative flex flex-col"
                         data-animal-id="<?= (int) $animal['animal_id'] ?>">
 
-                        <!-- Área de foto otimizada (Clique na imagem redireciona para o perfil) -->
                         <div class="relative flex-1 bg-preto1/5 dark:bg-preto2/40 overflow-hidden flex items-center justify-center">
                             <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5 pointer-events-none">
-                                <?php foreach ($fotos as $idxFoto =>$foto): ?>
+                                <?php foreach ($fotos as $idxFoto => $foto): ?>
                                     <div class="h-1 flex-1 rounded-full bg-white/40 overflow-hidden">
                                         <div class="h-full bg-white foto-segmento <?= $idxFoto === 0 ? 'w-full' : 'w-0' ?>"></div>
                                     </div>
@@ -175,7 +175,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
 
                             <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer"
                                 onclick="window.location.href='<?= $urlPerfilAnimal ?>'">
-                                <?php foreach ($fotos as $idxFoto =>$foto): ?>
+                                <?php foreach ($fotos as $idxFoto => $foto): ?>
                                     <img src="<?= htmlspecialchars($foto) ?>"
                                         alt="Foto de <?= htmlspecialchars($animal['nome']) ?>"
                                         class="foto-item absolute inset-0 w-full h-full object-cover object-top <?= $idxFoto === 0 ? '' : 'hidden' ?>"
@@ -200,12 +200,14 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                     <h2 class="font-shantell text-xl lg:text-2xl font-bold text-text-dark dark:text-white"><?= htmlspecialchars($animal['nome']) ?></h2>
                                     <span class="text-primary dark:text-roxinhoFofo font-bold text-sm"><?= htmlspecialchars(feedFormatarIdade($animal['dt_nasc'])) ?></span>
                                     <?php if (!empty($animal['nome_regiao'])): ?>
-                                        <span class="ml-auto flex items-center gap-1 bg-sucesso/15 text-sucesso text-xs font-bold px-2.5 py-1 rounded-full">📍 <?= htmlspecialchars($animal['nome_regiao']) ?></span>
+                                        <span class="ml-auto flex items-center gap-1 bg-sucesso/15 text-sucesso text-xs font-bold px-2.5 py-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
+                                                <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10" />
+                                                <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                                            </svg> <?= htmlspecialchars($animal['nome_regiao']) ?></span>
                                     <?php endif; ?>
                                 </div>
 
-                                <!-- Badges com destaque verde caso filtradas -->
-                                <div class="flex flex-wrap gap-1.5 mt-2">
+]                                <div class="flex flex-wrap gap-1.5 mt-2">
                                     <span class="px-3 py-1 rounded-full text-xs font-bold transition-colors <?= $fPorteAtivo ? 'bg-sucesso text-white' : 'bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white' ?>">
                                         <?= htmlspecialchars($porte) ?>
                                     </span>
@@ -242,7 +244,9 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                     </div>
                 <?php endforeach; ?>
 
-                <?php if (empty($temMais)): ?>
+                <?php if (!empty($temMais)): ?>
+                    <div id="sentinela-fim-feed" class="shrink-0 w-2 h-2 lg:w-2 lg:h-full"></div>
+                <?php else: ?>
                     <div id="card-fim-feed" class="feed-card is-active shrink-0 w-full lg:w-[480px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 flex flex-col items-center justify-center text-center p-8 gap-4">
                         <div class="flex items-center justify-center gap-3">
                             <img src="<?= $urlBase ?>/assets/img/patinha-baixo.png" alt="" class="w-8 h-8 -rotate-12">
@@ -250,17 +254,16 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                         </div>
                         <p class="font-poppins text-text-dark dark:text-white font-bold">Você já viu todos os animais disponíveis por aqui!</p>
                         <p class="font-poppins text-text-muted text-sm">Volte outra hora para conferir novidades.</p>
-                        <button type="button" onclick="window.location.href='<?= $urlBase ?>/feed'" class="btn-primario"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                        <button type="button" onclick="window.location.href='<?= $urlBase ?>/feed'" class="btn-primario inline-flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z" />
                                 <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466" />
-                            </svg> Atualizar Feed</button>
+                            </svg> Atualizar Feed
+                        </button>
                     </div>
-                <?php else: ?>
-                    <div id="sentinela-fim-feed" class="shrink-0 w-2 h-2 lg:w-2 lg:h-full"></div>
                 <?php endif; ?>
             </div>
 
-            <!-- Botão Próximo estilizado -->
             <button type="button" id="btn-proximo-animal" aria-label="Próximo animal"
                 class="hidden lg:flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition hover:bg-rosaClaro2 dark:bg-preto2 dark:text-branco shrink-0 ml-4 z-10 disabled:opacity-30 disabled:cursor-not-allowed">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.75" aria-hidden="true">
@@ -287,9 +290,10 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
 </nav>
 
 <!-- MODAL DE FILTROS MODULARIZADO -->
-<?php 
-$idModalFiltros = 'modal-filtros-feed';$destinoFiltros = '/feed'; 
-require __DIR__ . '/filtros.php'; 
+<?php
+$idModalFiltros = 'modal-filtros-feed';
+$destinoFiltros = '/feed';
+require __DIR__ . '/filtros.php';
 ?>
 
 <script>
@@ -329,7 +333,7 @@ require __DIR__ . '/filtros.php';
                 const resultado = await resposta.json();
 
                 if (resposta.ok && resultado.status === 'sucesso') {
-                    botao.textContent = 'Petisco enviado! 🐾';
+                    botao.textContent = 'Petisco enviado! ';
                     if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', resultado.mensagem);
                 } else {
                     botao.disabled = false;
@@ -460,12 +464,17 @@ require __DIR__ . '/filtros.php';
             document.getElementById('loading-mais-animais')?.classList.remove('hidden');
 
             try {
+                // Filtra apenas os parâmetros que possuem valores válidos (remove null, undefined e strings vazias)
+                const filtrosLimpos = {};
+                for (const [key, value] of Object.entries(filtrosAtuais)) {
+                    if (value !== null && value !== undefined && value !== '' && value !== 'null') {
+                        filtrosLimpos[key] = value;
+                    }
+                }
+
                 const params = new URLSearchParams({
-                    ...filtrosAtuais,
+                    ...filtrosLimpos,
                     offset: proximoOffset
-                });
-                Array.from(params.keys()).forEach(k => {
-                    if (!params.get(k)) params.delete(k);
                 });
 
                 const response = await fetch(`${urlBase}/feed/carregar-mais?${params.toString()}`, {
@@ -493,12 +502,12 @@ require __DIR__ . '/filtros.php';
         }
 
         function criarCardFimDeFeed() {
+            if (document.getElementById('card-fim-feed')) return;
             const sentinela = document.getElementById('sentinela-fim-feed');
-            if (!sentinela || document.getElementById('card-fim-feed')) return;
 
             const card = document.createElement('div');
             card.id = 'card-fim-feed';
-            card.className = 'feed-card shrink-0 w-full lg:w-[480px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 flex flex-col items-center justify-center text-center p-8 gap-4';
+            card.className = 'feed-card is-active shrink-0 w-full lg:w-[480px] h-full rounded-3xl overflow-hidden bg-branco dark:bg-preto1 shadow-xl border border-rosa-2 dark:border-preto3 flex flex-col items-center justify-center text-center p-8 gap-4';
             card.innerHTML = `
                 <div class="flex items-center justify-center gap-3">
                     <img src="${urlBase}/assets/img/patinha-baixo.png" alt="" class="w-8 h-8 -rotate-12">
@@ -506,7 +515,7 @@ require __DIR__ . '/filtros.php';
                 </div>
                 <p class="font-poppins text-text-dark dark:text-white font-bold">Você já viu todos os animais disponíveis por aqui!</p>
                 <p class="font-poppins text-text-muted text-sm">Volte outra hora para conferir novidades.</p>
-                <button type="button" class="btn-primario">
+                <button type="button" class="btn-primario inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z" />
                         <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466" />
@@ -518,7 +527,13 @@ require __DIR__ . '/filtros.php';
                 window.location.href = `${urlBase}/feed`;
             });
 
-            sentinela.replaceWith(card);
+            if (sentinela) {
+                sentinela.replaceWith(card);
+            } else {
+                const track = document.getElementById('feed-track');
+                if (track) track.appendChild(card);
+            }
+
             if (typeof window.registrarNovoCardParaObservador === 'function') {
                 window.registrarNovoCardParaObservador(card);
             }
@@ -613,7 +628,10 @@ require __DIR__ . '/filtros.php';
                     <div class="flex items-center gap-2 flex-wrap mb-2">
                         <h2 class="font-shantell text-xl lg:text-2xl font-bold text-text-dark dark:text-white">${animal.nome}</h2>
                         <span class="text-primary dark:text-roxinhoFofo font-bold text-sm">${formatarIdade(animal.dt_nasc)}</span>
-                        ${animal.nome_regiao ? `<span class="ml-auto flex items-center gap-1 bg-sucesso/15 text-sucesso text-xs font-bold px-2.5 py-1 rounded-full">📍 ${animal.nome_regiao}</span>` : ''}
+                        ${animal.nome_regiao ? `<span class="ml-auto flex items-center gap-1 bg-sucesso/15 text-sucesso text-xs font-bold px-2.5 py-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
+  <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
+  <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+</svg> ${animal.nome_regiao}</span>` : ''}
                     </div>
                     <div class="flex flex-wrap gap-1.5 mt-2">${badges.join('')}</div>
                 </div>
@@ -634,7 +652,7 @@ require __DIR__ . '/filtros.php';
         // Filtro Raça assíncrono conectado à rota correta (/raca/json)
         const selEspecie = document.getElementById('filtro-especie');
         const selRaca = document.getElementById('filtro-raca');
-        
+
         if (selEspecie && selRaca) {
             let racaInicialCarregada = false;
 
@@ -650,7 +668,7 @@ require __DIR__ . '/filtros.php';
                         }
                     });
                     const res = await r.json();
-                    
+
                     if (r.ok && res.sucesso === true) {
                         const oldRaca = selRaca.dataset.oldValue;
                         res.dados.forEach(raca => {
