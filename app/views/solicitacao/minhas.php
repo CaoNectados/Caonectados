@@ -30,15 +30,20 @@ $statusLabels = [
         <div class="space-y-3">
             <?php foreach ($solicitacoes as $solic): ?>
                 <?php
-                    $status = $statusLabels[$solic['status_solicitacao']] ?? ['texto' => $solic['status_solicitacao'], 'classe' => 'bg-cinzaMarrom/20 dark:bg-preto2 text-text-muted'];
-                    $foto = !empty($solic['animal_foto']) ? $urlBase . '/' . ltrim($solic['animal_foto'], '/') : null;
-                    $podeCancel = in_array($solic['status_solicitacao'], ['pendente', 'em_analise'], true);
+                $status = $statusLabels[$solic['status_solicitacao']] ?? ['texto' => $solic['status_solicitacao'], 'classe' => 'bg-cinzaMarrom/20 dark:bg-preto2 text-text-muted'];
+                $foto = !empty($solic['animal_foto']) ? $urlBase . '/' . ltrim($solic['animal_foto'], '/') : null;
+                $podeCancel = in_array($solic['status_solicitacao'], ['pendente', 'em_analise'], true);
                 ?>
                 <div class="flex items-center gap-3 bg-white dark:bg-preto1 border border-rosa-2 dark:border-preto3 rounded-2xl p-3 shadow-sm">
                     <?php if ($foto): ?>
                         <img src="<?= htmlspecialchars($foto) ?>" alt="" class="w-14 h-14 rounded-xl object-cover shrink-0">
                     <?php else: ?>
-                        <div class="w-14 h-14 rounded-xl bg-rosa-1 dark:bg-preto2 flex items-center justify-center text-xl shrink-0">🐾</div>
+                        <div class="w-14 h-14 rounded-xl bg-rosa-1 dark:bg-preto2 flex items-center justify-center text-xl shrink-0">
+                            <div class="flex items-center justify-center gap-3">
+                                <img src="<?= $urlBase ?>/assets/img/patinha-baixo.png" alt="" class="w-4 h-4 -rotate-12">
+                                <img src="<?= $urlBase ?>/assets/img/patinha-cima.png" alt="" class="w-4 h-4 rotate-12 mt-3">
+                            </div>
+                        </div>
                     <?php endif; ?>
 
                     <div class="flex-1 min-w-0">
@@ -52,11 +57,11 @@ $statusLabels = [
 
                     <?php if ($podeCancel): ?>
                         <form id="form-cancelar-<?= (int) $solic['solicitacao_id'] ?>" method="POST" action="<?= $urlBase ?>/minhas-solicitacoes/cancelar">
-<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                             <input type="hidden" name="id" value="<?= (int) $solic['solicitacao_id'] ?>">
                             <button type="button"
-                                    onclick="abrirModalConfirmacao('Cancelar solicitação', 'Tem certeza que deseja cancelar esta solicitação?', function () { document.getElementById('form-cancelar-<?= (int) $solic['solicitacao_id'] ?>').submit(); }, 'Cancelar solicitação', 'Voltar')"
-                                    class="text-xs font-bold text-erro underline hover:opacity-80 shrink-0">Cancelar</button>
+                                onclick="abrirModalConfirmacao('Cancelar solicitação', 'Tem certeza que deseja cancelar esta solicitação?', function () { document.getElementById('form-cancelar-<?= (int) $solic['solicitacao_id'] ?>').submit(); }, 'Cancelar solicitação', 'Voltar')"
+                                class="text-xs font-bold text-erro underline hover:opacity-80 shrink-0">Cancelar</button>
                         </form>
                     <?php endif; ?>
                 </div>
