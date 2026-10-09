@@ -4,6 +4,10 @@ $retorno = $_GET['retorno'] ?? '';
 $retornoSeguro = is_string($retorno) && str_starts_with($retorno, '/pesquisar?') && strlen($retorno) <= 2000;
 $destinoVoltar = $retornoSeguro ? $retorno : (($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
 echo renderVoltar($destinoVoltar);
+$retorno = $_GET['retorno'] ?? '';
+$retornoSeguro = is_string($retorno) && str_starts_with($retorno, '/pesquisar?') && strlen($retorno) <= 2000;
+$destinoVoltar = $retornoSeguro ? $retorno : (($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
+echo renderVoltar($destinoVoltar);
 
 /** @var \app\models\Animal|null $animal */
 $animal = $animal ?? null;
