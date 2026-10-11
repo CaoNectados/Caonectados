@@ -138,12 +138,18 @@ class UsuarioAdminService
 
         $tipoPerfil = strtolower(trim($tipoPerfil));
         if (!in_array($tipoPerfil, ['adotante', 'protetor', 'ong', 'administrador'], true)
-            || !in_array($acao, ['ativar', 'reativar', 'desativar'], true)) throw new Exception('Perfil ou ação inválida.');
+            || !in_array($acao, ['ativar', 'reativar', 'desativar'], true)) {
+            throw new Exception('Perfil ou ação inválida.');
+        }
+
         $ehAdmin = PerfilPolicy::ehAdministrador($usuario['tipo_atual'], $usuario['perfis_ativos']);
         if (($ehAdmin && $tipoPerfil !== 'administrador') || (!$ehAdmin && $tipoPerfil === 'administrador')) {
             throw new Exception('O perfil administrativo é exclusivo e não pode ser combinado com outros perfis.');
         }
-        $perfisAtivos = array_filter(array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? ''))));
+
+        $perfisAtivos = array_values(array_filter(
+            array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? '')))
+        ));
 
         if ($acao === 'desativar') {
             if ($tipoPerfil === 'administrador' && $usuarioId === $adminLogadoId) {
@@ -158,30 +164,52 @@ class UsuarioAdminService
                 throw new Exception("Este perfil já está desativado.");
             }
 
-            $perfisAtivos = $ehAdmin ? [] : array_diff($perfisAtivos, [$tipoPerfil]);
+            if (count($perfisAtivos) <= 1) {
+                throw new Exception(
+                    "Este é o único perfil ativo deste usuário. Para bloqueá-lo, use a opção "
+                    . "'Desativar Conta' (bloqueio global)."
+                );
+            }
 
-            // Se o perfil desativado era o perfil atual em uso, aponta para outro ativo ou 'usuario'
+            $perfisAtivos = array_values(array_diff($perfisAtivos, [$tipoPerfil]));
+
             $novoTipoAtual = $usuario['tipo_atual'];
             if ($novoTipoAtual === $tipoPerfil) {
-                $novoTipoAtual = !empty($perfisAtivos) ? reset($perfisAtivos) : 'usuario';
+                $novoTipoAtual = $perfisAtivos[0] ?? 'usuario';
             }
 
-            $perfisStr = implode(',', $perfisAtivos);
-            $this->usuarioRepo->atualizarPerfisAtivos($usuarioId, $perfisStr, $novoTipoAtual);
+            $this->usuarioRepo->atualizarPerfisAtivos($usuarioId, implode(',', $perfisAtivos), $novoTipoAtual);
 
             return "Perfil " . strtoupper($tipoPerfil) . " desativado com sucesso!";
-        } else {
-            // Ação: Reativar
-            if (in_array($tipoPerfil, $perfisAtivos, true)) {
-                throw new Exception("Este perfil já se encontra ativo.");
-            }
-
-            $perfisAtivos[] = $tipoPerfil;
-            $perfisStr = implode(',', array_unique($perfisAtivos));
-
-            $this->usuarioRepo->atualizarPerfisAtivos($usuarioId, $perfisStr, $usuario['tipo_atual']);
-
-            return "Perfil " . strtoupper($tipoPerfil) . " reativado com sucesso!";
         }
+
+        // ===== Reativar =====
+        if (in_array($tipoPerfil, $perfisAtivos, true)) {
+            throw new Exception("Este perfil já se encontra ativo.");
+        }
+
+        if ($tipoPerfil === 'adotante') {
+            if (!$this->adotanteRepo->buscarPorUsuarioId($usuarioId)) {
+                throw new Exception("Não há cadastro de Adotante para reativar.");
+            }
+        } elseif (in_array($tipoPerfil, ['protetor', 'ong'], true)) {
+            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+            if (!$protetor) {
+                throw new Exception("Não há cadastro de Protetor/ONG para reativar.");
+            }
+            $tipoEsperado = ($protetor['tipo_documento'] === 'cnpj') ? 'ong' : 'protetor';
+            if ($tipoEsperado !== $tipoPerfil) {
+                throw new Exception("O tipo de perfil não confere com o cadastro do usuário.");
+            }
+        }
+
+        $perfisAtivos[] = $tipoPerfil;
+        $this->usuarioRepo->atualizarPerfisAtivos(
+            $usuarioId,
+            implode(',', array_unique($perfisAtivos)),
+            $usuario['tipo_atual']
+        );
+
+        return "Perfil " . strtoupper($tipoPerfil) . " reativado com sucesso!";
     }
 }
