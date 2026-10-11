@@ -99,116 +99,178 @@ class UsuarioAdminService
     // Usado por: UsuarioController (ativar/desativar conta de usuário)
     public function alterarStatusUsuario(int $usuarioId, string $acao, int $adminLogadoId): string
     {
+        if (!in_array($acao, ['ativar', 'desativar'], true)) {
+            throw new Exception("Ação inválida.");
+        }
+
         if ($usuarioId === $adminLogadoId && $acao === 'desativar') {
             throw new Exception("Você não pode desativar sua própria conta de administrador.");
         }
 
-        $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
-        if (!$usuario) {
-            throw new Exception("Usuário não encontrado.");
-        }
-
         $novoStatus = ($acao === 'desativar') ? 'inativo' : 'ativo';
 
-        if ($usuario['status_conta'] === $novoStatus) {
-            throw new Exception("O usuário já se encontra com o status " . strtoupper($novoStatus) . ".");
-        }
+        $db = ConnectionFactory::getConnection();
+        $db->beginTransaction();
 
-        // Proteção: não permitir desativar o último admin ativo
-        if ($novoStatus === 'inativo' && ($usuario['tipo_atual'] === 'administrador' || str_contains($usuario['perfis_ativos'], 'administrador'))) {
-            if ($this->usuarioRepo->contarAdminsAtivos() <= 1) {
-                throw new Exception("Não é possível desativar este usuário pois ele é o único administrador ativo do sistema.");
+        try {
+            $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
+            $stmt->execute([$usuarioId]);
+            $usuario = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$usuario) {
+                throw new Exception("Usuário não encontrado.");
             }
+
+            if ($usuario['status_conta'] === $novoStatus) {
+                throw new Exception("O usuário já se encontra com o status " . strtoupper($novoStatus) . ".");
+            }
+
+            $perfisDoUsuario = array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? '')));
+            $ehAdmin = ($usuario['tipo_atual'] === 'administrador')
+                || in_array('administrador', $perfisDoUsuario, true);
+
+            if ($novoStatus === 'inativo' && $ehAdmin) {
+                // COUNT dentro da mesma transação enxerga o estado real pós-lock.
+                $totalAdminsAtivos = (int) $db->query(
+                    "SELECT COUNT(*) FROM USUARIO
+                     WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos))
+                       AND status_conta = 'ativo'"
+                )->fetchColumn();
+
+                if ($totalAdminsAtivos <= 1) {
+                    throw new Exception("Não é possível desativar este usuário pois ele é o único administrador ativo do sistema.");
+                }
+            }
+
+            $this->usuarioRepo->atualizarStatusConta($usuarioId, $novoStatus);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
         }
 
-        $this->usuarioRepo->atualizarStatusConta($usuarioId, $novoStatus);
-
-        return $novoStatus === 'ativo' 
-            ? "Usuário reativado com sucesso!" 
+        return $novoStatus === 'ativo'
+            ? "Usuário reativado com sucesso!"
             : "Usuário desativado com sucesso! O acesso global à plataforma foi bloqueado.";
     }
 
     // Usado por: UsuarioController (ativar/desativar perfil específico do usuário)
     public function alterarStatusPerfil(int $usuarioId, string $tipoPerfil, string $acao, int $adminLogadoId): string
     {
-        $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
-        if (!$usuario) {
-            throw new Exception("Usuário não encontrado.");
-        }
-
         $tipoPerfil = strtolower(trim($tipoPerfil));
         if (!in_array($tipoPerfil, ['adotante', 'protetor', 'ong', 'administrador'], true)
             || !in_array($acao, ['ativar', 'reativar', 'desativar'], true)) {
             throw new Exception('Perfil ou ação inválida.');
         }
 
-        $ehAdmin = PerfilPolicy::ehAdministrador($usuario['tipo_atual'], $usuario['perfis_ativos']);
-        if (($ehAdmin && $tipoPerfil !== 'administrador') || (!$ehAdmin && $tipoPerfil === 'administrador')) {
-            throw new Exception('O perfil administrativo é exclusivo e não pode ser combinado com outros perfis.');
-        }
+        $db = ConnectionFactory::getConnection();
+        $db->beginTransaction();
 
-        $perfisAtivos = array_values(array_filter(
-            array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? '')))
-        ));
+        try {
+            $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
+            $stmt->execute([$usuarioId]);
+            $usuario = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if ($acao === 'desativar') {
-            if ($tipoPerfil === 'administrador' && $usuarioId === $adminLogadoId) {
-                throw new Exception("Você não pode desativar seu próprio perfil de administrador.");
+            if (!$usuario) {
+                throw new Exception("Usuário não encontrado.");
             }
 
-            if ($tipoPerfil === 'administrador' && $this->usuarioRepo->contarAdminsAtivos() <= 1) {
-                throw new Exception("Este é o único perfil de administrador ativo no sistema e não pode ser desativado.");
+            $ehAdmin = PerfilPolicy::ehAdministrador($usuario['tipo_atual'], $usuario['perfis_ativos']);
+            if (($ehAdmin && $tipoPerfil !== 'administrador') || (!$ehAdmin && $tipoPerfil === 'administrador')) {
+                throw new Exception('O perfil administrativo é exclusivo e não pode ser combinado com outros perfis.');
             }
 
-            if (!in_array($tipoPerfil, $perfisAtivos, true)) {
-                throw new Exception("Este perfil já está desativado.");
+            $perfisAtivos = array_values(array_filter(
+                array_map('trim', explode(',', strtolower($usuario['perfis_ativos'] ?? '')))
+            ));
+
+            if ($acao === 'desativar') {
+                if ($tipoPerfil === 'administrador' && $usuarioId === $adminLogadoId) {
+                    throw new Exception("Você não pode desativar seu próprio perfil de administrador.");
+                }
+
+                if ($tipoPerfil === 'administrador') {
+                    $totalAdminsAtivos = (int) $db->query(
+                        "SELECT COUNT(*) FROM USUARIO
+                         WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos))
+                           AND status_conta = 'ativo'"
+                    )->fetchColumn();
+
+                    if ($totalAdminsAtivos <= 1) {
+                        throw new Exception("Este é o único perfil de administrador ativo no sistema e não pode ser desativado.");
+                    }
+                }
+
+                if (!in_array($tipoPerfil, $perfisAtivos, true)) {
+                    throw new Exception("Este perfil já está desativado.");
+                }
+
+                if (count($perfisAtivos) <= 1) {
+                    $mensagem = $tipoPerfil === 'administrador'
+                        ? "O perfil administrativo é exclusivo — para bloqueá-lo use 'Desativar Conta'."
+                        : "Este é o único perfil ativo deste usuário. Para bloqueá-lo, use a opção "
+                          . "'Desativar Conta' (bloqueio global).";
+                    throw new Exception($mensagem);
+                }
+
+                $perfisAtivos = array_values(array_diff($perfisAtivos, [$tipoPerfil]));
+
+                $novoTipoAtual = $usuario['tipo_atual'];
+                if ($novoTipoAtual === $tipoPerfil) {
+                    $novoTipoAtual = $perfisAtivos[0] ?? 'usuario';
+                }
+
+                $this->usuarioRepo->atualizarPerfisAtivos($usuarioId, implode(',', $perfisAtivos), $novoTipoAtual);
+
+                $db->commit();
+
+                return "Perfil " . strtoupper($tipoPerfil) . " desativado com sucesso!";
             }
 
-            if (count($perfisAtivos) <= 1) {
-                throw new Exception(
-                    "Este é o único perfil ativo deste usuário. Para bloqueá-lo, use a opção "
-                    . "'Desativar Conta' (bloqueio global)."
-                );
+            // ===== Reativar =====
+            if (in_array($tipoPerfil, $perfisAtivos, true)) {
+                throw new Exception("Este perfil já se encontra ativo.");
             }
 
-            $perfisAtivos = array_values(array_diff($perfisAtivos, [$tipoPerfil]));
+            if ($tipoPerfil === 'adotante') {
+                if (!$this->adotanteRepo->buscarPorUsuarioId($usuarioId)) {
+                    throw new Exception("Não há cadastro de Adotante para reativar.");
+                }
+            } elseif (in_array($tipoPerfil, ['protetor', 'ong'], true)) {
+                $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
+                if (!$protetor) {
+                    throw new Exception("Não há cadastro de Protetor/ONG para reativar.");
+                }
+                $tipoEsperado = ($protetor['tipo_documento'] === 'cnpj') ? 'ong' : 'protetor';
+                if ($tipoEsperado !== $tipoPerfil) {
+                    throw new Exception("O tipo de perfil não confere com o cadastro do usuário.");
+                }
+            }
+
+            $perfisAtivos[] = $tipoPerfil;
+            $perfisAtivos = array_values(array_unique($perfisAtivos));
 
             $novoTipoAtual = $usuario['tipo_atual'];
-            if ($novoTipoAtual === $tipoPerfil) {
-                $novoTipoAtual = $perfisAtivos[0] ?? 'usuario';
+            if ($novoTipoAtual === 'usuario' || !in_array($novoTipoAtual, $perfisAtivos, true)) {
+                $novoTipoAtual = $tipoPerfil;
             }
 
-            $this->usuarioRepo->atualizarPerfisAtivos($usuarioId, implode(',', $perfisAtivos), $novoTipoAtual);
+            $this->usuarioRepo->atualizarPerfisAtivos(
+                $usuarioId,
+                implode(',', $perfisAtivos),
+                $novoTipoAtual
+            );
 
-            return "Perfil " . strtoupper($tipoPerfil) . " desativado com sucesso!";
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
         }
-
-        // ===== Reativar =====
-        if (in_array($tipoPerfil, $perfisAtivos, true)) {
-            throw new Exception("Este perfil já se encontra ativo.");
-        }
-
-        if ($tipoPerfil === 'adotante') {
-            if (!$this->adotanteRepo->buscarPorUsuarioId($usuarioId)) {
-                throw new Exception("Não há cadastro de Adotante para reativar.");
-            }
-        } elseif (in_array($tipoPerfil, ['protetor', 'ong'], true)) {
-            $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
-            if (!$protetor) {
-                throw new Exception("Não há cadastro de Protetor/ONG para reativar.");
-            }
-            $tipoEsperado = ($protetor['tipo_documento'] === 'cnpj') ? 'ong' : 'protetor';
-            if ($tipoEsperado !== $tipoPerfil) {
-                throw new Exception("O tipo de perfil não confere com o cadastro do usuário.");
-            }
-        }
-
-        $perfisAtivos[] = $tipoPerfil;
-        $this->usuarioRepo->atualizarPerfisAtivos(
-            $usuarioId,
-            implode(',', array_unique($perfisAtivos)),
-            $usuario['tipo_atual']
-        );
 
         return "Perfil " . strtoupper($tipoPerfil) . " reativado com sucesso!";
     }
