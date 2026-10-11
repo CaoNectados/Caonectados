@@ -113,7 +113,7 @@ class UsuarioAdminService
         $db->beginTransaction();
 
         try {
-            $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
+            $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? AND deletado_em IS NULL FOR UPDATE');
             $stmt->execute([$usuarioId]);
             $usuario = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -134,7 +134,8 @@ class UsuarioAdminService
                 $totalAdminsAtivos = (int) $db->query(
                     "SELECT COUNT(*) FROM USUARIO
                      WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos))
-                       AND status_conta = 'ativo'"
+                       AND status_conta = 'ativo'
+                       AND deletado_em IS NULL"
                 )->fetchColumn();
 
                 if ($totalAdminsAtivos <= 1) {
@@ -170,7 +171,7 @@ class UsuarioAdminService
         $db->beginTransaction();
 
         try {
-            $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? FOR UPDATE');
+            $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? AND deletado_em IS NULL FOR UPDATE');
             $stmt->execute([$usuarioId]);
             $usuario = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -196,7 +197,8 @@ class UsuarioAdminService
                     $totalAdminsAtivos = (int) $db->query(
                         "SELECT COUNT(*) FROM USUARIO
                          WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos))
-                           AND status_conta = 'ativo'"
+                           AND status_conta = 'ativo'
+                           AND deletado_em IS NULL"
                     )->fetchColumn();
 
                     if ($totalAdminsAtivos <= 1) {
