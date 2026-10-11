@@ -326,7 +326,11 @@
                 url.searchParams.delete('status');
                 window.location.href = url.toString();
             } else {
-                alert(res.mensagem);
+                if (typeof mostrarModalFeedback === 'function') {
+                    mostrarModalFeedback('erro', res.mensagem);
+                } else {
+                    alert(res.mensagem);
+                }
             }
         };
 
@@ -361,7 +365,11 @@
             if (res.status === 'sucesso') {
                 abrirModalGerenciar(usuarioId);
             } else {
-                alert(res.mensagem);
+                if (typeof mostrarModalFeedback === 'function') {
+                    mostrarModalFeedback('erro', res.mensagem);
+                } else {
+                    alert(res.mensagem);
+                }
             }
         };
 
