@@ -207,11 +207,21 @@
 
     function formatarDataBr(dataMysql) {
         if (!dataMysql) return 'data não disponível';
-        // Recebe "YYYY-MM-DD HH:MM:SS" do banco; troca o espaço por "T" pra new Date() não
-        // interpretar como horário UTC (evita a data "voltar" um dia perto da meia-noite).
         const data = new Date(dataMysql.replace(' ', 'T'));
         return isNaN(data.getTime()) ? dataMysql : data.toLocaleDateString('pt-BR');
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const flash = sessionStorage.getItem('caonectados_flash');
+        if (!flash) return;
+        sessionStorage.removeItem('caonectados_flash');
+        try {
+            const dados = JSON.parse(flash);
+            if (typeof mostrarModalFeedback === 'function') {
+                mostrarModalFeedback(dados.tipo || 'sucesso', dados.mensagem || '');
+            }
+        } catch (_) { /* flash corrompido, ignora */ }
+    });
 
     async function abrirModalGerenciar(usuarioId) {
         const modal = document.getElementById('modal-gerenciar');
@@ -224,14 +234,22 @@
             const res = await resp.json();
 
             if (res.status !== 'sucesso') {
-                alert(res.mensagem);
+                if (typeof mostrarModalFeedback === 'function') {
+                    mostrarModalFeedback('erro', res.mensagem || 'Não foi possível carregar os dados.');
+                } else {
+                    console.error(res.mensagem);
+                }
                 fecharModalGerenciar();
                 return;
             }
 
             renderizarDetalhesModal(res.dados);
         } catch (e) {
-            alert('Falha ao buscar dados do usuário.');
+            if (typeof mostrarModalFeedback === 'function') {
+                mostrarModalFeedback('erro', 'Falha ao buscar dados do usuário.');
+            } else {
+                console.error(e);
+            }
             fecharModalGerenciar();
         }
     }
@@ -239,6 +257,7 @@
     function escaparTextoAdmin(valor) {
         return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+
     function renderizarDetalhesModal(dados) {
         const u = dados.usuario;
         const isAtivo = (u.status_conta === 'ativo');
@@ -319,14 +338,19 @@
 
             fecharModalConfirmacao();
             if (res.status === 'sucesso') {
-                // Remove o filtro de "Status" da URL antes de recarregar: senão o usuário que
-                // acabou de ser desativado/reativado simplesmente some da lista filtrada (por
-                // não bater mais com o filtro), dando a falsa impressão de que nada mudou.
+                sessionStorage.setItem('caonectados_flash', JSON.stringify({
+                    tipo: 'sucesso',
+                    mensagem: res.mensagem
+                }));
                 const url = new URL(window.location.href);
                 url.searchParams.delete('status');
                 window.location.href = url.toString();
             } else {
-                alert(res.mensagem);
+                if (typeof mostrarModalFeedback === 'function') {
+                    mostrarModalFeedback('erro', res.mensagem || 'Não foi possível concluir a ação.');
+                } else {
+                    console.error(res.mensagem);
+                }
             }
         };
 
@@ -359,9 +383,17 @@
 
             fecharModalConfirmacao();
             if (res.status === 'sucesso') {
+                sessionStorage.setItem('caonectados_flash', JSON.stringify({
+                    tipo: 'sucesso',
+                    mensagem: res.mensagem
+                }));
                 abrirModalGerenciar(usuarioId);
             } else {
-                alert(res.mensagem);
+                if (typeof mostrarModalFeedback === 'function') {
+                    mostrarModalFeedback('erro', res.mensagem || 'Não foi possível concluir a ação.');
+                } else {
+                    console.error(res.mensagem);
+                }
             }
         };
 
@@ -373,8 +405,24 @@
         acaoPendente = null;
     }
 
-    document.getElementById('btn-executar-acao').addEventListener('click', () => {
-        if (acaoPendente) acaoPendente();
+    document.getElementById('btn-executar-acao').addEventListener('click', async () => {
+        if (!acaoPendente) return;
+
+        const btn = document.getElementById('btn-executar-acao');
+        if (btn.disabled) return;
+
+        const textoOriginal = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'Processando...';
+
+        try {
+            await acaoPendente();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = textoOriginal;
+        }
     });
 </script>
 
