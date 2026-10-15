@@ -171,6 +171,7 @@ class OnBoardingService
     // Usado por: OnBoardingController (cadastro de perfil adotante)
     public function processarAdotante(array $dados, array $arquivos, int $usuarioId): void
     {
+        ValidationService::validarAceiteTermos($dados['aceite_termos'] ?? null);
         ValidationService::validarNome($dados['nome_usuario'] ?? '');
         ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
@@ -252,6 +253,7 @@ class OnBoardingService
             $adotante->setDetalhes(json_encode($detalhes));
             $adotanteId = $this->adotanteRepo->salvar($adotante);
 
+            $this->usuarioRepo->registrarAceiteTermos($usuarioId, ValidationService::VERSAO_TERMOS);
             $conexao->commit();
 
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
@@ -285,6 +287,7 @@ class OnBoardingService
     // Usado por: OnBoardingController (cadastro/reenvio de perfil protetor/ONG)
     public function processarOng(array $dados, array $arquivos, int $usuarioId): void
     {
+        ValidationService::validarAceiteTermos($dados['aceite_termos'] ?? null);
         ValidationService::validarNome($dados['nome_fantasia'] ?? '');
 
         $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
@@ -443,6 +446,7 @@ class OnBoardingService
 
             $this->redeRepo->sincronizarRedes($protetorId, $instagram ?: null, $facebook ?: null);
 
+            $this->usuarioRepo->registrarAceiteTermos($usuarioId, ValidationService::VERSAO_TERMOS);
             $conexao->commit();
 
             foreach ($arquivosAntigosParaRemover as $arquivoAntigo) {

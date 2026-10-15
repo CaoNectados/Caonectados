@@ -24,6 +24,7 @@ class RacaController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        $this->validarCsrf();
 
         // /raca/json e /admin/raca/json são compartilhadas com outros perfis (AJAX de raças por espécie).
         $uriAtual = $this->getUriLimpa();

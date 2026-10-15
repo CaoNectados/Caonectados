@@ -324,7 +324,8 @@ class PerfilController extends Controller
 
             $this->usuarioRepo->salvarCodigoVerificacao($usuarioId, $codigo, $expiraEm);
             
-            MailService::enviarCodigoVerificacao($novoEmail, 'Usuário', $codigo, 'trocar_email');
+            $usuarioAtual = $this->usuarioRepo->buscarPorId($usuarioId);
+            MailService::enviarCodigoVerificacao($novoEmail, $usuarioAtual['nome'] ?? 'Usuário', $codigo, 'trocar_email');
 
             $_SESSION['troca_email_pendente'] = [
                 'usuario_id' => $usuarioId,

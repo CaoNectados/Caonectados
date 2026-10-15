@@ -4,10 +4,6 @@ $retorno = $_GET['retorno'] ?? '';
 $retornoSeguro = is_string($retorno) && str_starts_with($retorno, '/pesquisar?') && strlen($retorno) <= 2000;
 $destinoVoltar = $retornoSeguro ? $retorno : (($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
 echo renderVoltar($destinoVoltar);
-$retorno = $_GET['retorno'] ?? '';
-$retornoSeguro = is_string($retorno) && str_starts_with($retorno, '/pesquisar?') && strlen($retorno) <= 2000;
-$destinoVoltar = $retornoSeguro ? $retorno : (($_SESSION['tipo_perfil'] ?? '') === 'adotante' ? '/feed' : '/animal');
-echo renderVoltar($destinoVoltar);
 
 /** @var \app\models\Animal|null $animal */
 $animal = $animal ?? null;
@@ -15,8 +11,7 @@ $animal = $animal ?? null;
 if (!$animal) {
     echo "<main class='flex flex-col items-center justify-center p-4'>";
     echo "<div class='bg-branco dark:bg-preto2 p-8 rounded-[2rem] shadow-lg text-center border border-cinzaMarrom/20 dark:border-branco/10'>";
-    echo "<h2 class='font-shantell text-2xl font-bold text-text-dark dark:text-dark mb-4'>Erro: Animal não encontrado.</h2>";
-    echo '<a href="' . URL_BASE . '/animal" class="text-rosaAlerta hover:underline dark:text-rosa-1 font-bold">Voltar</a>';
+    echo "<h2 class='font-shantell text-2xl font-bold text-text-dark mb-4'>Erro: Animal não encontrado.</h2>";
     echo "</div></main>";
     require_once __DIR__ . '/../templates/footer.php';
     exit;
@@ -37,7 +32,7 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
 <main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="w-full max-w-2xl flex flex-col py-10 px-8 relative bg-branco dark:bg-fundoChat-escuro shadow-[0_8px_20px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-cinzaMarrom/20 dark:border-branco/10 transition-colors duration-300">
 
-        <h1 class="font-shantell text-[32px] font-bold text-text-dark dark:text-dark mb-8 transition-colors duration-300">
+        <h1 class="font-shantell text-[32px] font-bold break-words text-text-dark mb-8 transition-colors duration-300">
             <?= htmlspecialchars($animal->getNome()) ?>
         </h1>
 
@@ -46,7 +41,7 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
             <img src="<?= URL_BASE ?>/<?= htmlspecialchars($animal->getFotoPrincipal()) ?>" alt="Foto de <?= htmlspecialchars($animal->getNome()) ?>" class="w-auto h-auto max-w-full max-h-[28rem] mx-auto rounded-2xl mb-6 border-2 border-cinzaMarrom/20 dark:border-branco/10 shadow-sm">
         <?php endif; ?>
 
-        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 font-poppins text-text-dark dark:text-dark/90">
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 break-words font-poppins text-text-dark">
             <div>
                 <dt class="text-xs uppercase font-bold opacity-60">Raça</dt>
                 <dd><?= htmlspecialchars($animal->getRacaNome() ?? 'Não informada') ?></dd>
@@ -82,14 +77,14 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
         <?php if (!empty($animal->getHistoricoSaude())): ?>
         <div class="mt-6">
             <h2 class="text-xs uppercase font-bold opacity-60 mb-1">Saúde</h2>
-            <p class="font-poppins text-text-dark dark:text-dark/90 whitespace-pre-line"><?= htmlspecialchars($animal->getHistoricoSaude()) ?></p>
+            <p class="font-poppins text-text-dark whitespace-pre-line"><?= htmlspecialchars($animal->getHistoricoSaude()) ?></p>
         </div>
         <?php endif; ?>
 
         <?php if (!empty($animal->getDescricao())): ?>
         <div class="mt-6">
             <h2 class="text-xs uppercase font-bold opacity-60 mb-1">Sobre</h2>
-            <p class="font-poppins text-text-dark dark:text-dark/90 whitespace-pre-line"><?= htmlspecialchars($animal->getDescricao()) ?></p>
+            <p class="font-poppins text-text-dark whitespace-pre-line"><?= htmlspecialchars($animal->getDescricao()) ?></p>
         </div>
         <?php endif; ?>
 
@@ -107,11 +102,6 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
                 </a>
             <?php endif; ?>
             
-            <a href="<?= URL_BASE ?>/<?= $podeEditar ? 'animal' : 'feed' ?>" class="flex items-center justify-center gap-1.5 rounded-full bg-cinzaMarrom/20 dark:bg-preto3 text-text-dark dark:text-white px-6 font-bold transition hover:bg-cinzaMarrom/35 dark:hover:bg-preto2 active:scale-95 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8" />
-                </svg> Voltar
-            </a>
         </div>
     </div>
 </main>

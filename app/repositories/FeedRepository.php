@@ -30,7 +30,7 @@ class FeedRepository extends BaseRepository
      * Regras aplicadas nesta única query (evita N+1 — JOIN + subconsulta correlacionada):
      * - Só animais com status 'disponivel' e nem o animal nem o protetor estão desativados.
      * - RN 17: exclui animais para os quais o adotante já tem uma solicitação ATIVA
-     *   (pendente/em_analise/aprovada) — via NOT EXISTS, sem carregar as solicitações em PHP.
+     *   (pendente/em_analise) — via NOT EXISTS. Uma adoção histórica não oculta uma devolução.
      * - Se o adotante tem preferências definidas (porte/sexo/espécie/raça, vindas do
      *   detalhes JSON do onboarding/edição de perfil), calcula um score de compatibilidade
      *   e ordena por ele primeiro; animais empatados (inclusive quando não há preferência
@@ -67,7 +67,7 @@ class FeedRepository extends BaseRepository
                       SELECT 1 FROM SOLICITACAO_ADOCAO sa
                       WHERE sa.animal_id = a.animal_id
                         AND sa.adotante_id = :adotante_id
-                        AND sa.status_solicitacao IN ('pendente', 'em_analise', 'aprovada')
+                        AND sa.status_solicitacao IN ('pendente', 'em_analise')
                   )
                   $whereSql
                 ORDER BY score_preferencia DESC, " . $this->clausulaOrdemEstavel() . "

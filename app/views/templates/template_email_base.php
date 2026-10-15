@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="color-scheme" content="light dark">
     <meta name="supported-color-schemes" content="light dark">
-    <title><?= isset($assunto_email) ? $assunto_email : 'CãoNectados' ?></title>
+    <title><?= htmlspecialchars($assunto_email ?? 'CãoNectados', ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -121,7 +121,7 @@
                     <!-- HEADER DO EMAIL -->
                     <tr>
                         <td align="center" style="padding: 30px 0;" class="header-bg">
-                            <img src="https://raw.githubusercontent.com/CaoNectados/ModeloProjetoIntegrador/refs/heads/main/public/assets/img/logo.png" alt="CãoNectados" width="130" style="display: block; border: 0; margin: 0 auto 10px auto;" />
+                            <img src="<?= htmlspecialchars($logoEmail ?? URL_BASE.'/assets/img/logo.png', ENT_QUOTES, 'UTF-8') ?>" alt="CãoNectados" width="130" style="display: block; border: 0; margin: 0 auto 10px auto;" />
                             <h1 class="title-font" style="color: #ffffff; font-size: 22px; margin: 0; font-weight: normal;">CãoNectados 🐾</h1>
                         </td>
                     </tr>
@@ -138,7 +138,7 @@
 
                             <?php if (!empty($titulo_mensagem)): ?>
                                 <h3 class="text-main" style="font-size: 18px; margin-top: 0; margin-bottom: 15px;">
-                                    <?= $titulo_mensagem ?>
+                                    <?= htmlspecialchars($titulo_mensagem, ENT_QUOTES, 'UTF-8') ?>
                                 </h3>
                             <?php endif; ?>
 
@@ -152,7 +152,7 @@
                                         <td align="center" style="padding: 20px 0;">
                                             <div class="code-box" style="border-radius: 12px; display: inline-block; padding: 15px 40px;">
                                                 <span class="code-text" style="font-size: 32px; font-weight: bold; letter-spacing: 6px;">
-                                                    <?= $codigo_destaque ?>
+                                                    <?= htmlspecialchars($codigo_destaque, ENT_QUOTES, 'UTF-8') ?>
                                                 </span>
                                             </div>
                                         </td>
@@ -163,8 +163,8 @@
                             <!-- BOTÃO DE AÇÃO (Só renderiza se o Controller mandar um link) -->
                             <?php if (!empty($link_botao) && !empty($texto_botao)): ?>
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <a href="<?= $link_botao ?>" class="btn-link">
-                                        <?= $texto_botao ?>
+                                    <a href="<?= htmlspecialchars($link_botao, ENT_QUOTES, 'UTF-8') ?>" class="btn-link">
+                                        <?= htmlspecialchars($texto_botao, ENT_QUOTES, 'UTF-8') ?>
                                     </a>
                                 </div>
                             <?php endif; ?>

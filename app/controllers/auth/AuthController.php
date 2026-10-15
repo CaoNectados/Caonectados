@@ -109,6 +109,11 @@ class AuthController extends Controller
         ]);
     }
 
+    public function termos(): void
+    {
+        $this->view('auth/termos', ['titulo' => 'Termos e privacidade']);
+    }
+
     // Usado por: rota POST /cadastro
     public function processarCadastro()
     {
@@ -121,6 +126,7 @@ class AuthController extends Controller
         }
 
         try {
+            ValidationService::validarAceiteTermos($_POST['aceite_termos'] ?? null);
             ValidationService::validarEmail($email);
         } catch (Exception $e) {
             $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
@@ -145,6 +151,8 @@ class AuthController extends Controller
         $codigo = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         $_SESSION['pendente_cadastro'] = [
+            'aceite_termos' => true,
+            'versao_termos' => ValidationService::VERSAO_TERMOS,
             'email'       => $email,
             'senha'       => $senha,
             'tipo_perfil' => 'usuario',
@@ -237,11 +245,13 @@ class AuthController extends Controller
                     return;
                 }
 
-                $this->authService->registrar(
+                ValidationService::validarAceiteTermos($dadosPendentes['aceite_termos'] ?? null);
+                $novoUsuarioId = $this->authService->registrar(
                     $dadosPendentes['email'],
                     $dadosPendentes['senha'],
                     $dadosPendentes['tipo_perfil']
                 );
+                (new UsuarioRepository())->registrarAceiteTermos($novoUsuarioId, $dadosPendentes['versao_termos']);
 
                 unset($_SESSION['pendente_cadastro'], $_SESSION['email_pendente_verificacao'], $_SESSION['falhas_codigo']);
 
@@ -284,7 +294,8 @@ class AuthController extends Controller
                 $usuarioRepo = new UsuarioRepository();
                 $usuarioRepo->salvarCodigoVerificacao($usuarioId, $novoCodigo, $expiraEm);
 
-                MailService::enviarCodigoVerificacao($email, 'Administrador', $novoCodigo, 'login_admin');
+                $usuarioAtual = $usuarioRepo->buscarPorId((int)$usuarioId);
+                MailService::enviarCodigoVerificacao($email, $usuarioAtual['nome'] ?? 'Administrador', $novoCodigo, 'login_admin');
 
                 $this->json(200, ['status' => 'sucesso', 'mensagem' => 'Um novo código foi enviado para seu e-mail.']);
             }

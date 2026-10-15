@@ -6,41 +6,42 @@ echo renderVoltar('/admin/regiao');
 ?>
 
 <div class="min-h-[80vh] flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-white dark:bg-zinc-800 rounded-3xl shadow-xl border border-purple-200 dark:border-zinc-700 p-6 md:p-8 transition-colors duration-200">
+    <div class="w-full max-w-lg bg-surface rounded-3xl shadow-xl border border-rosa-3 p-6 md:p-8 transition-colors duration-200">
         
-        <h1 class="text-2xl font-extrabold text-zinc-800 dark:text-zinc-100 mb-6 text-center">
+        <h1 class="font-shantell text-2xl font-extrabold text-text-dark mb-6 text-center">
             Editar Região
         </h1>
 
         <form action="<?= URL_BASE ?>/admin/regiao/atualizar?id=<?= $regiao->getRegiaoId(); ?>" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
             <div>
-                <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-1">
+                <label class="block text-sm font-semibold text-text-dark mb-1">
                     ID:
                 </label>
                 <input type="text" 
                        value="<?= $regiao->getRegiaoId(); ?>" 
                        disabled 
-                       class="w-full px-4 py-2 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400">
+                       class="w-full px-4 py-2 rounded-xl border border-primary/20 border-primary/30 bg-primary/10 text-text-muted">
             </div>
 
             <div>
-                <label for="nome_regiao" class="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-1">
+                <label for="nome_regiao" class="block text-sm font-semibold text-text-dark mb-1">
                     Nome da Região:
                 </label>
                 <input type="text" 
                        id="nome_regiao" 
                        name="nome_regiao" 
                        value="<?= htmlspecialchars($regiao->getNomeRegiao()); ?>"
-                       class="w-full px-4 py-2.5 rounded-xl border-2 border-zinc-900 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400">
+                       class="w-full px-4 py-2.5 rounded-xl border-2 border-primary/30 bg-surface text-text-dark focus:outline-none focus:border-primary">
             </div>
 
             <div class="flex items-center justify-between pt-4">
                 <a href="<?= URL_BASE ?>/admin/regiao" 
-                   class="text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
-                    ← Cancelar
+                   class="text-sm font-medium text-text-muted hover:text-text-dark">
+                    Cancelar
                 </a>
                 <button type="submit" 
-                        class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition">
+                        class="px-6 py-2 bg-primary hover:opacity-90 text-white font-bold rounded-xl shadow-md transition">
                     Atualizar Região
                 </button>
             </div>

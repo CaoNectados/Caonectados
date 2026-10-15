@@ -10,7 +10,6 @@ if (!$animalRaw) {
     echo "<main class='flex flex-col items-center justify-center p-4'>";
     echo "<div class='bg-branco dark:bg-preto2 p-8 rounded-[2rem] shadow-lg text-center border border-cinzaMarrom/20 dark:border-branco/10'>";
     echo "<h2 class='font-shantell text-2xl font-bold text-text-dark dark:text-branco mb-4'>Erro: Animal não encontrado.</h2>";
-    echo '<a href="' . URL_BASE . '/animal" class="text-rosaAlerta hover:underline dark:text-rosa-1 font-bold">Voltar</a>';
     echo "</div></main>";
     require_once __DIR__ . '/../templates/footer.php';
     exit;
@@ -19,7 +18,8 @@ if (!$animalRaw) {
 $isObj = is_object($animalRaw);
 
 $animalId       = $isObj ? $animalRaw->getAnimalId() : ($animalRaw['animal_id'] ?? 0);
-$racaId         = $isObj ? $animalRaw->getRacaId() : ($animalRaw['raca_id'] ?? 0);
+$racaId         = $old['raca_id'] ?? ($isObj ? $animalRaw->getRacaId() : ($animalRaw['raca_id'] ?? 0));
+$especieSelecionada = $old['especie_id'] ?? ($especieAtual ?? null);
 
 $nome           = !empty($old['nome']) ? $old['nome'] : ($isObj ? $animalRaw->getNome() : ($animalRaw['nome'] ?? ''));
 $dtNasc         = !empty($old['dt_nasc']) ? $old['dt_nasc'] : ($isObj ? $animalRaw->getDtNasc() : ($animalRaw['dt_nasc'] ?? ''));
@@ -64,9 +64,27 @@ if (!empty($fotoCortadaOld)) {
             </div>
         <?php endif; ?>
 
-        <form action="<?= URL_BASE ?>/animal/editar" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6" data-no-autosave>
+        <form id="form-editar-animal" data-racas="<?= e(json_encode($racasEdicao ?? [])) ?>" action="<?= URL_BASE ?>/animal/editar" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6" data-no-autosave>
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
             <input type="hidden" name="id" value="<?= htmlspecialchars($animalId) ?>">
-            <input type="hidden" name="raca_id" value="<?= htmlspecialchars($racaId) ?>">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div><label for="especie-edicao" class="block font-poppins font-bold text-sm text-text-dark mb-2">Espécie</label>
+                    <select id="especie-edicao" name="especie_id" class="input-padrao w-full" required>
+                        <option value="">Selecione</option>
+                        <?php foreach (($especies ?? []) as $esp): if ($esp->isAtivo() || $esp->getId() === (int)$especieAtual): ?>
+                        <option value="<?= (int)$esp->getId() ?>" <?= $esp->getId() === (int)$especieSelecionada ? 'selected' : '' ?>><?= e($esp->getNome()) ?><?= !$esp->isAtivo() ? ' (inativa)' : '' ?></option>
+                        <?php endif; endforeach; ?>
+                    </select>
+                </div>
+                <div><label for="raca-edicao" class="block font-poppins font-bold text-sm text-text-dark mb-2">Raça</label>
+                    <select id="raca-edicao" name="raca_id" class="input-padrao w-full" required>
+                        <option value="">Selecione</option>
+                        <?php foreach (($racasEdicao ?? []) as $raca): if ($raca['especie_id'] === (int)$especieSelecionada): ?>
+                        <option value="<?= (int)$raca['id'] ?>" <?= $raca['id'] === (int)$racaId ? 'selected' : '' ?>><?= e($raca['nome']) ?><?= !$raca['ativo'] ? ' (inativa)' : '' ?></option>
+                        <?php endif; endforeach; ?>
+                    </select>
+                </div>
+            </div>
 
             <div>
                 <label class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2 text-center">Foto do animal</label>
@@ -177,7 +195,7 @@ if (!empty($fotoCortadaOld)) {
 
             <div class="flex flex-col items-center gap-4 mt-8">
                 <button type="submit" class="w-full max-w-[200px] py-4 bg-rosaAlerta hover:bg-rosa-2 text-white dark:hover:text-text-dark font-bold rounded-full shadow-md transition-all duration-300 hover:-translate-y-1">
-                    Continuar
+                    Salvar alterações
                 </button>
                 <a href="<?= URL_BASE ?>/animal" class="font-poppins text-sm font-medium text-text-muted dark:text-branco/60 hover:text-rosaAlerta dark:hover:text-branco transition-colors underline">
                     Cancelar e Voltar
@@ -247,4 +265,5 @@ if (!empty($fotoCortadaOld)) {
     }
 </script>
 
+<script src="<?= e(asset('assets/js/animal-editar.js')) ?>" defer></script>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

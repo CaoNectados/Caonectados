@@ -32,6 +32,7 @@ $router = new Router();
 // ==========================================
 $router->get('/', 'geral/HomeController@index');
 $router->get('/home', 'geral/HomeController@index');
+$router->get('/denunciar', 'geral/DenunciaController@index');
 
 
 // ==========================================
@@ -107,6 +108,7 @@ $router->post('/perfil/excluir', 'geral/PerfilController@excluir');
 $router->get('/login', 'auth/AuthController@login');
 $router->post('/login', 'auth/AuthController@processarLogin');
 $router->get('/cadastro', 'auth/AuthController@cadastro');
+$router->get('/termos', 'auth/AuthController@termos');
 $router->post('/cadastro', 'auth/AuthController@processarCadastro');
 $router->get('/logout', 'auth/AuthController@logout');
 

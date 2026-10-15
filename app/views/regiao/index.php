@@ -1,79 +1,81 @@
 <?php 
 require_once __DIR__ . '/../templates/header.php';
+echo renderVoltar('/admin/dashboard');
 ?>
 
 <div class="min-h-[80vh] flex flex-col items-center justify-center p-4">
     <!-- Container alargado para max-w-4xl para melhor visualização no desktop -->
-    <div class="w-full max-w-4xl bg-white dark:bg-zinc-800 rounded-3xl shadow-xl border border-purple-200 dark:border-zinc-700 p-6 md:p-8 transition-colors duration-200">
+    <div class="w-full max-w-4xl bg-surface rounded-3xl shadow-xl border border-rosa-3 p-6 md:p-8 transition-colors duration-200">
         
         <!-- Cabeçalho -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <div>
-                <h1 class="text-2xl md:text-3xl font-extrabold text-zinc-800 dark:text-zinc-100 tracking-wide flex items-center gap-2">
-                    <span class="text-3xl">📍</span> Regiões Cadastradas
+                <h1 class="font-shantell text-2xl md:text-3xl font-extrabold text-text-dark tracking-wide flex items-center gap-2">
+                    <?= renderIconeMenu('bairros.svg', '', 'h-7 w-7 text-primary') ?> Regiões Cadastradas
                 </h1>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Gerencie os bairros e áreas de atuação disponíveis.</p>
+                <p class="text-sm text-text-muted mt-1">Gerencie os bairros e áreas de atuação disponíveis.</p>
             </div>
             <a href="<?= URL_BASE ?>/admin/regiao/cadastrar" 
-               class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl transition duration-150 shadow hover:shadow-md whitespace-nowrap">
+               class="px-5 py-2.5 bg-primary hover:opacity-90 text-white text-sm font-bold rounded-xl transition duration-150 shadow hover:shadow-md whitespace-nowrap">
                 + Nova Região
             </a>
         </div>
 
         <!-- Busca -->
-        <div class="mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+        <div class="mb-6 p-4 bg-surface rounded-2xl border border-primary/20">
             <div class="relative w-full">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">🔍</span>
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted"><?= renderIconeMenu('pesquisar.svg', '', 'h-5 w-5') ?></span>
                 <input type="text" 
                        id="busca-regiao" 
                        placeholder="Buscar região pelo nome..." 
-                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-zinc-900 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-100 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400 transition"
+                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-primary/30 bg-surface text-text-dark focus:outline-none focus:border-primary transition"
                        onkeyup="filtrarRegioes()">
             </div>
         </div>
 
         <form action="<?= URL_BASE ?>/admin/regiao/deletar-multiplos" method="POST" id="form-regioes">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
             <div class="mb-4">
-                <div class="flex items-center justify-between mb-2 px-1">
-                    <label class="block text-lg font-bold text-zinc-700 dark:text-zinc-200">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-2 px-1">
+                    <label class="block text-lg font-bold text-text-dark">
                         Selecionar para Exclusão
                     </label>
-                    <label class="flex items-center gap-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer select-none">
-                        <input type="checkbox" id="master-checkbox" onchange="toggleTodasRegioes(this)" class="w-4 h-4 rounded border-2 border-zinc-800 text-purple-600 focus:ring-purple-500 dark:bg-zinc-800 dark:border-zinc-500">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-text-muted cursor-pointer select-none">
+                        <input type="checkbox" id="master-checkbox" onchange="toggleTodasRegioes(this)" class="w-4 h-4 rounded border-2 border-primary/30 text-primary focus:ring-primary bg-surface">
                         Marcar Todas
                     </label>
                 </div>
                 
-                <div class="border-2 border-zinc-900 dark:border-zinc-600 rounded-2xl overflow-hidden bg-purple-50/30 dark:bg-zinc-900/50">
-                    <div class="max-h-96 overflow-y-auto divide-y divide-purple-100 dark:divide-zinc-700" id="lista-regioes">
+                <div class="border-2 border-primary/30 rounded-2xl overflow-hidden bg-surface">
+                    <div class="max-h-96 overflow-y-auto divide-y divide-primary/20" id="lista-regioes">
                         <?php if (!empty($regioes)): ?>
                             <?php foreach ($regioes as $r): ?>
-                                <div class="regiao-item flex items-center justify-between p-3.5 hover:bg-purple-100/60 dark:hover:bg-zinc-700/50 transition" 
+                                <div class="regiao-item flex items-center justify-between p-3.5 hover:bg-primary/10 transition"
                                      data-nome="<?= htmlspecialchars(strtolower($r->getNomeRegiao())); ?>">
                                     
                                     <div class="flex items-center space-x-3">
-                                        <span class="text-xs font-mono text-zinc-400 dark:text-zinc-500">
+                                        <span class="text-xs font-mono text-text-muted dark:text-text-muted">
                                             #<?= $r->getRegiaoId(); ?>
                                         </span>
-                                        <span class="text-base font-semibold text-zinc-800 dark:text-zinc-100">
+                                        <span class="text-base font-semibold text-text-dark">
                                             <?= htmlspecialchars($r->getNomeRegiao()); ?>
                                         </span>
                                     </div>
                                     
                                     <div class="flex items-center space-x-4">
                                         <a href="<?= URL_BASE ?>/admin/regiao/editar?id=<?= $r->getRegiaoId(); ?>" 
-                                           class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline">
+                                           class="text-xs font-bold text-primary hover:underline">
                                             Editar
                                         </a>
                                         <input type="checkbox" 
                                                name="ids[]" 
                                                value="<?= $r->getRegiaoId(); ?>" 
-                                               class="chk-regiao w-5 h-5 rounded border-2 border-zinc-800 text-purple-600 focus:ring-purple-500 dark:bg-zinc-800 dark:border-zinc-500">
+                                               class="chk-regiao w-5 h-5 rounded border-2 border-primary/30 text-primary focus:ring-primary bg-surface">
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <div class="p-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            <div class="p-8 text-center text-sm text-text-muted">
                                 Nenhuma região cadastrada ainda.
                             </div>
                         <?php endif; ?>
@@ -85,7 +87,7 @@ require_once __DIR__ . '/../templates/header.php';
                 <div class="flex justify-center mt-6">
                     <button type="button" 
                             onclick="confirmarExclusaoModal()"
-                            class="px-8 py-2.5 bg-purple-200 hover:bg-purple-300 dark:bg-purple-900/60 dark:hover:bg-purple-800 text-zinc-900 dark:text-purple-100 font-bold rounded-2xl border-2 border-zinc-900 dark:border-zinc-600 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer">
+                            class="px-8 py-2.5 bg-primary/10 hover:bg-primary/20 text-text-dark font-bold rounded-2xl border-2 border-primary/30 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer">
                         Deletar regiões marcadas
                     </button>
                 </div>

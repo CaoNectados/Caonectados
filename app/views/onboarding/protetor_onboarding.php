@@ -273,8 +273,8 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         </div>
 
         <label class="flex items-center gap-3 p-3 bg-rosa-1/30 dark:bg-preto2 rounded-xl mb-6 text-left cursor-pointer border border-rosa-2 dark:border-preto3">
-            <input type="checkbox" name="aceite_termos" id="aceite_termos" <?= $modoEdicao ? 'checked' : '' ?> class="w-5 h-5 rounded text-primary">
-            <span class="text-xs text-text-dark dark:text-white font-medium">Li e concordo com os termos de validação.</span>
+            <input type="checkbox" name="aceite_termos" id="aceite_termos"  class="w-5 h-5 rounded text-primary">
+            <span class="text-xs text-text-dark dark:text-white font-medium">Li e concordo com os termos de validação e com o uso dos meus dados conforme os <a href="<?= e(URL_BASE) ?>/termos" target="_blank" rel="noopener" class="underline">Termos de Uso e Privacidade</a>.</span>
         </label>
 
         <div class="flex items-center justify-between mt-8">

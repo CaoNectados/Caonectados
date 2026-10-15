@@ -9,6 +9,22 @@ use PDOStatement;
 
 class AnimalRepository extends BaseRepository
 {
+    /** Apenas dados públicos do anúncio; não inclui contatos ou documentos privados. */
+    public function buscarPostParaDenuncia(int $id): ?array
+    {
+        $stmt = $this->db->prepare("SELECT a.animal_id, a.nome, a.protetor_id,
+            r.nome AS raca_nome, e.nome AS especie_nome, p.nome_fantasia
+            FROM ANIMAL a JOIN PROTETOR p ON p.protetor_id=a.protetor_id
+            JOIN USUARIO u ON u.usuario_id=p.usuario_id
+            JOIN RACA r ON r.raca_id=a.raca_id JOIN ESPECIE e ON e.especie_id=r.especie_id
+            WHERE a.animal_id=? AND a.deletado_em IS NULL AND a.status<>'desativado'
+            AND p.validado=1 AND p.deletado_em IS NULL
+            AND u.status_conta='ativo' AND u.deletado_em IS NULL
+            AND FIND_IN_SET(IF(p.tipo_documento='cnpj','ong','protetor'),u.perfis_ativos)>0");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
     // Usado por: AnimalService::buscarPorId() e AnimalController (detalhes/edição)
     public function buscarPorId(int $id): ?Animal
     {
@@ -70,7 +86,7 @@ class AnimalRepository extends BaseRepository
         FROM ANIMAL a
         LEFT JOIN RACA rc ON a.raca_id = rc.raca_id
         LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
-        WHERE a.deletado_em IS NULL";
+        WHERE (a.deletado_em IS NULL OR a.status = 'desativado')";
 
         $params = [];
 

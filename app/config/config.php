@@ -21,6 +21,8 @@ $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
 // Configuração do Sistema
 define('APP_NAME', 'CaoNectados');
 define('URL_BASE', rtrim(getenv('URL_BASE') ?: 'http://localhost/Caonectados', '/'));
+// Endereço público de atendimento; independente das credenciais de envio SMTP.
+define('DENUNCIA_EMAIL', getenv('DENUNCIA_EMAIL') ?: 'caonectados2026@gmail.com');
 // Configurações do Banco de Dados
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'caonectados');

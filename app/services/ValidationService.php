@@ -8,6 +8,14 @@ use DateTimeZone;
 
 class ValidationService
 {
+    public const VERSAO_TERMOS = '2026-10-14';
+
+    public static function validarAceiteTermos($aceite): void
+    {
+        if (!is_scalar($aceite) || !in_array($aceite, ['on', '1', 1, true], true)) {
+            throw new Exception('Leia e aceite os Termos de Responsabilidade para continuar.');
+        }
+    }
     /**
      * Verifica se os campos obrigatórios foram preenchidos
      */

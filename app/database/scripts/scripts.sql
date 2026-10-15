@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     email VARCHAR(150) NOT NULL UNIQUE,
     nome VARCHAR(150) NULL DEFAULT NULL,
     dt_nasc DATE NULL DEFAULT NULL,
+    termos_aceitos_em TIMESTAMP NULL DEFAULT NULL,
+    versao_termos VARCHAR(20) NULL DEFAULT NULL,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
     CONSTRAINT fk_usuario_regiao FOREIGN KEY (regiao_id) REFERENCES REGIAO (regiao_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
@@ -316,6 +318,22 @@ EXECUTE pos_banca_stmt;
 DEALLOCATE PREPARE pos_banca_stmt;
 
 -- Corrigir perfis ativos antigos sem apagar cadastros, animais ou históricos.
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='USUARIO' AND COLUMN_NAME='termos_aceitos_em'),
+    'SELECT 1', 'ALTER TABLE USUARIO ADD COLUMN termos_aceitos_em TIMESTAMP NULL DEFAULT NULL'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+SET @pos_banca_sql = IF(
+    EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='USUARIO' AND COLUMN_NAME='versao_termos'),
+    'SELECT 1', 'ALTER TABLE USUARIO ADD COLUMN versao_termos VARCHAR(20) NULL DEFAULT NULL'
+);
+PREPARE pos_banca_stmt FROM @pos_banca_sql;
+EXECUTE pos_banca_stmt;
+DEALLOCATE PREPARE pos_banca_stmt;
+
+-- Não presumir aceite para cadastros antigos.
 UPDATE USUARIO
 SET tipo_atual = 'administrador', perfis_ativos = 'administrador'
 WHERE tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos) > 0;

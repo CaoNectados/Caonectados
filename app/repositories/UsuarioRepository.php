@@ -8,6 +8,11 @@ use PDO;
 
 class UsuarioRepository extends BaseRepository
 {
+    public function registrarAceiteTermos(int $usuarioId, string $versao): void
+    {
+        $stmt = $this->db->prepare('UPDATE USUARIO SET termos_aceitos_em=CURRENT_TIMESTAMP, versao_termos=? WHERE usuario_id=?');
+        $stmt->execute([$versao, $usuarioId]);
+    }
     // Usado por: AuthService::autenticar(), registrar() e AuthController
     public function buscarPorEmail(string $email): ?Usuario
     {

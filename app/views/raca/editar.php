@@ -12,6 +12,7 @@ echo renderVoltar('/admin/gerenciar-especies-racas');
         <p class="text-sm text-text-muted mb-6">Atualize os dados da raça selecionada.</p>
 
         <form action="<?= URL_BASE ?>/admin/raca/atualizar?id=<?= $raca->getId(); ?>" method="POST" autocomplete="off" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
 
             <div>
                 <label for="especie_id" class="label-padrao">Espécie Pertencente <span class="text-rosaAlerta">*</span></label>

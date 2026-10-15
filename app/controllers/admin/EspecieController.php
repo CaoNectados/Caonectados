@@ -19,6 +19,7 @@ class EspecieController extends Controller
     {
         // Trava nativa do Controller base restrita a administradores
         $this->autenticacaoRequired(['administrador']);
+        $this->validarCsrf();
 
         $pdo = ConnectionFactory::getConnection();
         $this->especieRepo = new EspecieRepository($pdo);

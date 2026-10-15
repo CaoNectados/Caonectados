@@ -4,6 +4,8 @@ namespace app\services;
 
 use app\models\Animal;
 use app\repositories\AnimalRepository;
+use app\repositories\RacaRepository;
+use app\repositories\EspecieRepository;
 use DateTime;
 use InvalidArgumentException;
 
@@ -93,6 +95,18 @@ class AnimalService
         }
     }
 
+    public function validarSelecaoRaca(int $racaId, ?int $especieId, ?int $racaAnterior = null): void
+    {
+        $raca = (new RacaRepository())->buscarPorId($racaId);
+        $especie = $raca ? (new EspecieRepository())->buscarPorId($raca->getEspecieId()) : null;
+        if (!$raca || !$especie || ($especieId !== null && $especieId !== $raca->getEspecieId())) {
+            throw new InvalidArgumentException('Selecione uma raça correspondente à espécie.');
+        }
+        if ($racaId !== $racaAnterior && (!$raca->isAtivo() || !$especie->isAtivo())) {
+            throw new InvalidArgumentException('Selecione uma espécie e raça ativas.');
+        }
+    }
+
     /**
      * Salva/substitui a foto principal do animal. Aceita tanto um array de $_FILES quanto uma string Base64.
      */
@@ -137,6 +151,9 @@ class AnimalService
         $this->validarPorte($animal->getPorte());
         $this->validarStatus($animal->getStatus());
         $this->validarDataNascimento($animal->getDtNasc());
+        if ($animal->getComportamento() !== null && !in_array($animal->getComportamento(), ['calmo','ativo','docil','arisco','indefinido'], true)) {
+            $this->erros['comportamento'] = 'Selecione um comportamento válido.';
+        }
 
         if (!empty($this->erros)) {
             throw new InvalidArgumentException('Por favor, corrija os erros do formulário.');

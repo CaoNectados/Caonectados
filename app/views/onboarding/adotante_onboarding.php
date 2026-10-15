@@ -321,7 +321,7 @@ require_once __DIR__ . '/../templates/header.php';
             <label class="flex items-center gap-3 cursor-pointer p-4 bg-surface dark:bg-preto2 border border-rosa-2 dark:border-preto3 rounded-xl hover:bg-rosa-1/20 transition">
                 <input type="checkbox" name="aceite_termos" id="aceite_termos" class="w-6 h-6 text-rosaAlerta rounded focus:ring-rosaAlerta">
                 <span class="text-sm text-text-dark dark:text-white font-medium">
-                    Li, compreendi e concordo com os Termos de Responsabilidade.
+                    Li, compreendi e concordo com os Termos de Responsabilidade e os <a href="<?= e(URL_BASE) ?>/termos" target="_blank" rel="noopener" class="underline">Termos de Uso e Privacidade</a>.
                 </span>
             </label>
         </div>

@@ -36,6 +36,10 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 </div>
             </div>
 
+            <div class="flex items-start gap-3 text-sm text-text-dark">
+                <input type="checkbox" name="aceite_termos" id="aceite-termos-cadastro" value="1" required class="mt-1 h-5 w-5 shrink-0 accent-primary">
+                <label for="aceite-termos-cadastro">Li os <a href="<?= e(URL_BASE) ?>/termos" target="_blank" rel="noopener" class="underline">Termos de Uso e Privacidade</a> e concordo com o uso dos meus dados para criar a conta e realizar adoções.</label>
+            </div>
             <button type="submit" class="btn-auth-primario text-white">Cadastrar</button>
 
             <a href="<?= URL_BASE ?>/login" class="btn-auth-secundario">Faça Login Aqui!</a>

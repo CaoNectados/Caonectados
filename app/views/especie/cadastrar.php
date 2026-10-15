@@ -9,6 +9,7 @@ echo renderVoltar('/admin/gerenciar-especies-racas'); ?>
         <p class="text-sm text-text-muted mb-6">Insira o nome da nova categoria raiz de animais.</p>
 
         <form action="<?= URL_BASE ?>/admin/especie/salvar" method="POST" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
             <div>
                 <label for="nome" class="label-padrao">Nome da Espécie <span class="text-rosaAlerta">*</span></label>
                 <input type="text" id="nome" name="nome" placeholder="Ex: Cão, Gato..." class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">

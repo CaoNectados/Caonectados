@@ -9,6 +9,7 @@ echo renderVoltar('/admin/gerenciar-especies-racas'); ?>
         <p class="text-sm text-text-muted mb-6">Selecione a espécie e informe o nome da nova raça.</p>
 
         <form action="<?= URL_BASE ?>/admin/raca/salvar" method="POST" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
             <div>
                 <label for="especie_id" class="label-padrao">Espécie Pertencente <span class="text-rosaAlerta">*</span></label>
                 <select id="especie_id" name="especie_id" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">

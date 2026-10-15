@@ -12,6 +12,7 @@ $especie = $especie ?? new \app\models\Especie();
         <p class="text-sm text-text-muted mb-6">Altere os dados da espécie selecionada.</p>
 
         <form action="<?= URL_BASE ?>/admin/especie/atualizar?id=<?= $especie->getId(); ?>" method="POST" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
             <div>
                 <label class="label-padrao opacity-60">ID</label>
                 <input type="text" value="<?= $especie->getId(); ?>" class="input-padrao opacity-60 cursor-not-allowed bg-cinzaMarrom/10 dark:bg-preto3 text-text-dark dark:text-white border-cinzaMarrom/40" disabled>

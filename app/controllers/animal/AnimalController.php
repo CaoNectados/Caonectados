@@ -7,6 +7,7 @@ use app\models\Animal;
 use app\repositories\AnimalRepository;
 use app\repositories\EspecieRepository;
 use app\repositories\ProtetorRepository;
+use app\repositories\RacaRepository;
 use app\services\AnimalService;
 use app\database\ConnectionFactory;
 use PDO;
@@ -22,6 +23,7 @@ class AnimalController extends Controller
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        $this->validarCsrf();
 
         $this->db = ConnectionFactory::getConnection();
         $repository = new AnimalRepository($this->db);
@@ -127,7 +129,14 @@ class AnimalController extends Controller
 
             $_SESSION['animal'] = $animal;
 
-            $this->view('animal/editar', ['titulo' => 'Editar Animal', 'animal' => $animal]);
+            $racaAtual = (new RacaRepository($this->db))->buscarPorId($animal->getRacaId());
+            $racas = array_filter((new RacaRepository($this->db))->listarTodas(), fn($r) => $r->isAtivo() || $r->getId() === $animal->getRacaId());
+            $this->view('animal/editar', [
+                'titulo' => 'Editar Animal', 'animal' => $animal,
+                'especieAtual' => $racaAtual?->getEspecieId(),
+                'especies' => (new EspecieRepository($this->db))->listarTodas(),
+                'racasEdicao' => array_values(array_map(fn($r) => ['id'=>$r->getId(),'nome'=>$r->getNome(),'especie_id'=>$r->getEspecieId(),'ativo'=>$r->isAtivo()], $racas)),
+            ]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
@@ -144,6 +153,8 @@ class AnimalController extends Controller
             $data = $_POST;
             // Preserva o vínculo original do protetor do registro auditado
             $data['protetor_id'] = $animalExistente->getProtetorId();
+            $data += ['comportamento' => $animalExistente->getComportamento(), 'historico_saude' => $animalExistente->getHistoricoSaude()];
+            $this->service->validarSelecaoRaca((int)($data['raca_id'] ?? 0), isset($data['especie_id']) ? (int)$data['especie_id'] : null, $animalExistente->getRacaId());
 
             $animal = $this->buildAnimalFromArray($data);
             $animal->setAnimalId($id);
@@ -303,7 +314,7 @@ class AnimalController extends Controller
         $animal->setDescricao((string) ($data['descricao'] ?? ''));
         $animal->setVacinado(!empty($data['vacinado']));
         $animal->setCastrado(!empty($data['castrado']));
-        $animal->setComportamento($data['comportamento'] ?? null);
+        $animal->setComportamento(($data['comportamento'] ?? '') === '' ? null : $data['comportamento']);
         $animal->setHistoricoSaude($data['historico_saude'] ?? null);
 
         return $animal;

@@ -26,6 +26,7 @@ unset($_SESSION['old']);
         <?php endif; ?>
 
         <form action="<?= URL_BASE ?>/animal" method="POST" enctype="multipart/form-data" class="w-full max-w-md flex flex-col gap-6">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
 
             <div>
                 <label class="block font-poppins font-bold text-sm text-text-dark dark:text-branco/90 mb-2 text-center">Foto Principal</label>
@@ -166,7 +167,7 @@ unset($_SESSION['old']);
                     Finalizar
                 </button>
                 <a href="<?= URL_BASE ?>/animal" class="font-poppins text-sm font-medium text-text-muted dark:text-branco/60 hover:text-rosaAlerta dark:hover:text-branco transition-colors underline">
-                    Voltar
+                    Cancelar
                 </a>
             </div>
         </form>

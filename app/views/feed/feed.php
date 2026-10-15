@@ -92,11 +92,15 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
 
     <!-- Cabeçalho da tela + botão de filtros -->
     <div class="flex items-center justify-between px-4 pt-4 lg:px-8">
-        <div>
+        <div class="min-w-0">
             <h1 class="font-shantell text-xl lg:text-2xl font-bold text-text-dark dark:text-white">Feed de Adoção</h1>
             <p class="text-xs text-text-muted hidden sm:block">Deslize para conhecer os animais disponíveis</p>
         </div>
 
+        <div class="flex items-center gap-2">
+        <a href="<?= e($urlBase) ?>/denunciar" aria-label="Como denunciar" title="Como denunciar" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface border border-rosa-2 hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+            <img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">
+        </a>
         <!-- Botão de filtro com destaque em verde se houver filtro ativo -->
         <button type="button" onclick="document.getElementById('modal-filtros-feed').classList.remove('hidden')"
             class="flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition shrink-0 shadow-sm hover:shadow-md <?= $temFiltroAtivo ? 'bg-sucesso/10 text-sucesso border-2 border-sucesso' : 'bg-surface dark:bg-preto1 border border-rosa-2 dark:border-preto3 text-text-dark dark:text-white' ?>">
@@ -104,6 +108,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
             </svg> Filtros <?= $temFiltroAtivo ? '<span class="w-2.5 h-2.5 rounded-full bg-sucesso inline-block ml-0.5 animate-pulse"></span>' : '' ?>
         </button>
+        </div>
     </div>
 
     <?php if (empty($animais)): ?>
@@ -163,14 +168,14 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                             </div>
 
                             <a href="<?= $urlBase ?>/pagina?id=<?= (int) $animal['protetor_id'] ?>" onclick="event.stopPropagation()"
-                                class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
-                                <span class="w-7 h-7 rounded-full bg-rosa-1 flex items-center justify-center text-xs">
+                                class="absolute top-10 left-3 z-20 flex max-w-[calc(100%_-_5rem)] items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
+                                <span class="w-7 h-7 shrink-0 rounded-full bg-rosa-1 flex items-center justify-center text-xs">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-heart-fill" viewBox="0 0 16 16">
                                         <path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707z" />
                                         <path d="m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018" />
                                     </svg>
                                 </span>
-                                <span class="text-xs font-bold text-text-dark dark:text-white"><?= htmlspecialchars($animal['nome_fantasia'] ?? 'Protetor independente') ?></span>
+                                <span class="truncate text-xs font-bold text-text-dark dark:text-white"><?= htmlspecialchars($animal['nome_fantasia'] ?? 'Protetor independente') ?></span>
                             </a>
 
                             <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer"
@@ -188,6 +193,9 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
                             <?php endif; ?>
 
+                            <a href="<?= e($urlBase) ?>/denunciar?animal=<?= (int)$animal['animal_id'] ?>" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-10 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface shadow hover:bg-primary/10" onclick="event.stopPropagation()">
+                                <img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">
+                            </a>
                             <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">
                                 Dar Petisco!
                             </button>
@@ -207,7 +215,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                     <?php endif; ?>
                                 </div>
 
-]                                <div class="flex flex-wrap gap-1.5 mt-2">
+                                <div class="flex flex-wrap gap-1.5 mt-2">
                                     <span class="px-3 py-1 rounded-full text-xs font-bold transition-colors <?= $fPorteAtivo ? 'bg-sucesso text-white' : 'bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white' ?>">
                                         <?= htmlspecialchars($porte) ?>
                                     </span>
@@ -610,17 +618,18 @@ require __DIR__ . '/filtros.php';
             <div class="relative flex-1 bg-preto1/5 dark:bg-preto2/40 overflow-hidden flex items-center justify-center">
                 <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5 pointer-events-none">${segmentosHtml}</div>
                 <a href="${urlBase}/pagina?id=${animal.protetor_id}" onclick="event.stopPropagation()"
-                   class="absolute top-10 left-3 z-20 flex items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
-                    <span class="w-7 h-7 rounded-full bg-rosa-1 flex items-center justify-center text-xs">
+                   class="absolute top-10 left-3 z-20 flex max-w-[calc(100%_-_5rem)] items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
+                    <span class="w-7 h-7 shrink-0 rounded-full bg-rosa-1 flex items-center justify-center text-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-heart-fill" viewBox="0 0 16 16">
                             <path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707z"/>
                             <path d="m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018"/>
                         </svg>
                     </span>
-                    <span class="text-xs font-bold text-text-dark dark:text-white">${animal.nome_fantasia || 'Protetor independente'}</span>
+                    <span class="truncate text-xs font-bold text-text-dark dark:text-white">${animal.nome_fantasia || 'Protetor independente'}</span>
                 </a>
                 <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer" onclick="window.location.href='${animal.url_detalhes}'">${fotosHtml}</div>
                 ${setasHtml}
+                <a href="${urlBase}/denunciar?animal=${encodeURIComponent(animal.animal_id)}" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-10 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface shadow hover:bg-primary/10" onclick="event.stopPropagation()"><img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert"></a>
                 <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">Dar Petisco!</button>
             </div>
             <div class="p-5 bg-branco dark:bg-preto1 flex flex-col justify-between">

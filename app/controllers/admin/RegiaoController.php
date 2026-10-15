@@ -18,6 +18,7 @@ class RegiaoController extends Controller
     public function __construct()
     {
         $this->autenticacaoRequired(['administrador']);
+        $this->validarCsrf();
 
         $pdo = ConnectionFactory::getConnection();
         $this->regiaoRepo = new RegiaoRepository($pdo);

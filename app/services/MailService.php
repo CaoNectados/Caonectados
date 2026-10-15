@@ -50,7 +50,7 @@ class MailService
     /**
      * Envia o link de recuperação de senha (fluxo deslogado)
      */
-    // Usado por: (não referenciado atualmente)
+    // Usado por: AuthService::solicitarRecuperacaoSenha()
     public static function enviarEmailRecuperacao(string $emailDestino, string $nome, string $codigo): bool
     {
         $link = URL_BASE . "/redefinir-senha?email=" . urlencode($emailDestino) . "&codigo=" . $codigo;
@@ -110,7 +110,14 @@ class MailService
             $mail->addAddress($emailDestino, $nomeDestino);
             $mail->Subject = $assunto;
 
-            extract($dadosTemplate);
+            $logoPath = __DIR__.'/../../public/assets/img/logo.png';
+            $logoEmail = URL_BASE.'/assets/img/logo.png';
+            if (is_file($logoPath)) {
+                $mail->addEmbeddedImage($logoPath, 'caonectados-logo', 'logo.png');
+                $logoEmail = 'cid:caonectados-logo';
+            }
+
+            extract($dadosTemplate, EXTR_SKIP);
             $assunto_email = $assunto;
 
             ob_start();
@@ -131,6 +138,16 @@ class MailService
             }
 
             $mail->Body = ob_get_clean();
+            $texto = static fn($html) => html_entity_decode(strip_tags(preg_replace('/<br\s*\/?\s*>/i', "\n", (string)$html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $mail->AltBody = implode("\n\n", array_filter([
+                'Olá, '.$nomeDestino.'!',
+                $texto($titulo_mensagem ?? ''),
+                $texto($mensagem_corpo ?? ''),
+                isset($codigo_destaque) ? 'Código de verificação: '.$codigo_destaque : '',
+                isset($link_botao) ? ($texto($texto_botao ?? 'Acessar').': '.$link_botao) : '',
+                $texto($mensagem_rodape ?? ''),
+                'CãoNectados — Intermediação de Adoção Responsável',
+            ], static fn($parte) => $parte !== ''));
 
             return $mail->send();
         } catch (PHPMailerException $e) {
