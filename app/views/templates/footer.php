@@ -61,6 +61,8 @@
         </a>
     </nav>
 
+    <?php require_once __DIR__ . '/modal_confirmacao.php'; ?>
+
     <!-- Modal Unificado de Feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
         <div class="bg-surface rounded-xl p-6 text-center max-w-sm w-full shadow-xl transform transition-all">

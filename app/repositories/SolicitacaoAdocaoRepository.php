@@ -66,11 +66,16 @@ class SolicitacaoAdocaoRepository extends BaseRepository
                     s.solicitacao_id, s.animal_id, s.status_solicitacao, s.data_solicitacao,
                     s.justificativa_recusa, s.data_finalizacao,
                     a.nome AS animal_nome, a.protetor_id, a.status AS animal_status,
-                    p.nome_fantasia,
+                    p.nome_fantasia, pu.telefone AS protetor_telefone, pg.foto_perfil AS protetor_foto,
+                    u.nome AS adotante_nome, ad.foto_perfil AS adotante_foto,
                     fa.caminho_foto AS animal_foto
                 FROM SOLICITACAO_ADOCAO s
                 INNER JOIN ANIMAL a ON a.animal_id = s.animal_id
                 INNER JOIN PROTETOR p ON p.protetor_id = a.protetor_id
+                INNER JOIN USUARIO pu ON pu.usuario_id = p.usuario_id
+                INNER JOIN ADOTANTE ad ON ad.adotante_id = s.adotante_id
+                INNER JOIN USUARIO u ON u.usuario_id = ad.usuario_id
+                LEFT JOIN PAGINA pg ON pg.protetor_id = p.protetor_id
                 LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
                 WHERE s.adotante_id = :adotante_id
                 ORDER BY s.data_solicitacao DESC";
