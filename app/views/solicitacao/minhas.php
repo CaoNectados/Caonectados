@@ -55,6 +55,11 @@ $statusLabels = [
                         <?php endif; ?>
                     </div>
 
+                    <?php if ($solic['status_solicitacao'] === 'aprovada' && $solic['animal_status'] === 'adotado'): ?>
+                        <button type="button" data-abrir-adocao="modal-caonectou-<?= (int)$solic['solicitacao_id'] ?>"
+                                class="text-xs font-bold text-primary underline shrink-0">CãoNectou!</button>
+                    <?php endif; ?>
+
                     <?php if ($podeCancel): ?>
                         <form id="form-cancelar-<?= (int) $solic['solicitacao_id'] ?>" method="POST" action="<?= $urlBase ?>/minhas-solicitacoes/cancelar">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
@@ -70,4 +75,10 @@ $statusLabels = [
     <?php endif; ?>
 </div>
 
+<?php
+$matchesAdocao = array_values(array_filter($solicitacoes, static fn(array $s): bool =>
+    $s['status_solicitacao'] === 'aprovada' && $s['animal_status'] === 'adotado'
+));
+if ($matchesAdocao) require __DIR__ . '/../templates/modal_adocao.php';
+?>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
