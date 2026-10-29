@@ -342,7 +342,7 @@ require __DIR__ . '/filtros.php';
 
                 if (resposta.ok && resultado.status === 'sucesso') {
                     botao.textContent = 'Petisco enviado! ';
-                    if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', resultado.mensagem);
+                    if (typeof mostrarModalPetisco === 'function') mostrarModalPetisco(resultado.mensagem);
                 } else {
                     botao.disabled = false;
                     botao.textContent = textoOriginal;
@@ -720,4 +720,5 @@ require __DIR__ . '/filtros.php';
     })();
 </script>
 
+<?php $modalPetisco = true; require __DIR__ . '/../templates/modal_adocao.php'; ?>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
