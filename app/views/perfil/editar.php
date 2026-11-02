@@ -30,6 +30,8 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                         $caminhoDB = $especifico['foto_perfil'] ?? $_SESSION['foto_perfil'] ?? '';
                         if ($tipoPerfil === 'administrador') {
                             $fotoSrc = $urlBase . '/assets/img/logo.png';
+                        } elseif (preg_match('#^https?://#i', trim((string)$caminhoDB))) {
+                            $fotoSrc = trim($caminhoDB);
                         } elseif (!empty($caminhoDB)) {
                             $fotoLimpa = ltrim(trim($caminhoDB), '/');
                             $fotoLimpa = preg_replace('#^(assets/)?(uploads/)+#', '', $fotoLimpa);

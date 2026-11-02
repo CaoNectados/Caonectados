@@ -305,6 +305,23 @@ class AnimalRepository extends BaseRepository
         $stmtInsert->execute();
     }
 
+    public function listarFotos(int $animalId): array
+    {
+        $st = $this->db->prepare('SELECT foto_id,caminho_foto,foto_principal FROM FOTO_ANIMAL WHERE animal_id=? ORDER BY foto_principal DESC,foto_id');
+        $st->execute([$animalId]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function adicionarFoto(int $animalId, string $caminho, bool $principal): void
+    {
+        if ($principal) {
+            $st = $this->db->prepare('UPDATE FOTO_ANIMAL SET foto_principal=0 WHERE animal_id=?');
+            $st->execute([$animalId]);
+        }
+        $st = $this->db->prepare('INSERT INTO FOTO_ANIMAL(animal_id,caminho_foto,foto_principal) VALUES(?,?,?)');
+        $st->execute([$animalId,$caminho,$principal ? 1 : 0]);
+    }
+
     // Usado por: AnimalRepository::cadastrarAnimal() e editarAnimal() (uso interno)
     private function bindAnimalValues(PDOStatement $stmt, Animal $animal): void
     {

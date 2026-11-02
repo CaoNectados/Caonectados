@@ -68,7 +68,7 @@ class AnimalController extends Controller
                 return;
             }
 
-            $this->view('animal/detalhes', ['titulo' => 'Detalhes do Animal', 'animal' => $animal]);
+            $this->view('animal/detalhes', ['titulo' => 'Detalhes do Animal', 'animal' => $animal, 'fotosGaleria' => (new AnimalRepository($this->db))->listarFotos($id)]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/animal');
         }
@@ -103,13 +103,9 @@ class AnimalController extends Controller
             $this->service->validarSelecaoRaca((int)($data['raca_id'] ?? 0), isset($data['especie_id']) ? (int)$data['especie_id'] : null);
             $animal = $this->buildAnimalFromArray($data);
 
-            $this->service->cadastrarAnimal($animal);
-
             $fotoEnviada = !empty($_POST['foto_cortada'])
                 ? $_POST['foto_cortada'] : ($_FILES['foto'] ?? null);
-            if (!empty($fotoEnviada)) {
-                $this->service->salvarFoto($fotoEnviada, (int) $animal->getAnimalId());
-            }
+            $this->persistirComFotos($animal, $fotoEnviada, $_POST['fotos_galeria'] ?? [], true);
 
             $this->redirecionarComMensagem('sucesso', 'Animal cadastrado com sucesso!', '/animal');
         } catch (Exception $e) {
@@ -134,6 +130,7 @@ class AnimalController extends Controller
             $racas = array_filter((new RacaRepository($this->db))->listarTodas(), fn($r) => $r->isAtivo() || $r->getId() === $animal->getRacaId());
             $this->view('animal/editar', [
                 'titulo' => 'Editar Animal', 'animal' => $animal,
+                'fotosGaleria' => (new AnimalRepository($this->db))->listarFotos($id),
                 'especieAtual' => $racaAtual?->getEspecieId(),
                 'especies' => (new EspecieRepository($this->db))->listarTodas(),
                 'racasEdicao' => array_values(array_map(fn($r) => ['id'=>$r->getId(),'nome'=>$r->getNome(),'especie_id'=>$r->getEspecieId(),'ativo'=>$r->isAtivo()], $racas)),
@@ -159,13 +156,9 @@ class AnimalController extends Controller
 
             $animal = $this->buildAnimalFromArray($data);
             $animal->setAnimalId($id);
-            $this->service->editarAnimal($animal);
-
             $fotoEnviada = !empty($_POST['foto_cortada'])
                 ? $_POST['foto_cortada'] : ($_FILES['foto'] ?? null);
-            if (!empty($fotoEnviada)) {
-                $this->service->salvarFoto($fotoEnviada, $id);
-            }
+            $this->persistirComFotos($animal, $fotoEnviada, $_POST['fotos_galeria'] ?? [], false);
 
             unset($_SESSION['animal']);
             $this->redirecionarComMensagem('sucesso', 'Animal atualizado com sucesso!', '/animal');
@@ -174,6 +167,44 @@ class AnimalController extends Controller
             $_SESSION['erros'] = [$e->getMessage()];
             $id = $_POST['id'] ?? 0;
             $this->redirect('/animal/editar?id=' . $id);
+        }
+    }
+
+    private function persistirComFotos(Animal $animal, $principal, $galeria, bool $novo): void
+    {
+        if (!is_array($galeria) || count($galeria) > 9) throw new Exception('Selecione até 9 fotos adicionais.');
+        $repo = new AnimalRepository($this->db);
+        $existentes = $novo ? [] : $repo->listarFotos((int)$animal->getAnimalId());
+        if (count($existentes) + count($galeria) + (!empty($principal) ? 1 : 0) > 10) {
+            throw new Exception('O animal pode ter até 10 fotos no total.');
+        }
+        $uploads = new \app\services\UploadService();
+        $caminhos = [];
+        try {
+            $entradas = !empty($principal) ? [$principal] : [];
+            foreach ($galeria as $foto) {
+                if (!is_string($foto) || strlen($foto) > 1400000 || !str_starts_with($foto, 'data:image/')) {
+                    throw new Exception('Foto adicional inválida ou maior que 1 MB após recorte.');
+                }
+                $entradas[] = $foto;
+            }
+            foreach ($entradas as $foto) {
+                $caminho = $uploads->salvar($foto, 'animal');
+                if (!$caminho) throw new Exception('Não foi possível salvar uma das fotos.');
+                $caminhos[] = $caminho;
+            }
+            $this->db->beginTransaction();
+            if ($novo) $this->service->cadastrarAnimal($animal);
+            else $this->service->editarAnimal($animal);
+            foreach ($caminhos as $indice => $caminho) {
+                $repo->adicionarFoto((int)$animal->getAnimalId(), $caminho,
+                    $indice === 0 && (!empty($principal) || !$existentes));
+            }
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) $this->db->rollBack();
+            foreach ($caminhos as $caminho) $uploads->remover($caminho);
+            throw new Exception($e->getMessage(), 0, $e);
         }
     }
 

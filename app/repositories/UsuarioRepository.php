@@ -105,7 +105,7 @@ class UsuarioRepository extends BaseRepository
     // Usado por: UsuarioAdminService::listarUsuarios()
     public function contarUsuariosAdmin(string $busca = '', string $filtroStatus = '', string $filtroPerfil = ''): int
     {
-        $sql = "SELECT COUNT(*) as total FROM usuario u WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total FROM USUARIO u WHERE 1=1";
         $params = [];
 
         if (!empty($busca)) {
@@ -145,7 +145,7 @@ class UsuarioRepository extends BaseRepository
     // Usado por: UsuarioAdminService::alterarStatusUsuario() e alterarStatusPerfil() (proteção contra remover o último admin)
     public function contarAdminsAtivos(): int
     {
-        $sql = "SELECT COUNT(*) as total FROM usuario WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos)) AND status_conta = 'ativo'";
+        $sql = "SELECT COUNT(*) as total FROM USUARIO WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos)) AND status_conta = 'ativo'";
         $stmt = $this->db->query($sql);
         $res = $stmt->fetch(\PDO::FETCH_ASSOC);
         return (int)($res['total'] ?? 0);
@@ -301,7 +301,7 @@ class UsuarioRepository extends BaseRepository
     // Usado por: UsuarioAdminService::alterarStatusUsuario()
     public function atualizarStatusConta(int $usuarioId, string $novoStatus): bool
     {
-        $sql = "UPDATE usuario SET status_conta = :status WHERE usuario_id = :id";
+        $sql = "UPDATE USUARIO SET status_conta = :status WHERE usuario_id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([':status' => $novoStatus, ':id' => $usuarioId]);
     }
@@ -363,7 +363,7 @@ class UsuarioRepository extends BaseRepository
     // Usado por: UsuarioAdminService::alterarStatusPerfil()
     public function atualizarPerfisAtivos(int $usuarioId, string $perfisAtivos, string $tipoAtual): bool
     {
-        $sql = "UPDATE usuario SET perfis_ativos = :perfis, tipo_atual = :tipo WHERE usuario_id = :id";
+        $sql = "UPDATE USUARIO SET perfis_ativos = :perfis, tipo_atual = :tipo WHERE usuario_id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             ':perfis' => $perfisAtivos,

@@ -36,9 +36,12 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
             <?= htmlspecialchars($animal->getNome()) ?>
         </h1>
 
-        <?php if (!empty($animal->getFotoPrincipal())): ?>
-            <!-- O 'w-full' foi removido e substituído por w-auto, h-auto, max-h-[28rem] e mx-auto para manter a proporção e evitar o efeito de caixa -->
-            <img src="<?= URL_BASE ?>/<?= htmlspecialchars($animal->getFotoPrincipal()) ?>" alt="Foto de <?= htmlspecialchars($animal->getNome()) ?>" class="w-auto h-auto max-w-full max-h-[28rem] mx-auto rounded-2xl mb-6 border-2 border-cinzaMarrom/20 dark:border-branco/10 shadow-sm">
+        <?php if (!empty($fotosGaleria)): ?>
+        <div class="flex gap-3 overflow-x-auto mb-6" aria-label="Fotos do animal" tabindex="0">
+            <?php foreach ($fotosGaleria as $foto): $urlFoto = preg_match('#^https?://#i', $foto['caminho_foto']) ? $foto['caminho_foto'] : URL_BASE . '/' . ltrim($foto['caminho_foto'], '/'); ?>
+            <img src="<?= e($urlFoto) ?>" alt="Foto de <?= e($animal->getNome()) ?>" class="rounded-2xl object-contain shrink-0" style="max-width:100%;max-height:28rem" loading="lazy">
+            <?php endforeach; ?>
+        </div>
         <?php endif; ?>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 break-words font-poppins text-text-dark">

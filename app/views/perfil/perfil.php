@@ -48,6 +48,8 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
 if ($tipoPerfil === 'administrador' || $tipoPerfil === 'admin') {
     $srcFoto = $urlBase . '/assets/img/logo.png';
+} elseif (preg_match('#^https?://#i', trim((string)$fotoPerfilSessao))) {
+    $srcFoto = trim($fotoPerfilSessao);
 } elseif (!empty($fotoPerfilSessao)) {
     $fotoLimpa = ltrim(trim($fotoPerfilSessao), '/');
     $fotoLimpa = preg_replace('#^(assets/)?(uploads/)+#', '', $fotoLimpa);

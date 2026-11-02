@@ -201,6 +201,7 @@ if (!empty($fotoCortadaOld)) {
                     Cancelar e Voltar
                 </a>
             </div>
+            <?php require __DIR__ . '/galeria_form.php'; ?>
         </form>
     </div>
 </main>
@@ -253,7 +254,7 @@ if (!empty($fotoCortadaOld)) {
         const base64String = cropperAnimal.getCroppedCanvas({
             width: 800,
             height: 1000
-        }).toDataURL('image/png');
+        }).toDataURL('image/jpeg', 0.82);
 
         const preview = document.getElementById('preview-foto-principal');
         preview.src = base64String;

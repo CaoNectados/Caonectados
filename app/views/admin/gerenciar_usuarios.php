@@ -99,7 +99,9 @@
                     <div class="flex items-center gap-3.5">
                         <?php
                         $fotoNome = $u['foto_perfil'] ?? null;
-                        if (!empty($fotoNome)) {
+                        if (preg_match('#^https?://#i', trim((string)$fotoNome))) {
+                            $caminhoFoto = htmlspecialchars(trim($fotoNome), ENT_QUOTES, 'UTF-8');
+                        } elseif (!empty($fotoNome)) {
                             $fotoLimpa = ltrim(trim($fotoNome), '/');
                             $fotoLimpa = preg_replace('#^(assets/)?(uploads/)+#', '', $fotoLimpa);
                             $caminhoFoto = URL_BASE . '/assets/uploads/' . htmlspecialchars($fotoLimpa);
