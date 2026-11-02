@@ -346,11 +346,15 @@ require __DIR__ . '/filtros.php';
 
                 if (resposta.ok && resultado.status === 'sucesso') {
                     botao.textContent = 'Petisco enviado! ';
-                    if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', 'Seu pedido foi enviado ao responsável pelo animal. Você receberá atualizações no e-mail cadastrado.', {
-                        textoBotao: 'Acompanhar solicitações',
-                        url: `${urlBase}/minhas-solicitacoes`,
-                        animarPetiscos: true
-                    });
+                    if (typeof mostrarModalFeedback === 'function') {
+                        mostrarModalFeedback('sucesso', resultado.mensagem || 'Seu pedido foi enviado ao responsável pelo animal. Você receberá atualizações no e-mail cadastrado.', {
+                            textoBotao: 'Acompanhar solicitações',
+                            url: `${urlBase}/minhas-solicitacoes`,
+                            animarPetiscos: true
+                        });
+                    } else if (typeof mostrarModalPetisco === 'function') {
+                        mostrarModalPetisco(resultado.mensagem || 'Seu pedido foi enviado ao responsável pelo animal.');
+                    }
                 } else {
                     botao.disabled = false;
                     botao.textContent = textoOriginal;
@@ -733,4 +737,5 @@ require __DIR__ . '/filtros.php';
     })();
 </script>
 
+<?php $modalPetisco = true; require __DIR__ . '/../templates/modal_adocao.php'; ?>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

@@ -1,5 +1,6 @@
 <?php
 namespace app\services;
+use app\helpers\WhatsAppHelper;
 use PDO;
 use Throwable;
 
@@ -9,7 +10,7 @@ class AdocaoEmailService
     public function __construct(private PDO $db) {}
     public function avisar(int $id, string $estado): void
     {
-        $stmt = $this->db->prepare('SELECT s.*, a.nome AS animal_nome, u.email AS adotante_email,u.nome AS adotante_nome, pu.email AS protetor_email,p.nome_fantasia FROM SOLICITACAO_ADOCAO s JOIN ANIMAL a ON a.animal_id=s.animal_id JOIN ADOTANTE ad ON ad.adotante_id=s.adotante_id JOIN USUARIO u ON u.usuario_id=ad.usuario_id JOIN PROTETOR p ON p.protetor_id=a.protetor_id JOIN USUARIO pu ON pu.usuario_id=p.usuario_id WHERE s.solicitacao_id=?');
+        $stmt = $this->db->prepare('SELECT s.*, a.nome AS animal_nome, u.email AS adotante_email,u.nome AS adotante_nome, pu.email AS protetor_email,pu.telefone AS protetor_telefone,p.nome_fantasia FROM SOLICITACAO_ADOCAO s JOIN ANIMAL a ON a.animal_id=s.animal_id JOIN ADOTANTE ad ON ad.adotante_id=s.adotante_id JOIN USUARIO u ON u.usuario_id=ad.usuario_id JOIN PROTETOR p ON p.protetor_id=a.protetor_id JOIN USUARIO pu ON pu.usuario_id=p.usuario_id WHERE s.solicitacao_id=?');
         $stmt->execute([$id]);
         $s=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$s) return;
@@ -17,10 +18,11 @@ class AdocaoEmailService
         $mensagens = [
             'pendente'=>'Um adotante enviou um petisco e demonstrou interesse neste animal. Acesse a solicitação para conhecer o perfil e iniciar a análise.',
             'em_analise'=>'A solicitação está em análise pelo responsável. Você pode acompanhar seu andamento na plataforma.',
-            'aprovada'=>'A solicitação foi aprovada pelo responsável. Acesse a plataforma para consultar a decisão e acompanhar a adoção.',
+            'aprovada'=>'A solicitação foi aceita pelo responsável! Agora você pode entrar em contato para conversar sobre a adoção.',
             'reprovada'=>'A solicitação foi recusada pelo responsável. Confira o motivo informado abaixo.',
             'cancelada'=>'A solicitação foi cancelada. Isso pode ocorrer por desistência do adotante ou pela aprovação de outra solicitação para o mesmo animal. Consulte o acompanhamento na plataforma.',
         ];
+        $whatsapp = $estado === 'aprovada' ? WhatsAppHelper::linkAdocao($s['protetor_telefone'], $s['adotante_nome'] ?? '', $s['animal_nome']) : null;
         $destinatarios=$estado === 'pendente' ? ['protetor'] : ['adotante','protetor'];
         foreach ($destinatarios as $tipo) {
             $email=$s[$tipo.'_email'];
@@ -34,9 +36,11 @@ class AdocaoEmailService
                         .'<br>Animal: '.htmlspecialchars($s['animal_nome']).' (pet #'.(int)$s['animal_id'].')'
                         .'<br>'.($tipo === 'protetor' ? 'Adotante: '.htmlspecialchars($s['adotante_nome']) : 'Responsável: '.htmlspecialchars($s['nome_fantasia'] ?: 'Protetor independente'))
                         .'<br>Estado: '.htmlspecialchars($rotulo)
-                        .($estado === 'reprovada' ? '<br>Motivo: '.htmlspecialchars($s['justificativa_recusa'] ?? '') : ''),
-                    'link_botao'=>URL_BASE.($tipo === 'adotante' ? '/minhas-solicitacoes' : '/solicitacoes/detalhes?id='.$id),
-                    'texto_botao'=>'Acompanhar solicitação',
+                        .($estado === 'reprovada' ? '<br>Motivo: '.htmlspecialchars($s['justificativa_recusa'] ?? '') : '')
+                        .($estado === 'aprovada' && $tipo === 'adotante' && !$whatsapp ? '<br><br>O responsável ainda não possui um telefone válido cadastrado. Consulte a página dele na plataforma para verificar outras formas de contato.' : ''),
+                    'link_botao'=>$estado === 'aprovada' && $tipo === 'adotante' && $whatsapp
+                        ? $whatsapp : URL_BASE.($tipo === 'adotante' ? '/minhas-solicitacoes' : '/solicitacoes/detalhes?id='.$id),
+                    'texto_botao'=>$estado === 'aprovada' && $tipo === 'adotante' && $whatsapp ? 'ABRIR WHATSAPP' : 'Acompanhar solicitação',
                 ]);
                 if (!$ok) error_log('RF11: SMTP não confirmou aviso da solicitação #'.$id.' ('.$tipo.')');
             } catch (Throwable $e) {
