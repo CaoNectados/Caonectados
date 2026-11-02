@@ -42,7 +42,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     if (empty($caminho)) {
         return null;
     }
-    return $urlBase . '/' . ltrim($caminho, '/');
+    return preg_match('#^https?://#i', $caminho) ? $caminho : $urlBase . '/' . ltrim($caminho, '/');
 }
 ?>
 
@@ -184,10 +184,10 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <?php endforeach; ?>
                             </div>
 
-                            <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior">
+                            <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
                             </button>
-                            <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal">
+                            <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                             </button>
 
@@ -392,6 +392,23 @@ require __DIR__ . '/filtros.php';
                 segmentos[indice].classList.remove('w-0');
                 segmentos[indice].classList.add('w-full');
             }
+
+            const areaFotos = card.querySelector('.foto-carrossel');
+            areaFotos?.setAttribute('tabindex', '0');
+            areaFotos?.setAttribute('role', 'group');
+            areaFotos?.setAttribute('aria-label', 'Fotos do animal: toque nas laterais ou use as setas para navegar');
+            areaFotos?.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                const bounds = areaFotos.getBoundingClientRect();
+                mostrar(indice + (e.clientX < bounds.left + bounds.width / 2 ? -1 : 1));
+            }, true);
+            areaFotos?.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault(); e.stopPropagation();
+                    mostrar(indice + (e.key === 'ArrowLeft' ? -1 : 1));
+                }
+            });
 
             card.querySelector('.btn-foto-anterior')?.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -643,8 +660,8 @@ require __DIR__ . '/filtros.php';
                     <span class="truncate text-xs font-bold text-text-dark dark:text-white">${animal.nome_fantasia || 'Protetor independente'}</span>
                 </a>
                 <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer" onclick="window.location.href='${animal.url_detalhes}'">${fotosHtml}</div>
-                <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
-                <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg></button>
+                <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
+                <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg></button>
                 ${setasHtml}
                 <a href="${urlBase}/denunciar?animal=${encodeURIComponent(animal.animal_id)}" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-8 right-3 z-20 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onclick="event.stopPropagation()"><img src="<?= e(asset('assets/img/icone-denunciar.png')) ?>" alt="" class="h-12 w-12 object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.55)]"></a>
                 <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 inline-flex items-center justify-center gap-2 border-2 border-primary/20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-base sm:text-lg px-6 py-2.5 rounded-full shadow-lg transition hover:-translate-y-0.5 active:scale-95 dark:border-white/30 dark:bg-rosa-1 dark:text-text-dark"><img src="<?= e(asset('assets/img/icone-petisco-osso.png')) ?>" alt="" class="h-7 w-7 object-contain" aria-hidden="true"><span>Dar Petisco!</span></button>

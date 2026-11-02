@@ -86,39 +86,7 @@ if (!empty($fotoCortadaOld)) {
                 </div>
             </div>
 
-            <div>
-                <label class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2 text-center">Foto do animal</label>
-                <input type="hidden" name="foto_cortada" id="foto_cortada_base64" value="<?= htmlspecialchars($fotoCortadaOld) ?>">
-                <input type="file" id="input-foto-original" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" onchange="iniciarCropperAnimal(event)">
-
-                <div class="flex justify-center">
-                    <div id="container-foto-principal" onclick="document.getElementById('input-foto-original').click()"
-                        class="relative w-40 h-52 sm:w-44 sm:h-56 rounded-2xl border-2 border-dashed border-text-dark/40 dark:border-branco/30 bg-transparent dark:bg-preto2 flex flex-col items-center justify-center gap-2 cursor-pointer overflow-hidden hover:border-rosaAlerta dark:hover:border-rosaAlerta transition-colors">
-                        <img id="preview-foto-principal" src="<?= htmlspecialchars($previewFotoUrl) ?>" alt="Prévia da foto principal" class="<?= empty($previewFotoUrl) ? 'hidden' : '' ?> absolute inset-0 w-full h-full object-cover">
-                        <div id="placeholder-foto-principal" class="<?= empty($previewFotoUrl) ? '' : 'hidden' ?> flex flex-col items-center justify-center gap-1 text-text-dark dark:text-white/70 pointer-events-none">
-                            <span class="text-4xl leading-none font-light">+</span>
-                            <span class="font-poppins text-xs font-bold">Foto Principal</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL CROPPER: FOTO PRINCIPAL DO ANIMAL -->
-            <div id="modal-cropper-animal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
-                <div class="bg-branco dark:bg-surface rounded-3xl max-w-sm w-full p-6 flex flex-col items-center shadow-2xl border border-cinzaMarrom/20 dark:border-branco/10">
-                    <h3 class="font-shantell text-xl font-bold mb-1 text-text-dark dark:text-white">Ajustar Foto</h3>
-                    <p class="text-xs text-text-muted dark:text-white/60 mb-4 text-center">Arraste e use o zoom para centralizar.</p>
-
-                    <div class="w-full h-80 bg-surface dark:bg-preto2 rounded-2xl overflow-hidden mb-4 flex items-center justify-center border border-cinzaMarrom/30">
-                        <img id="imagem-para-cortar-animal" src="" alt="Cortar" class="max-w-full max-h-full">
-                    </div>
-
-                    <div class="flex gap-3 w-full">
-                        <button type="button" onclick="fecharModalCropperAnimal()" class="flex-1 bg-cinzaMarrom/30 text-text-dark dark:text-white py-2.5 rounded-xl font-bold text-sm hover:opacity-80 transition">Cancelar</button>
-                        <button type="button" onclick="salvarRecorteAnimal()" class="flex-1 bg-rosaAlerta text-white py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition">Aplicar</button>
-                    </div>
-                </div>
-            </div>
+            <?php require __DIR__ . '/galeria_form.php'; ?>
 
             <div>
                 <label for="nome" class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2">Nome do animal <span class="text-rosaAlerta">*</span></label>
@@ -201,70 +169,11 @@ if (!empty($fotoCortadaOld)) {
                     Cancelar e Voltar
                 </a>
             </div>
-            <?php require __DIR__ . '/galeria_form.php'; ?>
         </form>
     </div>
 </main>
 
-<script>
-    let cropperAnimal = null;
 
-    function iniciarCropperAnimal(event) {
-        const fileInput = event.target;
-        if (!fileInput.files || fileInput.files.length === 0) return;
-
-        if (typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarTamanhoArquivo(fileInput, 5)) {
-            if (typeof mostrarModalFeedback === 'function') {
-                mostrarModalFeedback('erro', 'A imagem é muito grande. Escolha uma de até 5MB.');
-            } else {
-                alert('A imagem é muito grande. Escolha uma de até 5MB.');
-            }
-            fileInput.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('imagem-para-cortar-animal').src = e.target.result;
-            document.getElementById('modal-cropper-animal').classList.remove('hidden');
-
-            if (cropperAnimal) cropperAnimal.destroy();
-            cropperAnimal = new Cropper(document.getElementById('imagem-para-cortar-animal'), {
-                aspectRatio: 4 / 5,
-                viewMode: 1,
-                dragMode: 'move',
-                autoCropArea: 1
-            });
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    }
-
-    function fecharModalCropperAnimal() {
-        document.getElementById('modal-cropper-animal').classList.add('hidden');
-        if (cropperAnimal) {
-            cropperAnimal.destroy();
-            cropperAnimal = null;
-        }
-        document.getElementById('input-foto-original').value = '';
-    }
-
-    function salvarRecorteAnimal() {
-        if (!cropperAnimal) return;
-
-        const base64String = cropperAnimal.getCroppedCanvas({
-            width: 800,
-            height: 1000
-        }).toDataURL('image/jpeg', 0.82);
-
-        const preview = document.getElementById('preview-foto-principal');
-        preview.src = base64String;
-        preview.classList.remove('hidden');
-        document.getElementById('placeholder-foto-principal').classList.add('hidden');
-        document.getElementById('foto_cortada_base64').value = base64String;
-
-        fecharModalCropperAnimal();
-    }
-</script>
 
 <script src="<?= e(asset('assets/js/animal-editar.js')) ?>" defer></script>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

@@ -178,6 +178,11 @@ class AnimalController extends Controller
         if (count($existentes) + count($galeria) + (!empty($principal) ? 1 : 0) > 10) {
             throw new Exception('O animal pode ter até 10 fotos no total.');
         }
+        $principalId = filter_var($_POST['foto_principal_id'] ?? 0, FILTER_VALIDATE_INT);
+        if ($principalId === false || $principalId < 0 || ($principalId && ($novo || !in_array($principalId, array_column($existentes, 'foto_id'))))) {
+            throw new Exception('Selecione uma foto principal deste animal.');
+        }
+        if ($principalId && !empty($principal)) throw new Exception('Selecione apenas uma foto principal.');
         $uploads = new \app\services\UploadService();
         $caminhos = [];
         try {
@@ -200,6 +205,7 @@ class AnimalController extends Controller
                 $repo->adicionarFoto((int)$animal->getAnimalId(), $caminho,
                     $indice === 0 && (!empty($principal) || !$existentes));
             }
+            if ($principalId) $repo->definirFotoPrincipal((int)$animal->getAnimalId(), $principalId);
             $this->db->commit();
         } catch (\Throwable $e) {
             if ($this->db->inTransaction()) $this->db->rollBack();

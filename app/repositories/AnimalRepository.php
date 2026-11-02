@@ -312,6 +312,15 @@ class AnimalRepository extends BaseRepository
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function definirFotoPrincipal(int $animalId, int $fotoId): void
+    {
+        $st = $this->db->prepare('SELECT foto_id FROM FOTO_ANIMAL WHERE animal_id=? AND foto_id=?');
+        $st->execute([$animalId, $fotoId]);
+        if (!$st->fetchColumn()) throw new \InvalidArgumentException('A foto principal não pertence a este animal.');
+        $st = $this->db->prepare('UPDATE FOTO_ANIMAL SET foto_principal = CASE WHEN foto_id=? THEN 1 ELSE 0 END WHERE animal_id=?');
+        $st->execute([$fotoId, $animalId]);
+    }
+
     public function adicionarFoto(int $animalId, string $caminho, bool $principal): void
     {
         if ($principal) {

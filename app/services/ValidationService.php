@@ -14,6 +14,18 @@ class ValidationService
     {
         $listas = ['preferencias_especie', 'preferencias_raca', 'preferencias_porte', 'preferencias_sexo', 'ids', 'racas_aceitas'];
         foreach ($dados as $campo => $valor) {
+            if ($campo === 'fotos_galeria') {
+                if (!is_array($valor) || !array_is_list($valor) || count($valor) > 9) {
+                    throw new \InvalidArgumentException('Envie até 9 fotos adicionais.');
+                }
+                foreach ($valor as $foto) {
+                    if (!is_string($foto) || strlen($foto) > 1400000 || !preg_match('#^data:image/(jpeg|png|webp);base64,#', $foto)) {
+                        throw new \InvalidArgumentException('Foto adicional inválida. Recorte a imagem novamente.');
+                    }
+                }
+                continue;
+            }
+
             if (in_array($campo, $listas, true)) {
                 if (!is_array($valor) || array_filter($valor, static fn($item) => !is_scalar($item))) {
                     throw new \InvalidArgumentException('Selecione uma lista válida para ' . $campo . '.');
