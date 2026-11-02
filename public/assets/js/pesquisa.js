@@ -106,6 +106,63 @@
     if (especie.value) carregarRacas(especie.value, raca.dataset.oldValue);
     modal.querySelector('form').addEventListener('submit', () => salvarHistorico(modal.querySelector('[name=q]').value));
 
+    const maisOngs = document.getElementById('mais-ongs-pesquisa');
+    let offsetOngs = Number(root.dataset.offsetOngs);
+    const idsOngs = new Set([...document.querySelectorAll('.resultado-ong')].map(x => x.dataset.protetorId));
+    maisOngs?.addEventListener('click', async () => {
+        if (maisOngs.disabled) return;
+        maisOngs.disabled = true;
+        maisOngs.textContent = 'Carregando...';
+        const status = document.getElementById('status-ongs-pesquisa');
+        const params = new URLSearchParams();
+        Object.entries(filtros).forEach(([nome, valor]) => { if (valor !== null && valor !== '') params.set(nome, valor); });
+        params.set('offset', String(offsetOngs));
+        try {
+            const resposta = await fetch(`${base}/pesquisar/ongs?${params}`, {headers: {Accept: 'application/json'}});
+            const dados = await resposta.json();
+            if (!resposta.ok || dados.status !== 'sucesso' || !Array.isArray(dados.ongs)) throw new Error();
+            dados.ongs.forEach(ong => {
+                const id = String(ong.protetor_id);
+                if (idsOngs.has(id)) return;
+                idsOngs.add(id);
+                const link = document.createElement('a');
+                link.href = `${base}/pagina?id=${encodeURIComponent(id)}`;
+                link.dataset.protetorId = id;
+                link.className = 'resultado-ong flex min-h-11 items-center gap-2 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
+                link.setAttribute('aria-label', `Ir para página de ${ong.nome_fantasia}`);
+                const foto = document.createElement('img');
+                foto.src = new URL(ong.foto_perfil || 'assets/img/perfil-placeholder.png', base + '/').href;
+                foto.alt = '';
+                foto.className = 'h-12 w-12 shrink-0 rounded-full border border-rosa-3 bg-surface object-cover';
+                const conteudo = document.createElement('span');
+                conteudo.className = 'flex min-w-0 flex-1 items-center justify-between gap-2 rounded-full bg-preto2 px-3 py-1 text-xs text-white';
+                const textos = document.createElement('span');
+                textos.className = 'min-w-0';
+                const nome = document.createElement('span');
+                nome.className = 'block truncate font-medium';
+                nome.textContent = ong.nome_fantasia;
+                const quantidade = document.createElement('span');
+                quantidade.className = 'block text-[10px] text-white/85';
+                quantidade.textContent = Number(ong.animais_disponiveis) > 0 ? `${ong.animais_disponiveis} animais disponíveis` : 'Sem animais disponíveis';
+                const destino = document.createElement('span');
+                destino.className = 'shrink-0';
+                destino.textContent = 'Ir para Página ›';
+                textos.append(nome, quantidade);
+                conteudo.append(textos, destino);
+                link.append(foto, conteudo);
+                document.getElementById('lista-ongs-pesquisa').append(link);
+            });
+            offsetOngs = dados.proximoOffset;
+            maisOngs.classList.toggle('hidden', !dados.temMais);
+            status.textContent = dados.temMais ? 'Mais páginas carregadas.' : 'Você viu todas as páginas encontradas.';
+        } catch (_) {
+            status.textContent = 'Não foi possível carregar mais páginas. Tente novamente.';
+        } finally {
+            maisOngs.disabled = false;
+            maisOngs.textContent = 'Mostrar mais ONGs e protetores';
+        }
+    });
+
     const mais = document.getElementById('mais-pesquisa');
     let offset = Number(root.dataset.offset);
     const ids = new Set([...document.querySelectorAll('.resultado-animal')].map(x => x.dataset.animalId));
@@ -126,7 +183,7 @@
                 if (ids.has(id)) return;
                 ids.add(id);
                 const link = document.createElement('a');
-                link.className = 'resultado-animal group relative aspect-[3/4] overflow-hidden bg-surface';
+                link.className = 'resultado-animal group relative aspect-[3/4] overflow-hidden rounded-2xl border border-rosa-3 bg-surface shadow-sm';
                 link.dataset.animalId = id;
                 link.href = animal.url_detalhes + '&retorno=' + encodeURIComponent(retorno);
                 link.setAttribute('aria-label', `Ver ${animal.nome}, ${animal.especie_nome}`);
@@ -134,7 +191,7 @@
                 foto.src = animal.fotos[0] || `${base}/assets/img/perfil-placeholder.png`;
                 foto.alt = animal.nome; foto.loading = 'lazy'; foto.className = 'h-full w-full object-cover transition-transform group-hover:scale-105 motion-reduce:transition-none';
                 const nome = document.createElement('span'); nome.textContent = animal.nome;
-                nome.className = 'absolute inset-x-0 bottom-0 hidden truncate bg-black/55 px-1 py-1 text-xs text-white sm:block sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus:opacity-100';
+                nome.className = 'absolute inset-x-0 bottom-0 truncate bg-black/70 px-3 py-2 text-sm font-semibold text-white';
                 link.append(foto,nome); document.getElementById('grade-pesquisa').append(link);
             });
             offset = dados.proximoOffset;

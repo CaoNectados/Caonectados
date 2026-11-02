@@ -128,7 +128,7 @@ $paginasBotoes = array_chunk($botoes, 6);
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
-<div class="max-w-md mx-auto bg-background min-h-screen pb-20">
+<div class="w-full max-w-md mx-auto bg-background min-h-[70vh] py-6 pb-20">
     <div class="px-6 -mt-4 pt-10 flex flex-col items-center">
 
         <!-- Badge de Perfil Atual (formato de fita/banner, como no protótipo) -->
@@ -178,12 +178,12 @@ $paginasBotoes = array_chunk($botoes, 6);
             $bannerConfig = [
                 'pendente' => [
                     'classes' => 'bg-amarelo/30 dark:bg-preto2 border-amarelo/60 text-text-dark',
-                    'icone'   => '🕓',
+                    'icone'   => '../geral/relogio.svg',
                     'texto'   => "Sua solicitação para se tornar {$tipoSolicitacaoProtetor} está em análise (pendente).",
                 ],
                 'recusada' => [
                     'classes' => 'bg-erro/10 border-erro/30 text-erro',
-                    'icone'   => '❌',
+                    'icone'   => '../geral/recusado.svg',
                     'texto'   => "Sua solicitação para se tornar {$tipoSolicitacaoProtetor} foi recusada. Verifique seu e-mail para mais detalhes e reenvie os dados corrigidos.",
                 ],
                 // 'aprovada' não tem banner aqui — o aviso de aprovação vai virar uma
@@ -192,7 +192,7 @@ $paginasBotoes = array_chunk($botoes, 6);
             ?>
             <?php if ($bannerConfig): ?>
                 <div role="status" class="w-full flex items-start gap-2 rounded-2xl border px-4 py-3 mb-6 text-sm font-poppins font-medium <?= $bannerConfig['classes'] ?>">
-                    <span aria-hidden="true" class="shrink-0 text-lg leading-none"><?= $bannerConfig['icone'] ?></span>
+                    <span aria-hidden="true" class="shrink-0 text-lg leading-none"><?= renderIconeMenu($bannerConfig['icone'], '', 'h-6 w-6 dark:text-white') ?></span>
                     <span class="min-w-0 break-words text-text-dark"><?= htmlspecialchars($bannerConfig['texto']) ?></span>
                 </div>
             <?php endif; ?>
@@ -347,7 +347,7 @@ $paginasBotoes = array_chunk($botoes, 6);
 <div id="modalExcluirConta" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-surface dark:bg-preto1 rounded-3xl shadow-xl w-full max-w-sm p-6 border border-rosa-3">
         <div class="flex flex-col items-center text-center">
-            <span class="text-4xl mb-3">⚠️</span>
+            <img src="<?= e(asset('assets/icons/info.svg')) ?>" alt="" class="h-12 w-12 mb-3 dark:brightness-0 dark:invert">
             <h3 class="text-xl font-shantell font-bold text-text-dark dark:text-white mb-2">Excluir conta?</h3>
             <p class="text-sm font-poppins text-text-muted mb-6">
                 Essa ação encerrará sua sessão e desativará sua conta. Você perderá o acesso à plataforma com esse usuário. Deseja continuar?

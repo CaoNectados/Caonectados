@@ -35,6 +35,18 @@ class PerfilService
         ValidationService::validarNome($dados['nome'] ?? '');
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
 
+        foreach (['logradouro', 'obs_casa', 'numero', 'num_morada'] as $campo) {
+            if (isset($dados[$campo])) ValidationService::validarTexto($dados[$campo], $campo, 0, $campo === 'numero' || $campo === 'num_morada' ? 20 : 1000);
+        }
+        if ($tipoPerfilSessao !== 'administrador') {
+            ValidationService::validarLocalizacao($dados['regiao_id'] ?? null, $dados['logradouro'] ?? $dados['obs_casa'] ?? '', $dados['numero'] ?? $dados['num_morada'] ?? '');
+        }
+        if (in_array($tipoPerfilSessao, ['protetor', 'ong'], true)) {
+            ValidationService::validarDadosPagina($dados);
+        } else {
+            ValidationService::validarDadosAdotante($dados);
+        }
+
         $logradouro = trim($dados['logradouro'] ?? $dados['obs_casa'] ?? '');
         $numero = trim($dados['numero'] ?? $dados['num_morada'] ?? 'S/N');
         $regiaoId = !empty($dados['regiao_id']) ? (int)$dados['regiao_id'] : null;
@@ -42,6 +54,8 @@ class PerfilService
         $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
         $conexao = ConnectionFactory::getConnection();
 
+        $caminhoFoto = null;
+        $fotoAntiga = null;
         try {
             $conexao->beginTransaction();
 
@@ -53,7 +67,7 @@ class PerfilService
             if (!empty($fotoBase64)) {
                 $tipoUpload = $isProtetorOng ? 'foto_pagina' : 'foto_perfil';
 
-                $this->removerFotoAntigaDoPerfil($usuarioId, $isProtetorOng);
+                $fotoAntiga = $this->obterFotoAntigaDoPerfil($usuarioId, $isProtetorOng);
 
                 $uploadService = new UploadService();
                 $caminhoFoto = $uploadService->salvar($fotoBase64, $tipoUpload);
@@ -143,12 +157,14 @@ class PerfilService
             }
 
             $conexao->commit();
+            if ($caminhoFoto && $fotoAntiga && $caminhoFoto !== $fotoAntiga) $this->removerArquivoAntigo($fotoAntiga);
             if ($caminhoFoto) {
                 $_SESSION['foto_perfil'] = $caminhoFoto;
             }
             return 'Perfil atualizado com sucesso!';
-        } catch (Exception $e) {
-            $conexao->rollBack();
+        } catch (\Throwable $e) {
+            if ($conexao->inTransaction()) $conexao->rollBack();
+            if ($caminhoFoto) (new UploadService())->remover($caminhoFoto);
             throw $e;
         }
     }
@@ -159,7 +175,7 @@ class PerfilService
         $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
         $tipoUpload = $isProtetorOng ? 'foto_pagina' : 'foto_perfil';
 
-        $this->removerFotoAntigaDoPerfil($usuarioId, $isProtetorOng);
+        $fotoAntiga = $this->obterFotoAntigaDoPerfil($usuarioId, $isProtetorOng);
 
         $uploadService = new UploadService();
         $caminhoFoto = $uploadService->salvar($base64Data, $tipoUpload);
@@ -201,29 +217,31 @@ class PerfilService
             }
         }
 
+        if ($fotoAntiga && $fotoAntiga !== $caminhoFoto) $this->removerArquivoAntigo($fotoAntiga);
         $_SESSION['foto_perfil'] = $caminhoFoto;
     }
 
     // Usado por: atualizarPerfil(), atualizarApenasFoto()
-    private function removerFotoAntigaDoPerfil(int $usuarioId, bool $isProtetorOng): void
+    private function obterFotoAntigaDoPerfil(int $usuarioId, bool $isProtetorOng): ?string
     {
         if ($isProtetorOng) {
             $prot = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($prot) {
                 $pagAntiga = $this->paginaRepo->buscarPorProtetorId((int)$prot['protetor_id']);
                 if (!empty($pagAntiga['foto_perfil'])) {
-                    $this->removerArquivoAntigo($pagAntiga['foto_perfil']);
+                    return $pagAntiga['foto_perfil'];
                 }
             }
         } else {
             $adotAntigo = $this->adotanteRepo->buscarPorUsuarioId($usuarioId);
             if (!empty($adotAntigo['foto_perfil'])) {
-                $this->removerArquivoAntigo($adotAntigo['foto_perfil']);
+                return $adotAntigo['foto_perfil'];
             }
         }
+        return null;
     }
 
-    // Usado por: removerFotoAntigaDoPerfil()
+    // Remove o arquivo substituído somente após salvar os novos dados.
     private function removerArquivoAntigo(?string $caminhoRelativo): void
     {
         (new UploadService())->remover($caminhoRelativo);

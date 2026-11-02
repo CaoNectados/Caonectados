@@ -3,7 +3,7 @@ echo renderVoltar('/login'); ?>
 
 <!-- Wrapper centraliza o card na altura visível da área de conteúdo (mesmo padrão de login/cadastro) -->
 <div class="min-h-[75vh] flex flex-col items-center justify-center px-4 py-10">
-<div class="w-full max-w-md p-6 bg-surface rounded-2xl shadow-md text-center">
+<div class="card-superficie-destaque w-full max-w-md p-6 text-center">
     <div class="flex items-center justify-center gap-3 mb-6">
         <h1 class="font-shantell text-3xl font-bold text-primary">Nova Senha</h1>
     </div>

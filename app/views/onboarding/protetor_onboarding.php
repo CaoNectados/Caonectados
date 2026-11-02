@@ -75,7 +75,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         <div class="space-y-4 mb-6 text-left">
             <div>
                 <label for="nome_fantasia" class="label-padrao"><?= $label_nome ?></label>
-                <input type="text" name="nome_fantasia" id="nome_fantasia" value="<?= htmlspecialchars($d['nome_fantasia'] ?? ($d['usuario_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $placeholder_nome ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="nome_fantasia" maxlength="45" id="nome_fantasia" value="<?= htmlspecialchars($d['nome_fantasia'] ?? ($d['usuario_nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $placeholder_nome ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
             <div>
                 <label for="cnpj_cpf" class="label-padrao"><?= $label_doc ?></label>
@@ -143,7 +143,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         </div>
         <div class="mb-6 text-left">
             <label for="numero" class="label-padrao">Número do Local *</label>
-            <input type="text" name="numero" id="numero" value="<?= htmlspecialchars($d['numero'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Ex: 123, S/N" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+            <input type="text" name="numero" maxlength="20" id="numero" value="<?= htmlspecialchars($d['numero'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Ex: 123, S/N" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -166,15 +166,16 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
             </div>
             <div>
                 <label for="instagram" class="label-padrao">Link do Instagram</label>
-                <input type="text" name="instagram" id="instagram" value="<?= htmlspecialchars($d['instagram'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="instagram" maxlength="255" id="instagram" value="<?= htmlspecialchars($d['instagram'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
             <div>
                 <label for="facebook" class="label-padrao">Link do Facebook</label>
-                <input type="text" name="facebook" id="facebook" value="<?= htmlspecialchars($d['facebook'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="facebook" maxlength="255" id="facebook" value="<?= htmlspecialchars($d['facebook'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
             <div>
+                <?php require __DIR__ . '/../templates/campo_tipo_pix.php'; ?>
                 <label for="chave_pix" class="label-padrao">Chave PIX para doações</label>
-                <input type="text" name="chave_pix" id="chave_pix" value="<?= htmlspecialchars($d['chave_pix'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="E-mail, CNPJ, CPF ou Chave Aleatória" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="chave_pix" maxlength="255" id="chave_pix" value="<?= htmlspecialchars($d['chave_pix'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="E-mail, CNPJ, CPF ou Chave Aleatória" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
         </div>
 
@@ -272,10 +273,13 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
             <p><strong>3. Responsabilidade:</strong> Assumo inteira responsabilidade sobre os dados e animais cadastrados.</p>
         </div>
 
-        <label class="flex items-center gap-3 p-3 bg-rosa-1/30 dark:bg-preto2 rounded-xl mb-6 text-left cursor-pointer border border-rosa-2 dark:border-preto3">
+        <div class="flex items-start gap-3 p-3 bg-rosa-1/30 dark:bg-preto2 rounded-xl mb-6 text-left border border-rosa-2 dark:border-preto3">
             <input type="checkbox" name="aceite_termos" id="aceite_termos"  class="w-5 h-5 rounded text-primary">
-            <span class="text-xs text-text-dark dark:text-white font-medium">Li e concordo com os termos de validação e com o uso dos meus dados conforme os <a href="<?= e(URL_BASE) ?>/termos" target="_blank" rel="noopener" class="underline">Termos de Uso e Privacidade</a>.</span>
-        </label>
+            <div class="text-xs text-text-dark dark:text-white font-medium">
+                <label for="aceite_termos" class="cursor-pointer">Li e concordo com os termos de validação e com o uso dos meus dados conforme os</label>
+                <button type="button" id="abrir-termos-onboarding" onclick="abrirModalTermosOnboarding()" class="underline">Termos de Uso e Privacidade</button>.
+            </div>
+        </div>
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
@@ -285,6 +289,8 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         </div>
     </div>
 </form>
+
+<?php require __DIR__ . '/../templates/modal_termos_onboarding.php'; ?>
 
 <!-- MODAL CROPPER REUTILIZÁVEL -->
 <div id="modal-cropper" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
@@ -515,7 +521,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
                 }
 
                 const pix = document.getElementById('chave_pix') ? document.getElementById('chave_pix').value.trim() : '';
-                if (pix !== '' && typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarChavePix(pix)) {
+                if (pix !== '' && typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarChavePix(pix, document.getElementById('tipo_chave_pix').value)) {
                     mostrarModalFeedback('erro', "Informe uma Chave PIX válida.");
                     document.getElementById('chave_pix').focus();
                     return false;

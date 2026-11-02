@@ -23,11 +23,11 @@ $statusLabels = [
 ];
 ?>
 
-<div class="min-h-screen bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
+<div class="min-h-[70vh] bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
     <div class="w-full max-w-figma bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors">
 
         <!-- Abas -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+        <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
             <a href="<?= $urlBase ?>/solicitacoes?aba=pendentes"
                class="py-3 px-4 text-center font-poppins font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'pendentes' ? 'bg-laranja-1 text-white' : 'bg-surface text-text-dark hover:bg-laranja-1/20' ?>">
                Pendentes
@@ -50,7 +50,7 @@ $statusLabels = [
         <div class="divide-y divide-cinzaMarrom/20">
             <?php if (empty($solicitacoes)): ?>
                 <div class="py-16 text-center">
-                    <span class="text-5xl block mb-3 opacity-40">🐾</span>
+                    <div class="mb-3 flex justify-center"><?= renderIconeMenu('patinha.svg', '', 'h-12 w-12 text-primary dark:text-white') ?></div>
                     <p class="text-text-muted text-base font-semibold">Nenhuma solicitação nesta categoria.</p>
                 </div>
             <?php else: ?>

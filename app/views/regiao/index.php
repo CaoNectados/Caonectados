@@ -11,7 +11,7 @@ echo renderVoltar('/admin/dashboard');
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <div>
                 <h1 class="font-shantell text-2xl md:text-3xl font-extrabold text-text-dark tracking-wide flex items-center gap-2">
-                    <?= renderIconeMenu('bairros.svg', '', 'h-7 w-7 text-primary') ?> Regiões Cadastradas
+                    <?= renderIconeMenu('bairros.svg', '', 'h-7 w-7 text-primary dark:text-white') ?> Regiões Cadastradas
                 </h1>
                 <p class="text-sm text-text-muted mt-1">Gerencie os bairros e áreas de atuação disponíveis.</p>
             </div>
@@ -64,7 +64,7 @@ echo renderVoltar('/admin/dashboard');
                                     
                                     <div class="flex items-center space-x-4">
                                         <a href="<?= URL_BASE ?>/admin/regiao/editar?id=<?= $r->getRegiaoId(); ?>" 
-                                           class="text-xs font-bold text-primary hover:underline">
+                                           class="text-xs font-bold text-primary dark:text-white hover:underline">
                                             Editar
                                         </a>
                                         <input type="checkbox" 
@@ -87,7 +87,7 @@ echo renderVoltar('/admin/dashboard');
                 <div class="flex justify-center mt-6">
                     <button type="button" 
                             onclick="confirmarExclusaoModal()"
-                            class="px-8 py-2.5 bg-primary/10 hover:bg-primary/20 text-text-dark font-bold rounded-2xl border-2 border-primary/30 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer">
+                            class="px-8 py-2.5 bg-erro hover:opacity-90 text-white font-bold rounded-2xl border-2 border-primary/30 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer">
                         Deletar regiões marcadas
                     </button>
                 </div>

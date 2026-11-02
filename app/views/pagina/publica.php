@@ -21,6 +21,10 @@ $linksRede = [];
 foreach ($redes as $rede) {
     $linksRede[$rede['tipo_rede']] = $rede['link_rede'];
 }
+$iconesImagemRede = [
+    'instagram' => asset('assets/img/icone-instagram-pagina.png'),
+    'facebook' => asset('assets/img/icone-facebook-pagina.png'),
+];
 $iconesRede = [
     'instagram' => '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-instagram" viewBox="0 0 16 16">
                         <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/>
@@ -49,9 +53,7 @@ $iconesRede = [
 
             <a href="<?= $urlBase ?>/pagina-perfil" onclick="if(window.history.length > 1){ history.back(); return false; }"
                 class="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 dark:bg-preto1/90 flex items-center justify-center text-text-dark dark:text-white shadow hover:scale-105 transition z-20" aria-label="Voltar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8" />
-                </svg>
+                <img src="<?= htmlspecialchars(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-6 w-7 object-contain dark:brightness-0 dark:invert" aria-hidden="true">
             </a>
         </div>
 
@@ -69,19 +71,23 @@ $iconesRede = [
             <div class="flex items-center justify-center flex-wrap gap-4 mt-3 text-xl">
                 <?php foreach (['instagram', 'facebook', 'whatsapp', 'outro'] as $tipo): ?>
                     <?php if (!empty($linksRede[$tipo]) && in_array(strtolower((string)parse_url($linksRede[$tipo], PHP_URL_SCHEME)), ['http', 'https'], true)): ?>
-                        <a href="<?= htmlspecialchars($linksRede[$tipo]) ?>" target="_blank" rel="noopener" title="<?= ucfirst($tipo) ?>" class="hover:scale-110 transition"><?= $iconesRede[$tipo] ?></a>
+                        <a href="<?= htmlspecialchars($linksRede[$tipo]) ?>" target="_blank" rel="noopener" title="<?= ucfirst($tipo) ?>" class="hover:scale-110 transition inline-flex items-center justify-center">
+                            <?php if (isset($iconesImagemRede[$tipo])): ?>
+                                <img src="<?= htmlspecialchars($iconesImagemRede[$tipo]) ?>" alt="" class="h-5 w-5 object-contain dark:brightness-0 dark:invert" aria-hidden="true">
+                            <?php else: ?>
+                                <?= $iconesRede[$tipo] ?>
+                            <?php endif; ?>
+                        </a>
                     <?php endif; ?>
                 <?php endforeach; ?>
                 <?php if (!empty($protetor['nome_regiao'])): ?>
-                    <span title="<?= htmlspecialchars($protetor['nome_regiao']) ?>"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
-                            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10" />
-                            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-                        </svg></span>
+                    <?php $enderecoExibido = $protetor['nome_regiao'] . ' · Foz do Iguaçu/PR'; ?>
+                    <button type="button" onclick="abrirModalLocalizacao()" aria-label="Ver localização: <?= htmlspecialchars($enderecoExibido, ENT_QUOTES, 'UTF-8') ?>" title="Ver localização" class="inline-flex h-9 w-9 items-center justify-center rounded-full transition duration-200 hover:scale-110 hover:bg-roxo2/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary dark:hover:bg-white/10">
+                        <img src="<?= htmlspecialchars(asset('assets/img/icone-localizacao-pagina.png')) ?>" alt="" class="h-5 w-5 object-contain dark:brightness-0 dark:invert" aria-hidden="true">
+                    </button>
                 <?php endif; ?>
                 <?php if (!empty($protetor['chave_pix'])): ?>
-                    <button type="button" onclick="copiarChavePix(this)" data-chave="<?= htmlspecialchars($protetor['chave_pix']) ?>" title="Copiar chave PIX" class="hover:scale-110 transition cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
-                            <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z" />
-                        </svg></button>
+                    <button type="button" onclick="copiarChavePix(this)" data-chave="<?= htmlspecialchars($protetor['chave_pix']) ?>" title="Copiar chave PIX" aria-label="Copiar chave PIX" class="hover:scale-110 transition cursor-pointer inline-flex items-center justify-center"><img src="<?= htmlspecialchars(asset('assets/img/icone-pix-pagina.png')) ?>" alt="" class="h-5 w-5 object-contain dark:brightness-0 dark:invert" aria-hidden="true"></button>
                 <?php endif; ?>
             </div>
 
@@ -111,16 +117,12 @@ $iconesRede = [
         <div class="bg-roxo2 dark:bg-primary rounded-2xl overflow-hidden flex shadow-sm">
             <button type="button" onclick="mostrarAbaCatalogo('disponiveis')" id="aba-btn-disponiveis" class="flex-1 py-3 text-white font-bold text-sm sm:text-base border-b-4 border-white transition flex items-center justify-center gap-2">
                 <div class="flex items-center justify-center gap-3">
-                    <img src="<?= $urlBase ?>/assets/img/patinha-baixo.png" alt="" class="w-4 h-4 -rotate-12">
-                    <img src="<?= $urlBase ?>/assets/img/patinha-cima.png" alt="" class="w-4 h-4 rotate-12 mt-3">
+                    <img src="<?= htmlspecialchars(asset('assets/img/icone-menu-disponiveis.png')) ?>" alt="" class="h-6 w-6 object-contain" aria-hidden="true">
                 </div>
                 Disponíveis
             </button>
             <button type="button" onclick="mostrarAbaCatalogo('adotados')" id="aba-btn-adotados" class="flex-1 py-3 text-white/70 font-bold text-sm sm:text-base border-b-4 border-transparent transition flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-heart-fill" viewBox="0 0 16 16">
-                    <path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707z" />
-                    <path d="m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018" />
-                </svg> Adotados
+                <img src="<?= $urlBase ?>/assets/img/icone-adotados.png" alt="" class="h-6 w-6 object-contain" aria-hidden="true"> Adotados
             </button>
         </div>
     </div>
@@ -142,9 +144,7 @@ $iconesRede = [
                             alt="<?= htmlspecialchars($animal->getNome()) ?>"
                             class="w-full h-full object-contain"
                             onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
-                        <span class="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-sucesso flex items-center justify-center text-xs shadow-lg text-white z-10"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-suit-heart-fill" viewBox="0 0 16 16">
-                                <path d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1" />
-                            </svg></span>
+                        <img src="<?= $urlBase ?>/assets/img/icone-disponivel-patinha.png" alt="Disponível para adoção" title="Disponível para adoção" class="absolute bottom-2 right-2 z-10 h-9 w-9 object-contain drop-shadow-md">
                     </a>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -155,9 +155,14 @@ $iconesRede = [
             <?php if (empty($adotados)): ?>
                 <p class="col-span-full text-center text-sm text-text-muted italic py-16">Nenhum animal adotado ainda.</p>
             <?php else: ?>
-                <?php foreach ($adotados as $animal): ?>
+                <?php foreach ($adotados as $itemAdotado): ?>
                     <?php
+                    $animal = $itemAdotado['animal'];
+                    $adotante = $itemAdotado['adotante'] ?? [];
                     $foto = $montarUrlFoto($animal->getFotoPrincipal()) ?: $urlBase . '/assets/img/perfil-placeholder.png';
+                    $fotoAdotante = $montarUrlFoto($adotante['foto_perfil'] ?? null) ?: $urlBase . '/assets/img/perfil-placeholder.png';
+                    $nomeAdotante = trim((string) ($adotante['nome'] ?? ''));
+                    $primeiroNomeAdotante = $nomeAdotante !== '' ? explode(' ', $nomeAdotante)[0] : 'uma família';
                     ?>
                     <a href="<?= $urlBase ?>/animal/mostrar?id=<?= $animal->getAnimalId() ?>"
                         class="relative aspect-square block rounded-xl overflow-hidden bg-black/5 dark:bg-preto2 border border-rosa-2/20 dark:border-preto3 flex items-center justify-center p-1 transition-transform duration-300 hover:scale-105 hover:z-10 shadow-sm hover:shadow-md">
@@ -165,13 +170,36 @@ $iconesRede = [
                             alt="<?= htmlspecialchars($animal->getNome()) ?>"
                             class="w-full h-full object-contain grayscale-[30%]"
                             onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
-                        <span class="absolute bottom-2 left-2 flex items-center gap-1 bg-rosaAlerta/90 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-lg z-10">❤️ Adotado</span>
+                        <span class="absolute bottom-2 left-1/2 flex max-w-[calc(100%_-_1rem)] -translate-x-1/2 items-center gap-1.5 rounded-full bg-rosaAlerta/95 py-1 pl-1.5 pr-1 text-[10px] font-bold text-white shadow-lg sm:text-xs z-10">
+                            <img src="<?= $urlBase ?>/assets/img/icone-adotado-patinha-coracao.png" alt="" class="h-6 w-6 shrink-0 object-contain" aria-hidden="true">
+                            <span class="truncate">Adotado por <?= htmlspecialchars($primeiroNomeAdotante, ENT_QUOTES, 'UTF-8') ?></span>
+                            <img src="<?= htmlspecialchars($fotoAdotante, ENT_QUOTES, 'UTF-8') ?>" alt="Foto de <?= htmlspecialchars($primeiroNomeAdotante, ENT_QUOTES, 'UTF-8') ?>" class="h-7 w-7 shrink-0 rounded-full border border-white object-cover" onerror="this.onerror=null; this.src='<?= $urlBase ?>/assets/img/perfil-placeholder.png';">
+                        </span>
                     </a>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
 </div>
+
+<?php if (!empty($protetor['nome_regiao'])): ?>
+    <?php $urlMapaLocalizacao = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($enderecoExibido); ?>
+    <div id="modal-localizacao" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-localizacao" onclick="if(event.target === this) fecharModalLocalizacao()">
+        <div class="w-full max-w-sm rounded-2xl border border-rosa-2 bg-surface p-5 text-text-dark shadow-2xl dark:border-preto3 dark:bg-preto1 dark:text-white">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 id="titulo-modal-localizacao" class="font-shantell text-xl font-bold">Localização</h2>
+                    <p id="texto-endereco-localizacao" class="mt-2 text-sm text-text-muted dark:text-gray-200"><?= htmlspecialchars($enderecoExibido) ?></p>
+                </div>
+                <button type="button" onclick="fecharModalLocalizacao()" class="rounded-full p-2 text-text-muted hover:bg-primary/10 dark:text-white" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+                <button type="button" onclick="copiarEnderecoLocalizacao()" class="btn-primario inline-flex flex-1 items-center justify-center gap-2">Copiar endereço</button>
+                <a href="<?= htmlspecialchars($urlMapaLocalizacao, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer" class="btn-secundario inline-flex flex-1 items-center justify-center gap-2 dark:text-white">Abrir no Maps</a>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <script>
     function mostrarAbaCatalogo(aba) {
@@ -198,6 +226,35 @@ $iconesRede = [
             mostrarModalFeedback('informativo', 'Chave PIX: ' + chave);
         });
     }
+
+    function abrirModalLocalizacao() {
+        const modal = document.getElementById('modal-localizacao');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function fecharModalLocalizacao() {
+        const modal = document.getElementById('modal-localizacao');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function copiarEnderecoLocalizacao() {
+        const endereco = document.getElementById('texto-endereco-localizacao')?.textContent?.trim();
+        if (!endereco) return;
+        navigator.clipboard?.writeText(endereco).then(function() {
+            fecharModalLocalizacao();
+            mostrarModalFeedback('sucesso', 'Endereço copiado!');
+        }).catch(function() {
+            mostrarModalFeedback('informativo', 'Endereço: ' + endereco);
+        });
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') fecharModalLocalizacao();
+    });
 </script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

@@ -62,7 +62,7 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
         </div>
     </div>
 
-    <form action="<?= $urlBase ?>/pagina-perfil/atualizar" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form id="form-pagina" action="<?= $urlBase ?>/pagina-perfil/atualizar" method="POST" enctype="multipart/form-data" class="space-y-6">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
         <input type="hidden" name="foto_perfil_cortada" id="foto_perfil_cortada">
         <input type="hidden" name="foto_fundo_cortada" id="foto_fundo_cortada">
@@ -98,12 +98,13 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
         </div>
 
         <!-- Descrição e PIX -->
-        <div class="card-padrao space-y-4">
+        <div class="card-padrao space-y-4 !bg-rosa-1 dark:!bg-preto2 border border-rosa-3 dark:border-rosa-3 shadow-md">
             <div>
                 <label for="descricao" class="label-padrao">Sobre a ONG/Protetor</label>
                 <textarea name="descricao" id="descricao" rows="4" maxlength="1000" class="input-padrao" placeholder="Conte um pouco sobre o seu trabalho..."><?= htmlspecialchars($pagina['descricao'] ?? '') ?></textarea>
             </div>
             <div>
+                <?php require __DIR__ . '/../templates/campo_tipo_pix.php'; ?>
                 <label for="chave_pix" class="label-padrao">Chave PIX para doações (opcional)</label>
                 <input type="text" name="chave_pix" id="chave_pix" maxlength="255" value="<?= htmlspecialchars($pagina['chave_pix'] ?? '') ?>" class="input-padrao" placeholder="E-mail, CPF/CNPJ, telefone ou chave aleatória">
             </div>
@@ -112,7 +113,7 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
     </form>
 
     <!-- Redes Sociais e Contato -->
-    <div class="card-padrao mt-6 space-y-4">
+    <div class="card-padrao mt-6 space-y-4 !bg-rosa-1 dark:!bg-preto2 border border-rosa-3 dark:border-rosa-3 shadow-md">
         <h2 class="font-shantell text-lg font-bold text-text-dark dark:text-white">Redes Sociais e Contato</h2>
 
         <?php if (empty($redes)): ?>
@@ -288,4 +289,16 @@ $tiposJaUsados = array_column($redes, 'tipo_rede');
     }
 </script>
 
+<script>
+document.getElementById('form-pagina').addEventListener('submit', function(event) {
+    const campo = document.getElementById('chave_pix');
+    campo.setCustomValidity('');
+    if (campo.value.trim() && typeof CaonectadosValidator !== 'undefined' && !CaonectadosValidator.validarChavePix(campo.value.trim(), document.getElementById('tipo_chave_pix').value)) {
+        event.preventDefault();
+        campo.setCustomValidity('Informe uma chave PIX válida.');
+        campo.reportValidity();
+    }
+});
+document.getElementById('chave_pix').addEventListener('input', function() { this.setCustomValidity(''); });
+</script>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

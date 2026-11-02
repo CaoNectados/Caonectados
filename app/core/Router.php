@@ -73,6 +73,13 @@ class Router
 
     private function dispatch(array $route, array $params = []): void
     {
+        if (strtolower($_SERVER['REQUEST_METHOD'] ?? '') === 'post') {
+            try {
+                \app\services\ValidationService::validarFormatoFormulario($_POST);
+            } catch (\InvalidArgumentException $e) {
+                (new Controller())->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+            }
+        }
         list($controller, $method) = explode('@', $route['action']);
 
         $controller = str_replace('/', '\\', $controller);

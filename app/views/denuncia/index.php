@@ -4,18 +4,18 @@ echo renderVoltar('/feed', 'Voltar ao feed');
 ?>
 <section class="mx-auto max-w-4xl pb-8 text-text-dark" aria-labelledby="titulo-denuncia">
     <h1 id="titulo-denuncia" class="font-shantell text-2xl sm:text-3xl font-bold text-center mb-5">Como denunciar?</h1>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 items-start">
+    <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] gap-5 md:gap-8 items-start">
         <div class="flex justify-center">
-            <img src="<?= e(asset('assets/img/denuncia-policial.png')) ?>" alt="Cachorrinho policial com uma lupa" class="w-full max-w-[303px] h-auto object-contain">
+            <img src="<?= e(asset('assets/img/denuncia-policial.png')) ?>" alt="Cachorrinho policial com uma lupa" class="w-full max-w-[144px] h-auto object-contain md:max-w-[220px] lg:max-w-[260px]">
         </div>
         <div class="min-w-0 rounded-3xl border border-rosa-3 bg-surface p-5 sm:p-7 shadow-sm">
             <h2 class="font-shantell text-xl font-bold">Ajude a cuidar da nossa comunidade</h2>
-            <p class="mt-3 text-sm leading-relaxed">Encontrou um anúncio suspeito, informações falsas ou uma conduta inadequada? Envie seu relato para a equipe CãoNectados por e-mail.</p>
-            <ol class="mt-5 space-y-3 list-decimal pl-5 text-sm leading-relaxed">
+            <p class="mt-3 text-sm leading-relaxed">Relate anúncios suspeitos ou condutas inadequadas à equipe CãoNectados.</p>
+            <details class="mt-4 text-sm"><summary class="cursor-pointer min-h-11 flex items-center font-semibold underline">O que incluir na denúncia?</summary><ol class="mt-2 space-y-3 list-decimal pl-5 text-sm leading-relaxed">
                 <li>Informe o link do animal ou do perfil envolvido.</li>
                 <li>Descreva o que aconteceu e quando, com os detalhes que você conhece.</li>
                 <li>Anexe capturas de tela ou outros comprovantes e envie a mensagem.</li>
-            </ol>
+            </ol></details>
             <?php if ($linkAnimal): ?>
             <div class="mt-5 rounded-xl bg-primary/10 p-3 text-sm">
                 <p class="font-semibold">Denúncia referente a <?= e($post['nome']) ?> · Pet #<?= (int)$post['animal_id'] ?></p>

@@ -5,7 +5,7 @@ echo renderVoltar('/admin/dashboard');
 ?>
 
 <div class="min-h-screen bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
-    <div class="w-full max-w-figma bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors">
+    <div class="w-full max-w-figma bg-surface dark:bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-rosa-3 dark:border-preto3 transition-colors">
 
         <!-- Abas de Status com Estilo Figma Neo-brutalista -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
@@ -59,6 +59,13 @@ echo renderVoltar('/admin/dashboard');
             <?php else: ?>
                 <?php foreach ($solicitacoes as $solic): ?>
                     <?php
+                        $nomeSolicitante = trim((string)($solic['nome_fantasia'] ?? ''));
+                        if ($nomeSolicitante === '') {
+                            $nomeSolicitante = trim((string)($solic['usuario_nome'] ?? ''));
+                        }
+                        if ($nomeSolicitante === '') {
+                            $nomeSolicitante = 'Protetor/ONG #' . (int)($solic['protetor_id'] ?? 0);
+                        }
                         $fotoNome = $solic['foto_perfil'] ?? null;
                         $caminhoFoto = null;
 
@@ -89,10 +96,10 @@ echo renderVoltar('/admin/dashboard');
 
                             <div>
                                 <h3 class="nome-ong text-base sm:text-lg font-bold text-text-dark leading-snug">
-                                    <?= htmlspecialchars($solic['nome_fantasia'] ?: ($solic['usuario_nome'] ?? 'ONG')) ?>
+                                    <?= htmlspecialchars($nomeSolicitante, ENT_QUOTES, 'UTF-8') ?>
                                 </h3>
                                 <p class="text-xs sm:text-sm text-text-muted mt-0.5">
-                                    Data da solicitação: <strong class="text-text-dark"><?= !empty($solic['criado_em']) ? date('d/m/Y', strtotime($solic['criado_em'])) : '-' ?></strong> • Status:
+                                    Data da solicitação: <strong class="text-text-dark dark:text-white"><?= !empty($solic['criado_em']) ? date('d/m/Y', strtotime($solic['criado_em'])) : '-' ?></strong> • Status:
                                     <span class="font-bold <?= ($solic['status'] ?? '') === 'aprovado' ? 'text-sucesso' : (($solic['status'] ?? '') === 'recusado' ? 'text-erro' : 'text-laranja-1') ?>">
                                         <?= ($solic['status'] ?? '') === 'aprovado' ? 'Aprovado' : (($solic['status'] ?? '') === 'recusado' ? 'Recusado' : 'Aguardando Análise') ?>
                                     </span>
@@ -106,10 +113,10 @@ echo renderVoltar('/admin/dashboard');
                                class="text-xs sm:text-sm font-bold text-primary dark:text-roxinhoFofo underline hover:text-accent transition">
                                 Clique para detalhes
                             </a>
-                            <span class="text-text-muted text-sm select-none">📄</span>
+                            <?= renderIconeMenu('../perfil/termos.svg', '', 'h-5 w-5 text-text-dark') ?>
                             <a href="<?= URL_BASE ?>/admin/solicitacoes/detalhes?id=<?= $solic['protetor_id'] ?? '' ?>"
                                class="w-8 h-8 rounded-full bg-rosa-1/40 dark:bg-preto2 flex items-center justify-center hover:bg-rosa-1 dark:hover:bg-preto3 transition">
-                                <img src="<?= URL_BASE ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-3.5 h-3.5">
+                                <img src="<?= URL_BASE ?>/assets/icons/navbar/pesquisar.svg" alt="Ver detalhes da solicitação" class="w-4 h-4 brightness-0 dark:invert">
                             </a>
                         </div>
                     </div>

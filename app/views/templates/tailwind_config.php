@@ -208,6 +208,7 @@
         .input-padrao {
             @apply w-full rounded-xl border border-cinzaMarrom bg-branco px-4 py-2.5
                    font-poppins text-base text-text-dark placeholder:text-text-muted
+                   dark:bg-surface dark:text-white dark:border-roxinhoFofo
                    transition focus:border-primary focus:ring-2 focus:ring-roxinhoFofo
                    focus:outline-none;
         }
@@ -232,6 +233,7 @@
             @apply absolute left-0 right-0 z-30 mt-1 max-h-56 overflow-y-auto rounded-2xl
                    border-2 border-preto1 dark:border-white bg-branco dark:bg-preto1
                    shadow-lg;
+            max-height: min(14rem, 40dvh);
         }
         .regiao-dropdown-item {
             @apply cursor-pointer border-b border-cinzaMarrom/15 px-4 py-3 font-poppins text-sm
@@ -264,8 +266,23 @@
         .card-padrao {
             @apply rounded-2xl bg-surface p-6 shadow-md;
         }
+        .card-superficie-destaque {
+            @apply rounded-2xl border border-rosa-3 bg-rosa-1 shadow-lg;
+        }
+        .card-superficie-destaque .text-text-muted {
+            color: rgb(var(--color-text-dark));
+        }
+        .dark .card-superficie-destaque {
+            background-color: rgb(var(--color-surface));
+            border-color: rgb(var(--color-rosa-3) / 0.65);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        .dark .card-superficie-destaque .text-text-muted {
+            color: rgb(242 238 246);
+        }
         .card-destaque {
             @apply rounded-xl bg-rosa-1 p-6 sm:p-8 border border-rosa-2
+                   dark:text-white dark:bg-rosa-4/20
                    shadow-[6px_6px_0px_rgba(44,44,44,0.15)]
                    dark:shadow-[6px_6px_0px_rgba(255,255,255,0.05)];
         }
@@ -283,6 +300,46 @@
         .rotulo-link {
             @apply whitespace-nowrap font-poppins font-medium transition-opacity duration-200;
         }
+    }
+</style>
+
+<style>
+    #area-conteudo::-webkit-scrollbar {
+        width: 34px;
+    }
+    #area-conteudo::-webkit-scrollbar-track {
+        background-color: rgb(var(--color-rosa-6));
+        border-inline: 12px solid transparent;
+        background-clip: padding-box;
+    }
+    #area-conteudo::-webkit-scrollbar-thumb {
+        background-color: rgb(var(--color-roxo1));
+        border-radius: 20px;
+        border: 12px solid transparent;
+        background-clip: padding-box;
+    }
+    #area-conteudo::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(var(--color-primary));
+    }
+    .dark #area-conteudo::-webkit-scrollbar-thumb {
+        background-color: #fff;
+    }
+    .dark #area-conteudo::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(255 255 255 / 0.85);
+    }
+    #area-conteudo::-webkit-scrollbar-button:single-button {
+        display: block;
+        height: 34px;
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+    }
+    #area-conteudo::-webkit-scrollbar-button:single-button:vertical:decrement {
+        background-image: url("<?= e(asset('assets/img/patinha-cima.png')) ?>");
+    }
+    #area-conteudo::-webkit-scrollbar-button:single-button:vertical:increment {
+        background-image: url("<?= e(asset('assets/img/patinha-baixo.png')) ?>");
     }
 </style>
 

@@ -27,7 +27,7 @@ echo renderVoltar('/admin/gerenciar-especies-racas');
 
             <div>
                 <label for="nome" class="label-padrao">Nome da Raça <span class="text-rosaAlerta">*</span></label>
-                <input autocomplete="nope" type="text" id="nome" name="nome" value="<?= htmlspecialchars($raca->getNome()); ?>" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
+                <input autocomplete="nope" type="text" id="nome" name="nome" maxlength="100" value="<?= htmlspecialchars($raca->getNome()); ?>" class="input-padrao bg-branco dark:bg-preto1 text-text-dark dark:text-white border-cinzaMarrom/40">
             </div>
 
             <div class="pt-6 flex flex-col sm:flex-row gap-3">

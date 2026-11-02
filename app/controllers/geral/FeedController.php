@@ -21,6 +21,7 @@ class FeedController extends Controller
 
     private const TAMANHO_PAGINA = 6;
     private const TAMANHO_PESQUISA = 18;
+    private const TAMANHO_ONGS = 12;
 
     public function pesquisar(): void
     {
@@ -28,9 +29,11 @@ class FeedController extends Controller
             $filtros = $this->filtrosDaRequisicao();
             $_SESSION['pesquisa_seed'] = random_int(1, 999999);
             $animais = $this->feedRepo->buscarFeed($this->obterAdotanteIdAutenticado(), [], $filtros, $_SESSION['pesquisa_seed'], 0, self::TAMANHO_PESQUISA);
+            $ongs = $this->feedRepo->buscarOngsPesquisa($filtros, 0, self::TAMANHO_ONGS + 1);
             $this->view('feed/pesquisa', [
                 'titulo' => 'Pesquisa', 'animais' => $this->anexarFotos($animais),
-                'ongs' => $this->feedRepo->buscarOngsPesquisa($filtros), 'filtrosAtuais' => $filtros,
+                'ongs' => array_slice($ongs, 0, self::TAMANHO_ONGS), 'filtrosAtuais' => $filtros,
+                'temMaisOngs' => count($ongs) > self::TAMANHO_ONGS, 'proximoOffsetOngs' => self::TAMANHO_ONGS,
                 'temMais' => count($animais) === self::TAMANHO_PESQUISA, 'proximoOffset' => self::TAMANHO_PESQUISA,
                 'especies' => (new EspecieRepository())->buscarAtivas(),
                 'regioes' => (new RegiaoRepository())->buscarTodas(),
@@ -58,6 +61,23 @@ class FeedController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         } catch (\Throwable $e) {
             $this->json(500, ['status' => 'erro', 'mensagem' => 'Não foi possível carregar mais animais.']);
+        }
+    }
+
+    public function carregarMaisOngsPesquisa(): void
+    {
+        try {
+            $offset = $_GET['offset'] ?? '0';
+            if (!is_scalar($offset) || !ctype_digit((string)$offset) || (int)$offset > 100000) throw new \DomainException('Página inválida.');
+            $ongs = $this->feedRepo->buscarOngsPesquisa($this->filtrosDaRequisicao(), (int)$offset, self::TAMANHO_ONGS + 1);
+            $this->json(200, [
+                'status' => 'sucesso', 'ongs' => array_slice($ongs, 0, self::TAMANHO_ONGS),
+                'temMais' => count($ongs) > self::TAMANHO_ONGS, 'proximoOffset' => (int)$offset + self::TAMANHO_ONGS,
+            ]);
+        } catch (\DomainException $e) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            $this->json(500, ['status' => 'erro', 'mensagem' => 'Não foi possível carregar as ONGs e protetores.']);
         }
     }
 

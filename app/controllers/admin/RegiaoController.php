@@ -2,14 +2,13 @@
 
 namespace app\controllers\admin;
 
-use app\core\Controller;
 use app\models\Regiao;
 use app\repositories\RegiaoRepository;
 use app\services\RegiaoService;
 use app\database\ConnectionFactory;
 use Exception;
 
-class RegiaoController extends Controller
+class RegiaoController extends AdminBaseController
 {
     private RegiaoService $service;
     private RegiaoRepository $regiaoRepo;
@@ -17,7 +16,7 @@ class RegiaoController extends Controller
     // Usado por: instanciado pelo Router para todas as rotas /admin/regiao/*
     public function __construct()
     {
-        $this->autenticacaoRequired(['administrador']);
+        parent::__construct();
         $this->validarCsrf();
 
         $pdo = ConnectionFactory::getConnection();
@@ -126,10 +125,11 @@ class RegiaoController extends Controller
     {
         try {
             $id = (int) ($_POST['id'] ?? $_GET['id'] ?? 0);
-            if ($id > 0) {
-                $this->service->excluirRegiao($id);
-                $this->redirecionarComMensagem('sucesso', 'Bairro excluído com sucesso!', '/admin/regiao');
+            if ($id <= 0) {
+                throw new Exception('Bairro inválido.');
             }
+            $this->service->excluirRegiao($id);
+            $this->redirecionarComMensagem('sucesso', 'Bairro excluído com sucesso!', '/admin/regiao');
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/admin/regiao');
         }
@@ -146,35 +146,16 @@ class RegiaoController extends Controller
         }
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function listarTodas(): array
-    {
-        try {
-            return $this->regiaoRepo->buscarTodas();
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-
     // Usado por: rota POST /admin/regiao/deletar-multiplos
     public function deletarMultiplos(): void
     {
         try {
             $ids = $_POST['ids'] ?? [];
-
-            if (!empty($ids) && is_array($ids)) {
-                $count = 0;
-                foreach ($ids as $id) {
-                    $idFormatado = (int) $id;
-                    if ($idFormatado > 0) {
-                        $this->service->excluirRegiao($idFormatado);
-                        $count++;
-                    }
-                }
-                $this->redirecionarComMensagem('sucesso', "{$count} bairro(s) excluído(s) com sucesso!", '/admin/regiao');
-            } else {
-                $this->redirecionarComMensagem('aviso', 'Nenhum bairro foi selecionado para exclusão.', '/admin/regiao');
+            if (!is_array($ids)) {
+                throw new Exception('Seleção de regiões inválida.');
             }
+            $count = $this->service->excluirRegioes($ids);
+            $this->redirecionarComMensagem('sucesso', "{$count} bairro(s) excluído(s) com sucesso!", '/admin/regiao');
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', 'Ação interrompida: ' . $e->getMessage(), '/admin/regiao');
         }

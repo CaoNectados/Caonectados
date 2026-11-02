@@ -79,9 +79,15 @@ class SolicitacaoAdocaoController extends Controller
             $this->exigirPerfil(['adotante']);
 
             $solicitacaoId = (int) ($_POST['id'] ?? 0);
-            $this->service->cancelarSolicitacao($solicitacaoId, (int) $_SESSION['usuario_id']);
+            $service = new SolicitacaoAdocaoService(null, null, true);
+            $service->cancelarSolicitacao($solicitacaoId, (int) $_SESSION['usuario_id']);
 
-            $this->redirecionarComMensagem('sucesso', 'Solicitação cancelada.', '/minhas-solicitacoes');
+            $this->redirecionarComMensagemAposResposta(
+                'sucesso',
+                'Solicitação cancelada.',
+                '/minhas-solicitacoes',
+                [$service, 'enviarAvisosPendentes']
+            );
         } catch (\Throwable $e) {
             $this->redirecionarComMensagem('erro', 'Não foi possível cancelar.', '/minhas-solicitacoes', $e->getMessage());
         }

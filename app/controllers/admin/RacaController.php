@@ -21,16 +21,14 @@ class RacaController extends Controller
     // Usado por: instanciado pelo Router para todas as rotas /admin/raca/* e /raca/json
     public function __construct()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        $this->validarCsrf();
-
-        // /raca/json e /admin/raca/json são compartilhadas com outros perfis (AJAX de raças por espécie).
+        // Somente /raca/json é compartilhada; o namespace /admin continua exclusivo.
         $uriAtual = $this->getUriLimpa();
-        if ($uriAtual !== '/raca/json' && $uriAtual !== '/admin/raca/json') {
+        if ($uriAtual === '/raca/json') {
+            $this->autenticacaoRequired();
+        } else {
             $this->autenticacaoRequired(['administrador']);
         }
+        $this->validarCsrf();
 
         $pdo = ConnectionFactory::getConnection();
 
@@ -176,11 +174,11 @@ public function importar(): void
         $this->redirect('/admin/gerenciar-especies-racas?aba=sugestoes');
     }
 
-    // Usado por: rota GET /admin/raca/reativar
+    // Usado por: rota POST /admin/raca/reativar (protegida por CSRF)
     public function reativar(): void
     {
         try {
-            $id = (int)($_GET['id'] ?? 0);
+            $id = (int)($_POST['id'] ?? 0);
             if ($id <= 0) {
                 throw new Exception('Raça inválida.');
             }
@@ -269,8 +267,8 @@ public function importar(): void
             $this->json(200, [
                 'status' => 'sucesso',
                 'sugestoes' => [
-                    ['especie' => 'Cão', 'icon' => '🐶', 'racas' => $listaCaes],
-                    ['especie' => 'Gato', 'icon' => '🐱', 'racas' => $listaGatos],
+                    ['especie' => 'Cão', 'racas' => $listaCaes],
+                    ['especie' => 'Gato', 'racas' => $listaGatos],
                 ],
             ]);
         } catch (Exception $e) {

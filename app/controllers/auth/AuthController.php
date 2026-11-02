@@ -132,8 +132,9 @@ class AuthController extends Controller
             $this->json(400, ['status' => 'erro', 'mensagem' => $e->getMessage()]);
         }
 
-        // TRAVA PRÉVIA: verifica se o e-mail já existe
         $usuarioRepo = new UsuarioRepository();
+
+        // TRAVA PRÉVIA: verifica se o e-mail já existe em uma conta ativa.
         if ($usuarioRepo->buscarPorEmail($email) !== null) {
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Este e-mail já está cadastrado em nossa plataforma.']);
         }
@@ -195,7 +196,11 @@ class AuthController extends Controller
     public function processarVerificacao()
     {
         $input = json_decode(file_get_contents('php://input'), true);
-        $codigoInformado = trim($_POST['codigo'] ?? $input['codigo'] ?? '');
+        $codigoRecebido = $_POST['codigo'] ?? (is_array($input) ? ($input['codigo'] ?? '') : '');
+        if ((!is_string($codigoRecebido) && !is_int($codigoRecebido)) || !preg_match('/^[0-9]{6}$/', trim((string)$codigoRecebido))) {
+            $this->json(400, ['status' => 'erro', 'mensagem' => 'Informe o código de seis dígitos.']);
+        }
+        $codigoInformado = trim((string)$codigoRecebido);
 
         if (empty($codigoInformado)) {
             $this->json(400, ['status' => 'erro', 'mensagem' => 'Código de verificação vazio.']);

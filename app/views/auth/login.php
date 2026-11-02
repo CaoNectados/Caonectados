@@ -20,7 +20,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 <div class="relative">
                     <input type="password" name="senha" id="senha" placeholder="Senha" class="input-padrao pr-12">
                     <button type="button" onclick="togglePassword('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none" aria-label="Mostrar senha">
-                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5">
+                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5 dark:brightness-0 dark:invert">
                     </button>
                 </div>
             </div>

@@ -30,7 +30,7 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
 ?>
 
 <main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-2xl flex flex-col py-10 px-8 relative bg-branco dark:bg-fundoChat-escuro shadow-[0_8px_20px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-cinzaMarrom/20 dark:border-branco/10 transition-colors duration-300">
+    <div class="w-full max-w-2xl flex flex-col py-10 px-8 relative bg-branco dark:bg-surface shadow-[0_8px_20px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-cinzaMarrom/20 dark:border-branco/10 transition-colors duration-300">
 
         <h1 class="font-shantell text-[32px] font-bold break-words text-text-dark mb-8 transition-colors duration-300">
             <?= htmlspecialchars($animal->getNome()) ?>

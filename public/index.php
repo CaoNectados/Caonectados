@@ -61,6 +61,7 @@ $router->get('/feed', 'geral/FeedController@index');
 $router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
 $router->get('/pesquisar', 'geral/FeedController@pesquisar');
 $router->get('/pesquisar/carregar-mais', 'geral/FeedController@carregarMaisPesquisa');
+$router->get('/pesquisar/ongs', 'geral/FeedController@carregarMaisOngsPesquisa');
 $router->get('/pagina', 'geral/PaginaController@publica');
 $router->get('/pagina-perfil', 'geral/PaginaController@editar');
 $router->post('/pagina-perfil/atualizar', 'geral/PaginaController@atualizar');
@@ -74,7 +75,6 @@ $router->get('/solicitacoes/detalhes', 'geral/SolicitacaoAdocaoController@detalh
 $router->post('/solicitacoes/em-analise', 'geral/SolicitacaoAdocaoController@colocarEmAnalise');
 $router->post('/solicitacoes/recusar', 'geral/SolicitacaoAdocaoController@recusar');
 $router->post('/solicitacoes/aprovar', 'geral/SolicitacaoAdocaoController@aprovar');
-$router->get('/admin/solicitacoes/documento', 'admin/SolicitacaoProtetorController@documento');
 
 // Perfil
 $router->get('/perfil', 'geral/PerfilController@index');
@@ -98,9 +98,6 @@ $router->post('/perfil/trocar', 'geral/PerfilController@alternar');
 
 // Excluir Conta (soft delete)
 $router->post('/perfil/excluir', 'geral/PerfilController@excluir');
-
-// Relatórios e Estatísticas (RF 12) — visão individual da ONG/Protetor
-
 
 // ==========================================
 // 4. ROTAS DE AUTENTICAÇÃO
@@ -136,6 +133,7 @@ $router->get('/admin/dashboard', 'admin/DashboardController@index');
 // Denúncias (listagem básica — fluxo de moderação ainda não implementado)
 
 // Solicitações de Cadastro (ONGs e Protetores)
+$router->get('/admin/solicitacoes/documento', 'admin/SolicitacaoProtetorController@documento');
 $router->get('/admin/solicitacoes', 'admin\SolicitacaoProtetorController@index');
 $router->get('/admin/solicitacoes/detalhes', 'admin\SolicitacaoProtetorController@detalhes');
 $router->post('/admin/solicitacoes/aprovar', 'admin\SolicitacaoProtetorController@aprovar');
@@ -174,7 +172,7 @@ $router->get('/admin/especie', 'admin/EspecieController@index');
 $router->get('/admin/especie/cadastrar', 'admin/EspecieController@create');
 $router->get('/admin/especie/editar', 'admin/EspecieController@edit');
 $router->get('/admin/especie/excluir', 'admin/EspecieController@deleteView');
-$router->get('/admin/especie/reativar', 'admin/EspecieController@reativar');
+$router->post('/admin/especie/reativar', 'admin/EspecieController@reativar');
 $router->post('/admin/especie/salvar', 'admin/EspecieController@store');
 $router->post('/admin/especie/atualizar', 'admin/EspecieController@update');
 $router->post('/admin/especie/deletar', 'admin/EspecieController@destroy');
@@ -188,7 +186,7 @@ $router->get('/admin/raca', 'admin/RacaController@index');
 $router->get('/admin/raca/cadastrar', 'admin/RacaController@create');
 $router->get('/admin/raca/editar', 'admin/RacaController@edit');
 $router->get('/admin/raca/excluir', 'admin/RacaController@deleteView');
-$router->get('/admin/raca/reativar', 'admin/RacaController@reativar');
+$router->post('/admin/raca/reativar', 'admin/RacaController@reativar');
 $router->post('/admin/raca/salvar', 'admin/RacaController@store');
 $router->post('/admin/raca/atualizar', 'admin/RacaController@update');
 $router->post('/admin/raca/deletar', 'admin/RacaController@destroy');

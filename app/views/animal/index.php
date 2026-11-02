@@ -13,7 +13,10 @@ echo renderVoltar('/perfil');
         <div><h1 class="font-shantell text-2xl sm:text-3xl font-bold"><?= $admin ? 'Animais cadastrados' : 'Meus animais' ?></h1>
             <p class="mt-1 text-sm text-text-muted">Cuide dos cadastros e acompanhe cada nova chance de adoção.</p></div>
         <a href="<?= e(URL_BASE) ?>/animal/cadastrar" class="btn-primario hidden sm:inline-flex min-h-11 items-center gap-2 text-sm">
-            <?= renderIconeMenu('cadastrar-animal.svg','','h-5 w-5') ?> Novo animal
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" class="h-5 w-5">
+                <path d="M12 5v14M5 12h14" />
+            </svg>
+            Novo animal
         </a>
     </div>
     <nav aria-label="Filtrar animais por status" class="flex flex-wrap gap-2 mb-6">
@@ -48,7 +51,7 @@ echo renderVoltar('/perfil');
                 <div class="p-1 sm:p-3">
                     <p class="hidden sm:block truncate text-xs text-text-muted"><?= e($animal->getRacaNome() ?: 'Raça não informada') ?></p>
                     <?php if (in_array($estado,['adotado','desativado'],true)): ?>
-                    <form action="<?= e(URL_BASE) ?>/animal/reativar" method="POST" class="mt-2" onsubmit="if (typeof abrirModalConfirmacao === 'function') { abrirModalConfirmacao('Reativar animal', 'O animal voltará a ficar disponível para novas adoções.', () => this.submit(), 'Reativar', 'Voltar'); return false; }">
+                    <form action="<?= e(URL_BASE) ?>/animal/reativar" method="POST" class="mt-2" onsubmit="if (typeof abrirModalConfirmacao === 'function') { const form = this; abrirModalConfirmacao('Reativar animal', 'O animal voltará a ficar disponível para novas adoções.', () => form.submit(), 'Reativar', 'Voltar'); return false; }">
                         <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>"><input type="hidden" name="id" value="<?= $id ?>">
                         <button type="submit" class="min-h-11 w-full rounded-xl bg-primary px-1 py-2 text-[11px] sm:text-xs font-semibold text-white hover:opacity-90">Reativar animal</button>
                     </form>

@@ -140,9 +140,6 @@ class SolicitacaoAdocaoService
                 if (!in_array($a['status'],['disponivel','em_analise'],true)) throw new DomainException('Animal indisponível.');
                 $concorrentes = $this->repo->listarOutrasPendentesParaAnimal((int)$a['animal_id'],$id);
                 foreach ($concorrentes as $outra) {
-                    if ($outra['status_solicitacao'] === 'em_analise') throw new DomainException('Há outro pedido em análise. Finalize a análise antes de aprovar.');
-                }
-                foreach ($concorrentes as $outra) {
                     $oid=(int)$outra['solicitacao_id'];
                     $this->repo->atualizarStatus($oid,'cancelada',null,true);
                     $this->historico->registrar($oid,$usuario,$outra['status_solicitacao'],'cancelada');
@@ -153,9 +150,18 @@ class SolicitacaoAdocaoService
                 $stmt=$this->db->prepare("INSERT INTO HISTORICO_STATUS_ANIMAL (animal_id,status_antigo,status_novo) VALUES (?,?,'adotado')");
                 $stmt->execute([$a['animal_id'],$a['status']]);
             }
+            if ($destino === 'em_analise') {
+                if (!in_array($a['status'], ['disponivel', 'em_analise'], true)) throw new DomainException('Animal indisponível.');
+                if ($a['status'] === 'disponivel') {
+                    $stmt = $this->db->prepare("UPDATE ANIMAL SET status='em_analise' WHERE animal_id=?");
+                    $stmt->execute([$a['animal_id']]);
+                    $stmt = $this->db->prepare("INSERT INTO HISTORICO_STATUS_ANIMAL (animal_id,status_antigo,status_novo) VALUES (?,'disponivel','em_analise')");
+                    $stmt->execute([$a['animal_id']]);
+                }
+            }
             $this->repo->atualizarStatus($id,$destino,$motivo,$destino !== 'em_analise');
-            if ($destino === 'cancelada' && $a['status'] === 'em_analise') {
-                $ativo=$this->linha("SELECT solicitacao_id FROM SOLICITACAO_ADOCAO WHERE animal_id=? AND status_solicitacao IN ('pendente','em_analise') LIMIT 1",[$a['animal_id']]);
+            if (in_array($destino, ['cancelada', 'reprovada'], true) && $a['status'] === 'em_analise') {
+                $ativo=$this->linha("SELECT solicitacao_id FROM SOLICITACAO_ADOCAO WHERE animal_id=? AND status_solicitacao='em_analise' LIMIT 1",[$a['animal_id']]);
                 if (!$ativo) {
                     $stmt=$this->db->prepare("UPDATE ANIMAL SET status='disponivel' WHERE animal_id=?");
                     $stmt->execute([$a['animal_id']]);

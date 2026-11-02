@@ -91,15 +91,16 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
 <div class="w-full max-w-7xl mx-auto pb-24 lg:pb-10 relative">
 
     <!-- Cabeçalho da tela + botão de filtros -->
-    <div class="flex items-center justify-between px-4 pt-4 lg:px-8">
+    <div class="flex flex-col gap-3 px-3 pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-4 lg:px-8">
         <div class="min-w-0">
             <h1 class="font-shantell text-xl lg:text-2xl font-bold text-text-dark dark:text-white">Feed de Adoção</h1>
             <p class="text-xs text-text-muted hidden sm:block">Deslize para conhecer os animais disponíveis</p>
         </div>
 
-        <div class="flex items-center gap-2">
-        <a href="<?= e($urlBase) ?>/denunciar" aria-label="Como denunciar" title="Como denunciar" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface border border-rosa-2 hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-            <img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">
+        <div class="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
+        <a href="<?= e($urlBase) ?>/denunciar" aria-label="Como denunciar" title="Como denunciar" class="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-rosa-2 bg-surface px-3 text-text-dark transition hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary dark:bg-preto1 dark:text-white dark:border-preto3 max-[380px]:h-11 max-[380px]:w-11 max-[380px]:px-1">
+            <img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-7 w-7 shrink-0 object-contain drop-shadow-md dark:brightness-0 dark:invert">
+            <span class="text-[11px] font-bold sm:text-xs max-[380px]:hidden">Como denunciar</span>
         </a>
         <!-- Botão de filtro com destaque em verde se houver filtro ativo -->
         <button type="button" onclick="document.getElementById('modal-filtros-feed').classList.remove('hidden')"
@@ -128,13 +129,13 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         <div class="relative flex items-center justify-center mt-4 lg:mt-6 px-2 lg:px-4">
 
             <button type="button" id="btn-anterior-animal" aria-label="Animal anterior"
-                class="hidden lg:flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition hover:bg-rosaClaro2 dark:bg-preto2 dark:text-branco shrink-0 mr-4 z-10 disabled:opacity-30 disabled:cursor-not-allowed">
+                class="hidden lg:flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition hover:bg-rosaClaro2 dark:bg-preto2 dark:text-white shrink-0 mr-4 z-10 disabled:opacity-30 disabled:cursor-not-allowed">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.75" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
 
-            <div id="feed-track" class="flex flex-col lg:flex-row gap-6 overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto w-full h-[72vh] max-h-[700px] items-stretch lg:items-center py-2">
+            <div id="feed-track" class="flex flex-col lg:flex-row gap-6 overflow-y-auto lg:overflow-y-hidden lg:overflow-x-auto w-full h-[calc(100dvh-15rem)] min-h-[360px] max-h-[700px] items-stretch lg:items-center py-2">
                 <?php foreach ($animais as $indice => $animal): ?>
                     <?php
                     $fotos = array_values(array_filter(array_map(
@@ -169,12 +170,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
 
                             <a href="<?= $urlBase ?>/pagina?id=<?= (int) $animal['protetor_id'] ?>" onclick="event.stopPropagation()"
                                 class="absolute top-10 left-3 z-20 flex max-w-[calc(100%_-_5rem)] items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
-                                <span class="w-7 h-7 shrink-0 rounded-full bg-rosa-1 flex items-center justify-center text-xs">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-heart-fill" viewBox="0 0 16 16">
-                                        <path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707z" />
-                                        <path d="m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018" />
-                                    </svg>
-                                </span>
+                                <img src="<?= e(feedMontarUrlFoto($animal['foto_protetor'] ?? '', $urlBase) ?: $urlBase . '/assets/img/perfil-placeholder.png') ?>" alt="" class="w-7 h-7 shrink-0 rounded-full object-cover">
                                 <span class="truncate text-xs font-bold text-text-dark dark:text-white"><?= htmlspecialchars($animal['nome_fantasia'] ?? 'Protetor independente') ?></span>
                             </a>
 
@@ -188,27 +184,35 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <?php endforeach; ?>
                             </div>
 
+                            <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+
                             <?php if (count($fotos) > 1): ?>
                                 <button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
                                 <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
                             <?php endif; ?>
 
-                            <a href="<?= e($urlBase) ?>/denunciar?animal=<?= (int)$animal['animal_id'] ?>" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-10 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface shadow hover:bg-primary/10" onclick="event.stopPropagation()">
-                                <img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">
+                            <a href="<?= e($urlBase) ?>/denunciar?animal=<?= (int)$animal['animal_id'] ?>" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-8 right-3 z-20 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onclick="event.stopPropagation()">
+                                <img src="<?= e(asset('assets/img/icone-denunciar.png')) ?>" alt="" class="h-12 w-12 object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.55)]">
                             </a>
-                            <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">
-                                Dar Petisco!
+                            <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 inline-flex items-center justify-center gap-2 border-2 border-primary/20 bg-rosa-1 px-6 py-2.5 text-text-dark font-shantell font-bold text-base sm:text-lg rounded-full shadow-lg transition hover:-translate-y-0.5 hover:bg-rosa-2 active:scale-95 dark:border-white/30 dark:bg-rosa-1 dark:text-text-dark">
+                                <img src="<?= e(asset('assets/img/icone-petisco-osso.png')) ?>" alt="" class="h-7 w-7 object-contain" aria-hidden="true">
+                                <span>Dar Petisco!</span>
                             </button>
                         </div>
 
                         <!-- Info do animal -->
-                        <div class="p-5 bg-branco dark:bg-preto1 flex flex-col justify-between">
+                        <div class="p-4 sm:p-5 bg-primary text-white flex flex-col justify-between">
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap mb-2">
-                                    <h2 class="font-shantell text-xl lg:text-2xl font-bold text-text-dark dark:text-white"><?= htmlspecialchars($animal['nome']) ?></h2>
-                                    <span class="text-primary dark:text-roxinhoFofo font-bold text-sm"><?= htmlspecialchars(feedFormatarIdade($animal['dt_nasc'])) ?></span>
+                                    <h2 class="font-shantell text-xl lg:text-2xl font-bold text-white"><?= htmlspecialchars($animal['nome']) ?></h2>
+                                    <span class="text-white/85 font-bold text-sm"><?= htmlspecialchars(feedFormatarIdade($animal['dt_nasc'])) ?></span>
                                     <?php if (!empty($animal['nome_regiao'])): ?>
-                                        <span class="ml-auto flex items-center gap-1 bg-sucesso/15 text-sucesso text-xs font-bold px-2.5 py-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
+                                        <span class="ml-auto flex items-center gap-1 bg-sucesso text-white text-xs font-bold px-2.5 py-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
                                                 <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10" />
                                                 <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
                                             </svg> <?= htmlspecialchars($animal['nome_regiao']) ?></span>
@@ -216,28 +220,28 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 </div>
 
                                 <div class="flex flex-wrap gap-1.5 mt-2">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold transition-colors <?= $fPorteAtivo ? 'bg-sucesso text-white' : 'bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white' ?>">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold transition-colors <?= $fPorteAtivo ? 'bg-sucesso text-white' : 'bg-white/15 text-white' ?>">
                                         <?= htmlspecialchars($porte) ?>
                                     </span>
 
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold transition-colors <?= $fRacaEspecieAtivo ? 'bg-sucesso text-white' : 'bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white' ?>">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold transition-colors <?= $fRacaEspecieAtivo ? 'bg-sucesso text-white' : 'bg-white/15 text-white' ?>">
                                         <?= htmlspecialchars($animal['raca_nome'] ?? $animal['especie_nome']) ?>
                                     </span>
 
                                     <?php if ($comportamento): ?>
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-white">
                                             <?= htmlspecialchars($comportamento) ?>
                                         </span>
                                     <?php endif; ?>
 
                                     <?php if ($animal['castrado']): ?>
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold <?= $fCastradoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-sucesso/15 text-sucesso' ?>">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold <?= $fCastradoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-white/15 text-white' ?>">
                                             Castrado
                                         </span>
                                     <?php endif; ?>
 
                                     <?php if ($animal['vacinado']): ?>
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold <?= $fVacinadoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-sucesso/15 text-sucesso' ?>">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold <?= $fVacinadoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-white/15 text-white' ?>">
                                             Vacinado
                                         </span>
                                     <?php endif; ?>
@@ -245,7 +249,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                             </div>
 
                             <a href="<?= $urlPerfilAnimal ?>"
-                                class="block w-full text-center mt-4 py-2.5 px-4 rounded-full bg-[#4e4870] hover:bg-[#3f3a5b] text-white text-xs lg:text-sm font-bold transition shadow-sm">
+                                class="block w-full text-center mt-4 py-2.5 px-4 rounded-full bg-white text-primary hover:bg-rosa-1 text-xs lg:text-sm font-bold transition shadow-sm">
                                 Ver perfil completo
                             </a>
                         </div>
@@ -273,7 +277,7 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
             </div>
 
             <button type="button" id="btn-proximo-animal" aria-label="Próximo animal"
-                class="hidden lg:flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition hover:bg-rosaClaro2 dark:bg-preto2 dark:text-branco shrink-0 ml-4 z-10 disabled:opacity-30 disabled:cursor-not-allowed">
+                class="hidden lg:flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition hover:bg-rosaClaro2 dark:bg-preto2 dark:text-white shrink-0 ml-4 z-10 disabled:opacity-30 disabled:cursor-not-allowed">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.75" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
@@ -342,7 +346,11 @@ require __DIR__ . '/filtros.php';
 
                 if (resposta.ok && resultado.status === 'sucesso') {
                     botao.textContent = 'Petisco enviado! ';
-                    if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', resultado.mensagem);
+                    if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('sucesso', 'Seu pedido foi enviado ao responsável pelo animal. Você receberá atualizações no e-mail cadastrado.', {
+                        textoBotao: 'Acompanhar solicitações',
+                        url: `${urlBase}/minhas-solicitacoes`,
+                        animarPetiscos: true
+                    });
                 } else {
                     botao.disabled = false;
                     botao.textContent = textoOriginal;
@@ -440,6 +448,14 @@ require __DIR__ . '/filtros.php';
                     });
                 }
             }
+
+            track.addEventListener('click', function(event) {
+                const controle = event.target.closest('.btn-animal-nav');
+                if (!controle) return;
+                event.preventDefault();
+                event.stopPropagation();
+                irParaVizinho(controle.classList.contains('btn-animal-anterior') ? -1 : 1);
+            });
 
             document.getElementById('btn-anterior-animal')?.addEventListener('click', () => irParaVizinho(-1));
             document.getElementById('btn-proximo-animal')?.addEventListener('click', () => irParaVizinho(1));
@@ -603,15 +619,15 @@ require __DIR__ . '/filtros.php';
             const fRacaEspecieAtivo = Boolean(filtrosAtuais.raca_id || filtrosAtuais.especie_id);
 
             const badges = [
-                `<span class="px-3 py-1 rounded-full text-xs font-bold transition-colors ${fPorteAtivo ? 'bg-sucesso text-white' : 'bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white'}">${porte}</span>`,
-                `<span class="px-3 py-1 rounded-full text-xs font-bold transition-colors ${fRacaEspecieAtivo ? 'bg-sucesso text-white' : 'bg-rosa-1 dark:bg-preto2 text-text-dark dark:text-white'}">${animal.raca_nome || animal.especie_nome}</span>`,
+                `<span class="px-3 py-1 rounded-full text-xs font-bold transition-colors ${fPorteAtivo ? 'bg-sucesso text-white' : 'bg-white/15 text-white'}">${porte}</span>`,
+                `<span class="px-3 py-1 rounded-full text-xs font-bold transition-colors ${fRacaEspecieAtivo ? 'bg-sucesso text-white' : 'bg-white/15 text-white'}">${animal.raca_nome || animal.especie_nome}</span>`,
             ];
 
             if (animal.castrado) {
-                badges.push(`<span class="px-3 py-1 rounded-full text-xs font-bold ${fCastradoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-sucesso/15 text-sucesso'}">Castrado</span>`);
+                badges.push(`<span class="px-3 py-1 rounded-full text-xs font-bold ${fCastradoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-white/15 text-white'}">Castrado</span>`);
             }
             if (animal.vacinado) {
-                badges.push(`<span class="px-3 py-1 rounded-full text-xs font-bold ${fVacinadoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-sucesso/15 text-sucesso'}">Vacinado</span>`);
+                badges.push(`<span class="px-3 py-1 rounded-full text-xs font-bold ${fVacinadoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-white/15 text-white'}">Vacinado</span>`);
             }
 
             card.innerHTML = `
@@ -619,32 +635,29 @@ require __DIR__ . '/filtros.php';
                 <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5 pointer-events-none">${segmentosHtml}</div>
                 <a href="${urlBase}/pagina?id=${animal.protetor_id}" onclick="event.stopPropagation()"
                    class="absolute top-10 left-3 z-20 flex max-w-[calc(100%_-_5rem)] items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
-                    <span class="w-7 h-7 shrink-0 rounded-full bg-rosa-1 flex items-center justify-center text-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-heart-fill" viewBox="0 0 16 16">
-                            <path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207 1.354 8.853a.5.5 0 1 1-.708-.707z"/>
-                            <path d="m14 9.293-6-6-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018-5.825-3.764-1.664-6.691 0-5.018"/>
-                        </svg>
-                    </span>
+                    <img src="${animal.foto_protetor ? escaparHtml(urlBase + '/' + animal.foto_protetor.replace(/^\/+/, '')) : urlBase + '/assets/img/perfil-placeholder.png'}" alt="" class="w-7 h-7 shrink-0 rounded-full object-cover">
                     <span class="truncate text-xs font-bold text-text-dark dark:text-white">${animal.nome_fantasia || 'Protetor independente'}</span>
                 </a>
                 <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer" onclick="window.location.href='${animal.url_detalhes}'">${fotosHtml}</div>
+                <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
+                <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg></button>
                 ${setasHtml}
-                <a href="${urlBase}/denunciar?animal=${encodeURIComponent(animal.animal_id)}" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-10 right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-surface shadow hover:bg-primary/10" onclick="event.stopPropagation()"><img src="<?= e(asset('assets/icons/perfil/denunciar.svg')) ?>" alt="" class="h-6 w-6 dark:brightness-0 dark:invert"></a>
-                <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-lg px-8 py-3 rounded-full shadow-lg transition active:scale-95">Dar Petisco!</button>
+                <a href="${urlBase}/denunciar?animal=${encodeURIComponent(animal.animal_id)}" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-8 right-3 z-20 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onclick="event.stopPropagation()"><img src="<?= e(asset('assets/img/icone-denunciar.png')) ?>" alt="" class="h-12 w-12 object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.55)]"></a>
+                <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 inline-flex items-center justify-center gap-2 border-2 border-primary/20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-base sm:text-lg px-6 py-2.5 rounded-full shadow-lg transition hover:-translate-y-0.5 active:scale-95 dark:border-white/30 dark:bg-rosa-1 dark:text-text-dark"><img src="<?= e(asset('assets/img/icone-petisco-osso.png')) ?>" alt="" class="h-7 w-7 object-contain" aria-hidden="true"><span>Dar Petisco!</span></button>
             </div>
-            <div class="p-5 bg-branco dark:bg-preto1 flex flex-col justify-between">
+            <div class="p-4 sm:p-5 bg-primary text-white flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-2 flex-wrap mb-2">
-                        <h2 class="font-shantell text-xl lg:text-2xl font-bold text-text-dark dark:text-white">${animal.nome}</h2>
-                        <span class="text-primary dark:text-roxinhoFofo font-bold text-sm">${formatarIdade(animal.dt_nasc)}</span>
-                        ${animal.nome_regiao ? `<span class="ml-auto flex items-center gap-1 bg-sucesso/15 text-sucesso text-xs font-bold px-2.5 py-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
+                        <h2 class="font-shantell text-xl lg:text-2xl font-bold text-white">${animal.nome}</h2>
+                        <span class="text-white/85 font-bold text-sm">${formatarIdade(animal.dt_nasc)}</span>
+                        ${animal.nome_regiao ? `<span class="ml-auto flex items-center gap-1 bg-sucesso text-white text-xs font-bold px-2.5 py-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
   <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
   <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
 </svg> ${animal.nome_regiao}</span>` : ''}
                     </div>
                     <div class="flex flex-wrap gap-1.5 mt-2">${badges.join('')}</div>
                 </div>
-                <a href="${animal.url_detalhes}" class="block w-full text-center mt-4 py-2.5 px-4 rounded-full bg-[#4e4870] hover:bg-[#3f3a5b] text-white text-xs lg:text-sm font-bold transition shadow-sm">Ver perfil completo</a>
+                <a href="${animal.url_detalhes}" class="block w-full text-center mt-4 py-2.5 px-4 rounded-full bg-white text-primary hover:bg-rosa-1 text-xs lg:text-sm font-bold transition shadow-sm">Ver perfil completo</a>
             </div>
             `;
 

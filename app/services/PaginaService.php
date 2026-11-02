@@ -43,8 +43,13 @@ class PaginaService
     }
 
     // Usado por: PaginaController::atualizar() (UC 19.1 / UC 19.2 — descrição e chave PIX)
-    public function atualizarDescricaoEChavePix(int $protetorId, ?string $descricao, ?string $chavePix): void
+    public function atualizarDescricaoEChavePix(int $protetorId, ?string $descricao, ?string $chavePix, string $tipoChavePix = 'auto'): void
     {
+        $descricao = trim($descricao ?? '');
+        $chavePix = trim($chavePix ?? '');
+        if ($chavePix !== '' && !ValidationService::validarChavePix($chavePix, $tipoChavePix)) {
+            throw new Exception('Informe uma chave PIX válida: CPF, CNPJ, e-mail, telefone ou chave aleatória.');
+        }
         if (mb_strlen($descricao ?? '') > 1000 || mb_strlen($chavePix ?? '') > 255) throw new Exception('Descrição ou chave PIX excede o limite permitido.');
         $paginaAtual = $this->paginaRepo->buscarPorProtetorId($protetorId);
 
@@ -123,7 +128,6 @@ class PaginaService
         }
 
         $linkRede = trim($linkRede);
-        if (!preg_match('#^https?://#i', $linkRede)) $linkRede = 'https://' . $linkRede;
         if ($linkRede === '') {
             throw new Exception('Informe o link da rede social.');
         }
@@ -131,8 +135,8 @@ class PaginaService
         if (!ValidationService::validarLinkRedeSocial($linkRede, $tipoRede)) {
             throw new Exception('O link informado não é válido para ' . ucfirst($tipoRede) . '.');
         }
-        if (!in_array(strtolower((string)parse_url($linkRede, PHP_URL_SCHEME)), ['http','https'], true)) throw new Exception('Use um endereço HTTP ou HTTPS.');
 
+        if (!preg_match('#^https?://#i', $linkRede)) $linkRede = 'https://' . $linkRede;
         $rede = new Rede();
         $rede->setProtetorId($protetorId);
         $rede->setTipoRede($tipoRede);
@@ -170,12 +174,10 @@ class PaginaService
 
         $redes = $this->redeRepo->buscarPorProtetorId($protetorId);
 
-        // RN 18.5: catálogo exclusivo, só os disponíveis desta ONG/Protetor. Reaproveita
-        // AnimalRepository::listarComFiltros() — qualquer tipoPerfil diferente de
-        // 'administrador' força o filtro por protetor_id na query, então passar um literal
-        // não-admin aqui garante o escopo certo independente de quem esteja vendo a página.
+        // RN 18.5: catálogo exclusivo desta ONG/Protetor. Os adotados incluem dados
+        // públicos da solicitação aprovada para exibir quem adotou e sua foto de perfil.
         $disponiveis = $this->animalRepo->listarComFiltros('publico', $protetorId, 'disponivel');
-        $adotados = $this->animalRepo->listarComFiltros('publico', $protetorId, 'adotado');
+        $adotados = $this->animalRepo->listarAdotadosComAdotante($protetorId);
 
         return [
             'protetor'    => $protetor,

@@ -93,6 +93,30 @@ class RegiaoRepository extends BaseRepository
         return $stmt->rowCount() > 0;
     }
 
+    /** Exclui um conjunto de regiões atomicamente para evitar remoção parcial. */
+    public function excluirRegioes(array $ids): int
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $excluidas = 0;
+            foreach ($ids as $id) {
+                if (!$this->excluirRegiao((int) $id)) {
+                    throw new \RuntimeException('Uma das regiões selecionadas não existe.');
+                }
+                $excluidas++;
+            }
+
+            $this->db->commit();
+            return $excluidas;
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
     // Usado por: RegiaoRepository::cadastrarRegiao() e editarRegiao() (uso interno)
     private function bindRegiaoValues(PDOStatement $stmt, Regiao $regiao): void
     {

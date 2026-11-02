@@ -97,7 +97,7 @@ $itemAuth   = $estaLogado
     <link rel="icon" type="image/png" href="<?= e(URL_BASE) ?>/assets/img/logo.png">
 </head>
 
-<body class="flex h-[100dvh] overflow-hidden flex-col bg-background dark:bg-corFundo-escuro transition-colors">
+<body class="flex h-[100dvh] overflow-hidden flex-col bg-background dark:bg-background transition-colors">
     <header class="sticky top-0 z-50 h-16 shrink-0 bg-primary shadow-md">
         <div class="relative flex h-full items-center gap-3 px-4 sm:px-6">
 
@@ -123,6 +123,21 @@ $itemAuth   = $estaLogado
             </div>
 
             <div class="ml-auto flex items-center gap-1 sm:gap-2">
+
+                <button type="button" data-theme-toggle
+                    class="rounded-lg p-2 text-white transition hover:bg-white/20 lg:hidden"
+                    aria-label="Alternar para modo escuro" title="Alternar tema">
+                    <svg class="block h-6 w-6 dark:hidden" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4.5" />
+                        <path stroke-linecap="round"
+                            d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4m12.8-12.8 1.4-1.4" />
+                    </svg>
+                    <svg class="hidden h-6 w-6 dark:block" fill="currentColor"
+                        viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20.5 14.7A8.5 8.5 0 0 1 9.3 3.5a.6.6 0 0 0-.8-.8A10 10 0 1 0 21.3 15.5a.6.6 0 0 0-.8-.8Z" />
+                    </svg>
+                </button>
 
                 <button type="button" id="botao-menu-mobile"
                     class="rounded-lg p-2 text-white transition hover:bg-white/20 lg:hidden"
@@ -154,7 +169,10 @@ $itemAuth   = $estaLogado
                     } else {
                         $ehAtivo = (strpos($uriAtual, parse_url($item['url'], PHP_URL_PATH)) !== false);
                     }
-                    $classeTexto = $ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white';
+                    $ehCompletarPerfilAtivo = $tipoPerfil === 'usuario' && $item['label'] === 'Completar Perfil' && $ehAtivo;
+                    $classeTexto = $ehCompletarPerfilAtivo
+                        ? 'text-rosaAlerta dark:text-white underline decoration-2 underline-offset-4'
+                        : ($ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white');
                     ?>
                     <li>
                         <a href="<?= e($item['url']) ?>"
@@ -164,27 +182,6 @@ $itemAuth   = $estaLogado
                         </a>
                     </li>
                 <?php endforeach; ?>
-
-                <li>
-                    <button type="button"
-                        data-theme-toggle
-                        class="nav-link-mobile w-full appearance-none bg-transparent border-white/20 text-white no-underline"
-                        aria-label="Alternar para modo escuro">
-                        <svg class="block h-6 w-6 dark:hidden" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <circle cx="12" cy="12" r="4.5" />
-                            <path stroke-linecap="round"
-                                d="M12 3v2m0 14v2M4.2 4.2l1.4 1.4m12.8 12.8 1.4 1.4M3 12h2m14 0h2M4.2 19.8l1.4-1.4m12.8-12.8 1.4-1.4" />
-                        </svg>
-
-                        <svg class="hidden h-6 w-6 dark:block" fill="currentColor"
-                            viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M20.5 14.7A8.5 8.5 0 0 1 9.3 3.5a.6.6 0 0 0-.8-.8A10 10 0 1 0 21.3 15.5a.6.6 0 0 0-.8-.8Z" />
-                        </svg>
-
-                        <span>Tema</span>
-                    </button>
-                </li>
 
                 <li>
                     <?php
@@ -220,7 +217,10 @@ $itemAuth   = $estaLogado
                 } else {
                     $ehAtivo = (strpos($uriAtual, $itemPath) !== false);
                 }
-                $classeTexto = $ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white';
+                $ehCompletarPerfilAtivo = $tipoPerfil === 'usuario' && $item['label'] === 'Completar Perfil' && $ehAtivo;
+                $classeTexto = $ehCompletarPerfilAtivo
+                    ? 'text-rosaAlerta dark:text-white underline decoration-2 underline-offset-4'
+                    : ($ehAtivo ? 'text-rosaAlerta underline decoration-2 underline-offset-4' : 'text-white');
                 ?>
                 <a href="<?= e($item['url']) ?>" class="nav-link-desktop !h-auto min-h-[3rem] py-2">
                     <?= renderIconeMenu($item['icone'], $item['label'], 'h-6 w-6 shrink-0 text-white') ?>
@@ -257,7 +257,7 @@ $itemAuth   = $estaLogado
     </aside>
 
     <button type="button" id="botao-sidebar"
-        class="fixed top-1/2 z-50 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition-[left,transform] duration-300 ease-in-out hover:bg-rosaClaro2 dark:bg-preto2 dark:text-branco lg:flex lg:left-60"
+        class="fixed top-1/2 z-50 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-primary bg-branco text-primary shadow-lg ring-2 ring-primary/20 transition-[left,transform] duration-300 ease-in-out hover:bg-rosaClaro2 dark:bg-preto2 dark:text-white lg:flex lg:left-60"
         aria-expanded="true" aria-controls="sidebar"
         aria-label="Recolher menu lateral">
 
@@ -299,5 +299,5 @@ $itemAuth   = $estaLogado
         })();
     </script>
 
-    <div id="area-conteudo" class="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] transition-[margin] duration-300 lg:ml-60 lg:pb-0">
+    <div id="area-conteudo" class="mb-[calc(4.5rem+env(safe-area-inset-bottom))] flex min-h-0 flex-1 flex-col overflow-y-auto pb-2 transition-[margin] duration-300 lg:mb-0 lg:ml-60 lg:pb-0">
         <main id="conteudo-dinamico" class="mx-auto w-full max-w-figma flex-1 px-4 sm:px-6">

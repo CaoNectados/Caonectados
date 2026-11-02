@@ -112,6 +112,43 @@ class AnimalRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
+    /** Lista animais adotados com o nome e a foto pública do adotante da solicitação aprovada. */
+    public function listarAdotadosComAdotante(int $protetorId): array
+    {
+        $sql = "SELECT a.animal_id, a.protetor_id, a.raca_id, a.nome, a.dt_nasc, a.sexo,
+                    a.porte, a.status, a.descricao, a.vacinado, a.castrado, a.comportamento,
+                    a.historico_saude, a.criado_em, a.deletado_em, a.atualizado_em,
+                    r.nome AS raca_nome, fa.caminho_foto AS foto_principal,
+                    u.nome AS adotante_nome, ad.foto_perfil AS adotante_foto
+                FROM ANIMAL a
+                LEFT JOIN RACA r ON r.raca_id = a.raca_id
+                LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
+                LEFT JOIN (
+                    SELECT animal_id, MAX(solicitacao_id) AS solicitacao_id
+                    FROM SOLICITACAO_ADOCAO
+                    WHERE status_solicitacao = 'aprovada'
+                    GROUP BY animal_id
+                ) ultima ON ultima.animal_id = a.animal_id
+                LEFT JOIN SOLICITACAO_ADOCAO s ON s.solicitacao_id = ultima.solicitacao_id
+                LEFT JOIN ADOTANTE ad ON ad.adotante_id = s.adotante_id
+                LEFT JOIN USUARIO u ON u.usuario_id = ad.usuario_id
+                WHERE a.protetor_id = :protetor_id
+                    AND a.status = 'adotado' AND a.deletado_em IS NULL
+                ORDER BY a.atualizado_em DESC, a.animal_id DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return array_map(function (array $row): array {
+            $adotante = [
+                'nome' => $row['adotante_nome'] ?? null,
+                'foto_perfil' => $row['adotante_foto'] ?? null,
+            ];
+            return ['animal' => $this->mapAnimal($row), 'adotante' => $adotante];
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     // Usado por: (não referenciado atualmente)
     public function buscarPorProtetor(int $protetorId): array
     {

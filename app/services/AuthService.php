@@ -5,6 +5,7 @@ use app\models\Usuario;
 use app\repositories\UsuarioRepository;
 use app\repositories\ProtetorRepository;
 use Exception;
+use PDOException;
 
 class AuthService
 {
@@ -43,6 +44,13 @@ class AuthService
     // Usado por: AuthController::cadastro
     public function registrar(string $email, string $senha, string $tipoPerfil = 'usuario'): int
     {
+        if ($tipoPerfil !== 'usuario') throw new Exception('O cadastro público não concede perfis privilegiados.');
+        ValidationService::validarEmail($email);
+        ValidationService::validarForcaSenha($senha);
+        // Libera o e-mail de uma conta que foi excluída antes do cadastro atual.
+        // A linha antiga e os seus vínculos permanecem para preservar o histórico.
+        $this->usuarioRepo->liberarEmailDeContaExcluida($email);
+
         if ($this->usuarioRepo->buscarPorEmail($email)) {
             throw new Exception("Este e-mail já está em uso.");
         }
@@ -54,7 +62,15 @@ class AuthService
         $usuario->setPerfisAtivos($tipoPerfil);
         $usuario->setStatusConta('ativo');
 
-        return $this->usuarioRepo->salvarNovoUsuario($usuario);
+        try {
+            return $this->usuarioRepo->salvarNovoUsuario($usuario);
+        } catch (PDOException $e) {
+            $codigoMysql = (int)($e->errorInfo[1] ?? 0);
+            if ($codigoMysql === 1062) {
+                throw new Exception('Este e-mail já está vinculado a outra conta. Inicie o cadastro novamente.');
+            }
+            throw $e;
+        }
     }
 
     // Usado por: AuthController (recuperação de senha)

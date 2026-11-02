@@ -23,7 +23,7 @@ if (isset($_SESSION['boas_vindas_tipo']) && isset($_SESSION['boas_vindas_nome'])
 ?>
 
 <div id="modal-boas-vindas" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-preto/60">
-    <div class="bg-surface rounded-2xl p-6 md:p-8 text-center max-w-lg w-full shadow-2xl transform transition-all">
+    <div class="card-superficie-destaque p-6 md:p-8 text-center max-w-lg w-full shadow-2xl transform transition-all">
         
         <!-- Caminho reservado para a imagem/gif de "aprovado" — troque o arquivo em
              public/assets/img/solicitacao-aprovada.gif quando tiver um pronto. Enquanto

@@ -6,7 +6,7 @@ use app\core\Controller;
 
 class AdminBaseController extends Controller
 {
-    // Usado por: DashboardController e SolicitacaoProtetorController (heranca)
+    // Base comum das telas e ações administrativas para exigir sessão com perfil Admin.
     public function __construct()
     {
         $this->autenticacaoRequired(['administrador']);

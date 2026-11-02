@@ -46,7 +46,7 @@ class UploadService
         // Se for string Base64 (Cropper.js)
         if (is_string($arquivoOuBase64)) {
             if (!preg_match('/^data:image\/(\w+);base64,/', $arquivoOuBase64, $match)) {
-                return null;
+                throw new Exception('Imagem enviada em formato inválido.');
             }
 
             // Extensão declarada no cabeçalho do Data URI não é confiável (o cliente a controla),
@@ -62,8 +62,10 @@ class UploadService
             $dadosDecodificados = base64_decode($dadosLimpos, true);
             if ($dadosDecodificados !== false && strlen($dadosDecodificados) > 5 * 1024 * 1024) throw new Exception('Arquivo deve ter até 5 MB.');
 
-            if ($dadosDecodificados === false || @getimagesizefromstring($dadosDecodificados) === false) {
-                return null;
+            $imagem = $dadosDecodificados === false ? false : @getimagesizefromstring($dadosDecodificados);
+            $mimes = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'];
+            if (!$imagem || ($imagem['mime'] ?? '') !== $mimes[$extensao]) {
+                throw new Exception('O conteúdo da imagem não corresponde ao formato enviado.');
             }
 
             $nomeUnico = md5(uniqid((string)rand(), true)) . '.' . $extensao;

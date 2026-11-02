@@ -52,8 +52,9 @@ class PaginaController extends Controller
 
             $this->paginaService->atualizarDescricaoEChavePix(
                 $protetorId,
-                trim($_POST['descricao'] ?? ''),
-                trim($_POST['chave_pix'] ?? '')
+                \app\services\ValidationService::validarTexto($_POST['descricao'] ?? '', 'Descrição', 0, 1000),
+                \app\services\ValidationService::validarTexto($_POST['chave_pix'] ?? '', 'Chave PIX', 0, 255),
+                \app\services\ValidationService::validarTexto($_POST['tipo_chave_pix'] ?? 'auto', 'Tipo de chave PIX', 1, 10)
             );
 
             $fotoPerfil = !empty($_POST['foto_perfil_cortada'])

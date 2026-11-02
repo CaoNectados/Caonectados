@@ -5,7 +5,7 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
 
 <!-- Wrapper centraliza o card na altura visível da área de conteúdo (mesmo padrão de login/cadastro) -->
 <div class="min-h-[75vh] flex flex-col items-center justify-center px-4 py-10">
-<div class="w-full max-w-md p-6 bg-surface rounded-2xl shadow-md text-center">
+<div class="card-superficie-destaque w-full max-w-md p-6 text-center">
     <div class="flex items-center justify-center gap-3 mb-6">
         <img src="<?= URL_BASE ?>/assets/img/logo.png" alt="CãoNectados" class="h-20 w-auto">
         <h1 class="font-shantell text-3xl font-bold text-primary">CãoNectados</h1>
@@ -25,7 +25,7 @@ $emailUsuario = $_SESSION['email_pendente_verificacao'] ?? 'seu e-mail';
     <form action="<?= URL_BASE ?>/verificar-email/validar" method="POST" class="space-y-4">
         <div>
             <input type="text" name="codigo" placeholder="Digite o código de 6 dígitos" maxlength="6"
-                   class="w-full text-center text-2xl tracking-widest p-3 border border-cinzaMarrom rounded-xl bg-branco font-poppins text-text-dark focus:border-primary focus:ring-2 focus:ring-roxinhoFofo focus:outline-none">
+                   class="w-full text-center text-2xl tracking-widest p-3 border border-cinzaMarrom rounded-xl bg-branco dark:bg-surface font-poppins text-text-dark focus:border-primary focus:ring-2 focus:ring-roxinhoFofo focus:outline-none">
         </div>
 
         <button type="submit" class="btn-primario w-full">

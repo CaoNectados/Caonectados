@@ -5,12 +5,12 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-text-dark dark:text-white flex items-center gap-2">
-                <img src="<?= URL_BASE ?>/assets/icons/navbar/usuarios.svg" alt="" class="w-7 h-7"> Gerenciar Usuários
+                <img src="<?= URL_BASE ?>/assets/icons/navbar/usuarios.svg" alt="" class="w-7 h-7 dark:brightness-0 dark:invert"> Gerenciar Usuários
             </h1>
             <p class="text-sm text-text-muted mt-1">Controle global de contas e status individual de perfis.</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="<?= URL_BASE ?>/admin/dashboard" class="btn-secundario text-xs sm:text-sm whitespace-nowrap">
+            <a href="<?= URL_BASE ?>/admin/dashboard" class="btn-secundario text-xs sm:text-sm whitespace-nowrap dark:text-white">
                 &larr; Voltar ao Painel
             </a>
         </div>
@@ -18,45 +18,45 @@
 
     <!-- Filtros Rápidos (Estilo Figma - Cards Rosa Pastel) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <a href="?perfil=adotante" class="p-4 rounded-2xl border border-rosa-3 bg-rosa-1/60 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <img src="<?= URL_BASE ?>/assets/icons/perfil/quero-adotar.svg" alt="" class="w-8 h-8 mx-auto mb-1">
+        <a href="?perfil=adotante" class="p-4 rounded-2xl border border-rosa-2 dark:border-roxinhoFofo/60 bg-rosa-1/60 dark:bg-primary/40 text-center shadow-sm hover:scale-105 transition duration-200">
+            <img src="<?= URL_BASE ?>/assets/icons/perfil/quero-adotar.svg" alt="" class="w-8 h-8 mx-auto mb-1 dark:brightness-0 dark:invert">
             <span class="text-xs font-bold text-text-dark dark:text-white">Adotantes</span>
         </a>
-        <a href="?perfil=ong" class="p-4 rounded-2xl border border-rosa-3 bg-rosa-1/60 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <img src="<?= URL_BASE ?>/assets/icons/navbar/pagina.svg" alt="" class="w-8 h-8 mx-auto mb-1">
+        <a href="?perfil=ong" class="p-4 rounded-2xl border border-rosa-2 dark:border-roxinhoFofo/60 bg-rosa-1/60 dark:bg-primary/40 text-center shadow-sm hover:scale-105 transition duration-200">
+            <img src="<?= URL_BASE ?>/assets/icons/navbar/pagina.svg" alt="" class="w-8 h-8 mx-auto mb-1 dark:brightness-0 dark:invert">
             <span class="text-xs font-bold text-text-dark dark:text-white">ONGs</span>
         </a>
-        <a href="?perfil=protetor" class="p-4 rounded-2xl border border-rosa-3 bg-rosa-1/60 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
+        <a href="?perfil=protetor" class="p-4 rounded-2xl border border-rosa-2 dark:border-roxinhoFofo/60 bg-rosa-1/60 dark:bg-primary/40 text-center shadow-sm hover:scale-105 transition duration-200">
             <img src="<?= URL_BASE ?>/assets/icons/navbar/patinha.svg" alt="" class="w-8 h-8 mx-auto mb-1">
             <span class="text-xs font-bold text-text-dark dark:text-white">Protetores</span>
         </a>
-        <a href="?status=inativo" class="p-4 rounded-2xl border border-rosaAlerta/40 bg-rosaAlerta/10 dark:bg-preto2 text-center shadow-sm hover:scale-105 transition duration-200">
-            <img src="<?= URL_BASE ?>/assets/icons/perfil/excluir.svg" alt="" class="w-8 h-8 mx-auto mb-1">
+        <a href="?status=inativo" class="p-4 rounded-2xl border border-rosaAlerta/60 dark:border-roxinhoFofo/60 bg-rosaAlerta/10 dark:bg-primary/40 text-center shadow-sm hover:scale-105 transition duration-200">
+            <img src="<?= URL_BASE ?>/assets/icons/perfil/excluir.svg" alt="" class="w-8 h-8 mx-auto mb-1 dark:brightness-0 dark:invert">
             <span class="text-xs font-bold text-rosaAlerta">Banidos</span>
         </a>
     </div>
 
     <!-- Barra de Busca e Filtros Integrada -->
-    <div class="card-padrao mb-6 border border-rosa-1 dark:border-preto3 p-4 bg-surface dark:bg-surface">
+    <div class="card-padrao mb-6 border border-rosa-2 dark:border-preto3 p-4 bg-surface dark:bg-surface">
         <form method="GET" action="<?= URL_BASE ?>/admin/gerenciar-usuarios" class="space-y-4">
             <div class="relative w-full">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-4">
                     <img src="<?= URL_BASE ?>/assets/icons/navbar/pesquisar.svg" alt="" class="w-4 h-4 opacity-60">
                 </span>
-                <input type="text" name="busca" value="<?= htmlspecialchars($filtros['busca'] ?? '') ?>" placeholder="Buscar por nome, e-mail ou instituição..." class="input-padrao pl-11 py-2.5 text-sm w-full bg-branco dark:bg-preto2 text-text-dark dark:text-white border-cinzaMarrom/40">
+                <input type="text" name="busca" value="<?= htmlspecialchars($filtros['busca'] ?? '') ?>" placeholder="Buscar por nome, e-mail ou instituição..." class="input-padrao pl-11 py-2.5 text-sm w-full bg-branco dark:bg-preto2 text-text-dark dark:text-white border-rosa-2 dark:border-preto3">
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-cinzaMarrom/20">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-rosa-3/70 dark:border-preto3">
                 <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <!-- Status da Conta -->
-                    <select name="status" class="input-padrao py-1.5 px-3 text-xs bg-branco dark:bg-preto2 text-text-dark dark:text-white border-cinzaMarrom/40">
+                    <select name="status" class="input-padrao py-1.5 px-3 text-xs bg-branco dark:bg-preto2 text-text-dark dark:text-white border-rosa-2 dark:border-preto3">
                         <option value="">Status: Todos</option>
                         <option value="ativo" <?= (($filtros['status'] ?? '') === 'ativo') ? 'selected' : '' ?>>Contas Ativas</option>
                         <option value="inativo" <?= (($filtros['status'] ?? '') === 'inativo') ? 'selected' : '' ?>>Banidos / Inativos</option>
                     </select>
 
                     <!-- Perfil -->
-                    <select name="perfil" class="input-padrao py-1.5 px-3 text-xs bg-branco dark:bg-preto2 text-text-dark dark:text-white border-cinzaMarrom/40">
+                    <select name="perfil" class="input-padrao py-1.5 px-3 text-xs bg-branco dark:bg-preto2 text-text-dark dark:text-white border-rosa-2 dark:border-preto3">
                         <option value="">Perfil: Todos</option>
                         <option value="adotante" <?= (($filtros['perfil'] ?? '') === 'adotante') ? 'selected' : '' ?>>Adotante</option>
                         <option value="protetor" <?= (($filtros['perfil'] ?? '') === 'protetor') ? 'selected' : '' ?>>Protetor</option>
@@ -83,7 +83,7 @@
         <p class="text-xs text-text-muted">Clique em um usuário para gerenciar ações administrativas.</p>
     </div>
 
-    <div class="bg-surface dark:bg-surface rounded-2xl border border-rosa-3/60 shadow-sm overflow-hidden divide-y divide-cinzaMarrom/20">
+    <div class="bg-surface dark:bg-surface rounded-2xl border border-rosa-2 dark:border-preto3 shadow-sm overflow-hidden divide-y divide-rosa-3 dark:divide-preto3">
         <?php if (empty($usuarios)): ?>
             <div class="p-10 text-center">
                 <img src="<?= URL_BASE ?>/assets/icons/navbar/usuarios.svg" alt="" class="w-10 h-10 mx-auto mb-2 opacity-50">
@@ -95,7 +95,7 @@
                 $isAtivo = ($u['status_conta'] === 'ativo');
                 $perfisArr = array_filter(array_map('trim', explode(',', strtolower($u['perfis_ativos'] ?? ''))));
                 ?>
-                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-rosa-2 dark:hover:bg-preto3 transition">
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-roxinhoFofo/30 dark:hover:bg-preto3 transition-colors">
                     <div class="flex items-center gap-3.5">
                         <?php
                         $fotoNome = $u['foto_perfil'] ?? null;
@@ -109,7 +109,7 @@
                         ?>
                         <img src="<?= $caminhoFoto ?>"
                             alt="<?= htmlspecialchars($u['nome'] ?? 'Usuário') ?>"
-                            class="h-12 w-12 rounded-full object-cover border border-rosa-3 flex-shrink-0 bg-white"
+                            class="h-12 w-12 rounded-full object-cover border border-rosa-2 dark:border-rosa-3 flex-shrink-0 bg-white"
                             onerror="this.onerror=null; this.src='<?= URL_BASE ?>/assets/img/perfil-placeholder.png';">
                         <div>
                             <div class="flex items-center gap-2">
@@ -139,7 +139,7 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-cinzaMarrom/20">
+                    <div class="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-rosa-3/60 dark:border-preto3">
                         <div class="text-xs text-text-muted text-right">
                             <span class="block">Cadastrado em</span>
                             <strong class="text-text-dark dark:text-white"><?= date('d/m/Y', strtotime($u['criado_em'] ?? 'now')) ?></strong>
@@ -161,14 +161,14 @@
         $total = $total ?? count($usuarios ?? []);
     ?>
     <?php if ($totalPaginas > 1): ?>
-        <div class="flex justify-between items-center px-4 py-4 mt-4 bg-surface dark:bg-surface rounded-xl border border-cinzaMarrom/30 text-xs">
+        <div class="flex justify-between items-center px-4 py-4 mt-4 bg-surface dark:bg-surface rounded-xl border border-rosa-2 dark:border-preto3 text-xs">
             <span class="text-text-muted">
                 Página <?= $paginaAtual ?> de <?= $totalPaginas ?> (Total: <?= $total ?>)
             </span>
             <div class="flex gap-1">
                 <?php for ($p = 1; $p <= $totalPaginas; $p++): ?>
                     <a href="?pagina=<?= $p ?>&busca=<?= urlencode($filtros['busca'] ?? '') ?>&status=<?= urlencode($filtros['status'] ?? '') ?>&perfil=<?= urlencode($filtros['perfil'] ?? '') ?>" 
-                       class="px-3 py-1 rounded-lg font-bold <?= $p === $paginaAtual ? 'bg-primary text-white' : 'bg-branco dark:bg-preto1 text-text-dark dark:text-white border border-cinzaMarrom/30' ?>">
+                       class="px-3 py-1 rounded-lg font-bold <?= $p === $paginaAtual ? 'bg-primary text-white' : 'bg-branco dark:bg-preto1 text-text-dark dark:text-white border border-rosa-2 dark:border-preto3' ?>">
                         <?= $p ?>
                     </a>
                 <?php endfor; ?>
@@ -179,7 +179,7 @@
 
 <!-- MODAL GERENCIAR USUÁRIO E PERFIS -->
 <div id="modal-gerenciar" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="card-padrao bg-surface dark:bg-surface rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-rosa-3">
+    <div class="card-superficie-destaque bg-rosaClaro2 dark:bg-surface border-rosa-2 dark:border-rosa-3 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <button type="button" onclick="fecharModalGerenciar()" class="absolute top-4 right-4 text-text-muted hover:text-text-dark dark:hover:text-white text-2xl font-bold">&times;</button>
 
         <div id="modal-conteudo">
@@ -190,7 +190,7 @@
 
 <!-- MODAL CONFIRMAÇÃO DE AÇÃO -->
 <div id="modal-confirmacao" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
-    <div class="card-padrao bg-surface dark:bg-surface rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-rosa-3">
+    <div class="card-superficie-destaque bg-rosaClaro2 dark:bg-surface border-rosa-2 dark:border-rosa-3 max-w-sm w-full p-6 shadow-2xl text-center">
         <div id="confirma-icone" class="mb-2 flex justify-center"><span class="text-4xl">⚠️</span></div>
         <h3 id="confirma-titulo" class="font-bold text-lg text-text-dark dark:text-white mb-2">Confirmação</h3>
         <p id="confirma-texto" class="text-xs text-text-muted mb-6">Você tem certeza desta ação?</p>
@@ -266,7 +266,7 @@
         let perfisHtml = '';
         dados.perfis.forEach(p => {
             perfisHtml += `
-            <div class="p-3 bg-branco dark:bg-preto1 rounded-xl flex items-center justify-between border border-cinzaMarrom/30">
+            <div class="p-3 bg-branco dark:bg-preto1 rounded-xl flex items-center justify-between border border-rosa-3 dark:border-preto3">
                 <div>
                     <div class="font-bold text-xs text-text-dark dark:text-white">${p.nome}</div>
                     <div class="text-[10px] text-text-muted">${escaparTextoAdmin(p.info)}</div>
@@ -289,7 +289,7 @@
         <p class="text-xs text-text-muted mb-4">${escaparTextoAdmin(u.email)} &bull; Cadastrado em ${formatarDataBr(u.criado_em)}</p>
 
         <!-- Status Global -->
-        <div class="p-4 bg-rosa-1/60 dark:bg-preto1 rounded-2xl mb-4 border border-rosa-3 flex items-center justify-between">
+        <div class="p-4 bg-rosaClaro2 dark:bg-preto1 rounded-2xl mb-4 border border-rosa-2 dark:border-rosa-3 flex items-center justify-between">
             <div>
                 <span class="text-xs font-bold text-text-dark dark:text-white block">Status Global da Conta</span>
                 <span class="text-xs font-extrabold ${isAtivo ? 'text-sucesso' : 'text-rosaAlerta'}">

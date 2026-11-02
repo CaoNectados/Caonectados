@@ -146,6 +146,11 @@ class AnimalService
 
         $this->validarProtetor($animal->getProtetorId());
         $this->validarNome($animal->getNome());
+        ValidationService::validarTexto($animal->getNome(), 'Nome do animal', 1, 120);
+        ValidationService::validarTexto($animal->getDescricao() ?? '', 'Descrição do animal', 1, 65535);
+        foreach ([$animal->getDescricao(), $animal->getHistoricoSaude()] as $texto) {
+            if (strlen($texto ?? '') > 65535) throw new InvalidArgumentException('O texto do animal excede o limite permitido.');
+        }
         $this->validarRaca($animal->getRacaId());
         $this->validarSexo($animal->getSexo());
         $this->validarPorte($animal->getPorte());
@@ -156,7 +161,7 @@ class AnimalService
         }
 
         if (!empty($this->erros)) {
-            throw new InvalidArgumentException('Por favor, corrija os erros do formulário.');
+            throw new InvalidArgumentException(implode(' ', $this->erros));
         }
     }
 
@@ -219,7 +224,7 @@ class AnimalService
             return;
         }
 
-        $data = DateTime::createFromFormat('Y-m-d', $dataNascimento);
+        $data = DateTime::createFromFormat('!Y-m-d', $dataNascimento);
 
         if ($data === false || $data->format('Y-m-d') !== $dataNascimento) {
             $this->erros['dt_nasc'] = 'A data de nascimento informada é inválida.';

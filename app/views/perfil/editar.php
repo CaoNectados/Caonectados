@@ -12,10 +12,8 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
     <!-- CABEÇALHO -->
     <div class="py-4 px-6 flex items-center gap-4 rounded-b-[2rem] mb-6">
-        <a href="<?= URL_BASE ?>/perfil" class="text-text-dark dark:text-white hover:scale-110 transition-transform flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-            </svg>
+        <a href="<?= URL_BASE ?>/perfil" aria-label="Voltar ao perfil" class="text-text-dark dark:text-white hover:scale-110 transition-transform flex items-center justify-center">
+            <img src="<?= e(asset('assets/icons/geral/seta-voltar.svg')) ?>" alt="" class="h-7 w-7 dark:brightness-0 dark:invert">
         </a>
     </div>
 
@@ -76,12 +74,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 <div id="acc-sobre" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
 
                     <div>
-                        <label class="label-padrao">Nome (Responsável) *</label>
-                        <input type="text" name="nome" id="nome" value="<?= htmlspecialchars($usuario['nome'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                        <label class="label-padrao">Nome (Responsável) <span class="text-erro" aria-hidden="true">*</span></label>
+                        <input type="text" name="nome" maxlength="150" id="nome" value="<?= htmlspecialchars($usuario['nome'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                     </div>
 
                     <div>
-                        <label class="label-padrao">Telefone / WhatsApp *</label>
+                        <label class="label-padrao">Telefone / WhatsApp <span class="text-erro" aria-hidden="true">*</span></label>
                         <input type="tel" name="telefone" id="telefone" value="<?= htmlspecialchars($usuario['telefone'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                     </div>
 
@@ -100,8 +98,8 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                         ?>
                         <hr class="border-rosa-2 dark:border-preto3 my-2">
                         <div>
-                            <label class="label-padrao"><?= $isOng ? 'Nome da Instituição (ONG) *' : 'Nome Fantasia / Atuação *' ?></label>
-                            <input type="text" name="nome_fantasia" id="nome_fantasia" value="<?= htmlspecialchars($especifico['nome_fantasia'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                            <label class="label-padrao"><?= $isOng ? 'Nome da Instituição (ONG)' : 'Nome Fantasia / Atuação' ?> <span class="text-erro" aria-hidden="true">*</span></label>
+                            <input type="text" name="nome_fantasia" maxlength="45" id="nome_fantasia" value="<?= htmlspecialchars($especifico['nome_fantasia'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                         </div>
 
                         <!-- CAMPO DE DOCUMENTO COM CHAVE DE DESBLOQUEIO -->
@@ -136,7 +134,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                                 <span><strong>Atenção:</strong> Ao alterar o documento, é obrigatório enviar o novo comprovante e sua conta entrará em análise novamente.</span>
                             </p>
                             <div>
-                                <label class="block text-xs font-bold text-text-dark dark:text-white mb-1">Novo Comprovante de Atividade (PDF ou Imagem) *</label>
+                                <label class="block text-xs font-bold text-text-dark dark:text-white mb-1">Novo Comprovante de Atividade (PDF ou Imagem) <span class="text-erro" aria-hidden="true">*</span></label>
                                 <input type="hidden" name="comprovante_atual" value="<?= htmlspecialchars($especifico['comprovante_documento'] ?? '') ?>">
                                 <input type="file" name="comprovante_documento" id="comprovante_documento" accept=".pdf, .jpg, .jpeg, .png" class="input-padrao bg-surface dark:bg-preto2 text-xs py-2">
                             </div>
@@ -165,16 +163,17 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                     </button>
                     <div id="acc-local" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
                         <div class="relative">
-                            <label class="label-padrao">Bairro / Região *</label>
+                            <label class="label-padrao">Bairro / Região <span class="text-erro" aria-hidden="true">*</span></label>
                             <?php
                             $nomeRegiaoAtual = '';
                             if (!empty($regiaoAtual)) {
                                 $nomeRegiaoAtual = is_array($regiaoAtual) ? ($regiaoAtual['nome_regiao'] ?? '') : $regiaoAtual->getNomeRegiao();
                             }
                             ?>
-                            <input type="text" id="input-busca-bairro" list="lista-regioes" autocomplete="off" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white"
+                            <input type="text" id="input-busca-bairro" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lista-regioes-combobox" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white"
                                 value="<?= htmlspecialchars($nomeRegiaoAtual) ?>"
                                 oninput="CaonectadosValidator.validarRegiao('input-busca-bairro', 'regiao_id_hidden', 'lista-regioes')">
+                            <div id="lista-regioes-combobox" class="regiao-dropdown-panel hidden" role="listbox" aria-label="Bairros e regiões"></div>
 
                             <datalist id="lista-regioes">
                                 <?php if (!empty($regioes)): ?>
@@ -193,12 +192,12 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
                         <div class="grid grid-cols-3 gap-3">
                             <div class="col-span-2">
-                                <label class="label-padrao">Logradouro *</label>
+                                <label class="label-padrao">Logradouro <span class="text-erro" aria-hidden="true">*</span></label>
                                 <input type="text" name="logradouro" id="logradouro" value="<?= htmlspecialchars($usuario['logradouro'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                             </div>
                             <div class="col-span-1">
-                                <label class="label-padrao">Número *</label>
-                                <input type="text" name="numero" id="numero" value="<?= htmlspecialchars($usuario['numero'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                                <label class="label-padrao">Número <span class="text-erro" aria-hidden="true">*</span></label>
+                                <input type="text" name="numero" maxlength="20" id="numero" value="<?= htmlspecialchars($usuario['numero'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                             </div>
                         </div>
                     </div>
@@ -371,16 +370,17 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                     </button>
                     <div id="acc-pref" class="hidden px-5 py-4 space-y-4 border-t border-rosa-2 dark:border-preto3">
                         <div>
-                            <label class="label-padrao">Chave PIX (Para receber doações)</label>
-                            <input type="text" name="chave_pix" id="chave_pix" value="<?= htmlspecialchars($especifico['chave_pix'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                            <?php require __DIR__ . '/../templates/campo_tipo_pix.php'; ?>
+                <label class="label-padrao">Chave PIX (Para receber doações)</label>
+                            <input type="text" name="chave_pix" maxlength="255" id="chave_pix" value="<?= htmlspecialchars($especifico['chave_pix'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                         </div>
                         <div>
                             <label class="label-padrao">Link do Instagram</label>
-                            <input type="text" name="instagram" id="instagram" value="<?= htmlspecialchars($redes['instagram'] ?? '') ?>" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                            <input type="text" name="instagram" maxlength="255" id="instagram" value="<?= htmlspecialchars($redes['instagram'] ?? '') ?>" placeholder="https://instagram.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                         </div>
                         <div>
                             <label class="label-padrao">Link do Facebook</label>
-                            <input type="text" name="facebook" id="facebook" value="<?= htmlspecialchars($redes['facebook'] ?? '') ?>" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                            <input type="text" name="facebook" maxlength="255" id="facebook" value="<?= htmlspecialchars($redes['facebook'] ?? '') ?>" placeholder="https://facebook.com/seu_perfil" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                         </div>
                     </div>
                 </div>
@@ -657,7 +657,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
         }
 
         const pix = document.getElementById('chave_pix');
-        if (pix && pix.value.trim() !== '' && !CaonectadosValidator.validarChavePix(pix.value.trim())) {
+        if (pix && pix.value.trim() !== '' && !CaonectadosValidator.validarChavePix(pix.value.trim(), document.getElementById('tipo_chave_pix').value)) {
             if (typeof mostrarModalFeedback === 'function') mostrarModalFeedback('erro', 'A chave PIX informada é inválida.');
             abrirAccordion('acc-pref');
             pix.focus();
@@ -727,4 +727,5 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
     }
 </style>
 
+<script src="<?= e(asset('assets/js/regiao-combobox.js')) ?>" defer></script>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

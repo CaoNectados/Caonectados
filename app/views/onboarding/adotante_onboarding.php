@@ -53,7 +53,7 @@ require_once __DIR__ . '/../templates/header.php';
 
             <div class="mb-4 text-left">
                 <label for="nome_usuario" class="label-padrao">Seu Nome *</label>
-                <input type="text" name="nome_usuario" id="nome_usuario" placeholder="Digite seu nome aqui" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                <input type="text" name="nome_usuario" maxlength="150" id="nome_usuario" placeholder="Digite seu nome aqui" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
             </div>
 
             <div class="mb-4 text-left">
@@ -195,7 +195,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="mb-6 text-left">
             <label for="numero" class="label-padrao">Número da Residência *</label>
-            <input type="text" name="numero" id="numero" placeholder="Ex: 123, S/N" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+            <input type="text" name="numero" maxlength="20" id="numero" placeholder="Ex: 123, S/N" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -318,12 +318,13 @@ require_once __DIR__ . '/../templates/header.php';
         </div>
 
         <div class="mb-6 text-left">
-            <label class="flex items-center gap-3 cursor-pointer p-4 bg-surface dark:bg-preto2 border border-rosa-2 dark:border-preto3 rounded-xl hover:bg-rosa-1/20 transition">
+            <div class="flex items-start gap-3 p-4 bg-surface dark:bg-preto2 border border-rosa-2 dark:border-preto3 rounded-xl hover:bg-rosa-1/20 transition">
                 <input type="checkbox" name="aceite_termos" id="aceite_termos" class="w-6 h-6 text-rosaAlerta rounded focus:ring-rosaAlerta">
-                <span class="text-sm text-text-dark dark:text-white font-medium">
-                    Li, compreendi e concordo com os Termos de Responsabilidade e os <a href="<?= e(URL_BASE) ?>/termos" target="_blank" rel="noopener" class="underline">Termos de Uso e Privacidade</a>.
-                </span>
-            </label>
+                <div class="text-sm text-text-dark dark:text-white font-medium">
+                    <label for="aceite_termos" class="cursor-pointer">Li, compreendi e concordo com os Termos de Responsabilidade e os</label>
+                    <button type="button" id="abrir-termos-onboarding" onclick="abrirModalTermosOnboarding()" class="underline">Termos de Uso e Privacidade</button>.
+                </div>
+            </div>
         </div>
 
         <div class="flex items-center justify-between mt-8">
@@ -332,6 +333,8 @@ require_once __DIR__ . '/../templates/header.php';
         </div>
     </div>
 </form>
+
+<?php require __DIR__ . '/../templates/modal_termos_onboarding.php'; ?>
 
 <!-- MODAL CROPPER -->
 <div id="modal-cropper" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">

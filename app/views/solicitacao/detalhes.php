@@ -25,7 +25,7 @@ if (!empty($solicitacao['adotante_dt_nasc'])) {
 $fotoAnimal = !empty($solicitacao['animal_foto']) ? $urlBase . '/' . ltrim($solicitacao['animal_foto'], '/') : null;
 ?>
 
-<div class="min-h-screen bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
+<div class="min-h-[70vh] bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
     <div class="w-full max-w-4xl bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors flex flex-col justify-between">
 
         <div>
@@ -102,7 +102,7 @@ $fotoAnimal = !empty($solicitacao['animal_foto']) ? $urlBase . '/' . ltrim($soli
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <input type="hidden" name="id" value="<?= (int) $solicitacao['solicitacao_id'] ?>">
                         <button type="button"
-                                onclick="abrirModalConfirmacao('Confirmar adoção', 'Confirmar a adoção? As demais solicitações enviadas para este animal serão canceladas.', function () { document.getElementById('form-aprovar-solicitacao').submit(); }, 'Confirmar 🐾', 'Voltar')"
+                                onclick="abrirModalConfirmacao('Confirmar adoção', 'Confirmar a adoção? As demais solicitações enviadas para este animal serão canceladas.', () => document.getElementById('form-aprovar-solicitacao').requestSubmit(), 'Confirmar 🐾', 'Voltar')"
                                 class="w-full py-3 bg-verdeMusgo hover:opacity-90 text-white font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:scale-95 transition">
                             Confirmar 🐾
                         </button>

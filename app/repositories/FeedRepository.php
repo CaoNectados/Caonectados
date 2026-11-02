@@ -7,21 +7,42 @@ use PDO;
 
 class FeedRepository extends BaseRepository
 {
-    public function buscarOngsPesquisa(array $filtros): array
+    /** A busca institucional independe da existência de animais disponíveis. */
+    public function buscarOngsPesquisa(array $filtros, int $offset = 0, int $limite = 12): array
     {
         $params = [];
-        $filtroSql = $this->montarFiltros($filtros, $params);
-        $correspondencia = $filtroSql === '' ? '' : " AND EXISTS (
-            SELECT 1 FROM ANIMAL a JOIN RACA r ON r.raca_id=a.raca_id JOIN ESPECIE e ON e.especie_id=r.especie_id
-            WHERE a.protetor_id=p.protetor_id AND a.status='disponivel' AND a.deletado_em IS NULL $filtroSql
-        )";
-        $st = $this->db->prepare("SELECT p.protetor_id,p.nome_fantasia,pag.foto_perfil
+        $condicoes = [];
+        $termo = trim((string)($filtros['q'] ?? ''));
+        if ($termo !== '') {
+            $campos = ['p.nome_fantasia', 'u.nome', 'p.codigo_documento', 'reg.nome_regiao', 'pag.descricao'];
+            $partes = [];
+            foreach ($campos as $indice => $campo) {
+                $chave = ':termo' . $indice;
+                $partes[] = "$campo LIKE $chave";
+                $params[$chave] = '%' . $termo . '%';
+            }
+            $condicoes[] = '(' . implode(' OR ', $partes) . ')';
+        }
+        foreach (['regiao_id' => 'u.regiao_id', 'protetor_id' => 'p.protetor_id'] as $filtro => $coluna) {
+            if (empty($filtros[$filtro])) continue;
+            $condicoes[] = "$coluna = :$filtro";
+            $params[':' . $filtro] = (int)$filtros[$filtro];
+        }
+        $where = $condicoes ? ' AND ' . implode(' AND ', $condicoes) : '';
+        $st = $this->db->prepare("SELECT p.protetor_id,p.nome_fantasia,pag.foto_perfil,p.tipo_documento,
+                (SELECT COUNT(*) FROM ANIMAL a WHERE a.protetor_id=p.protetor_id
+                    AND a.status='disponivel' AND a.deletado_em IS NULL) AS animais_disponiveis
             FROM PROTETOR p JOIN USUARIO u ON u.usuario_id=p.usuario_id
             LEFT JOIN PAGINA pag ON pag.protetor_id=p.protetor_id
-            WHERE p.tipo_documento='cnpj' AND p.validado=1 AND p.deletado_em IS NULL
-              AND u.status_conta='ativo' AND u.deletado_em IS NULL AND FIND_IN_SET('ong',u.perfis_ativos)>0
-              $correspondencia ORDER BY p.nome_fantasia,p.protetor_id LIMIT 6");
-        $st->execute($params);
+            LEFT JOIN REGIAO reg ON reg.regiao_id=u.regiao_id
+            WHERE p.validado=1 AND p.deletado_em IS NULL
+              AND u.status_conta='ativo' AND u.deletado_em IS NULL
+              AND FIND_IN_SET(IF(p.tipo_documento='cnpj','ong','protetor'),u.perfis_ativos)>0
+              $where ORDER BY p.nome_fantasia,p.protetor_id LIMIT :limite OFFSET :offset");
+        foreach ($params as $chave => $valor) $st->bindValue($chave, $valor, is_int($valor) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        $st->bindValue(':limite', max(1, min(50, $limite)), PDO::PARAM_INT);
+        $st->bindValue(':offset', max(0, $offset), PDO::PARAM_INT);
+        $st->execute();
         return $st->fetchAll(PDO::FETCH_ASSOC);
     }
     /**
@@ -50,7 +71,7 @@ class FeedRepository extends BaseRepository
                     a.status, a.descricao, a.vacinado, a.castrado, a.comportamento, a.criado_em,
                     r.nome AS raca_nome, r.especie_id,
                     e.nome AS especie_nome,
-                    p.nome_fantasia,
+                    p.nome_fantasia, pag.foto_perfil AS foto_protetor,
                     reg.nome_regiao,
                     fa.caminho_foto AS foto_principal,
                     ($scoreSql) AS score_preferencia
@@ -59,6 +80,7 @@ class FeedRepository extends BaseRepository
                 INNER JOIN ESPECIE e ON e.especie_id = r.especie_id
                 INNER JOIN PROTETOR p ON p.protetor_id = a.protetor_id AND p.deletado_em IS NULL
                 INNER JOIN USUARIO u ON u.usuario_id = p.usuario_id
+                LEFT JOIN PAGINA pag ON pag.protetor_id = p.protetor_id
                 LEFT JOIN REGIAO reg ON reg.regiao_id = u.regiao_id
                 LEFT JOIN FOTO_ANIMAL fa ON fa.animal_id = a.animal_id AND fa.foto_principal = 1
                 WHERE a.status = 'disponivel'

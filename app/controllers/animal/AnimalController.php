@@ -33,7 +33,7 @@ class AnimalController extends Controller
     // Usado por: rotas GET /animal e GET /gerenciar-animais
     public function index(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
 
         try {
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
@@ -77,7 +77,7 @@ class AnimalController extends Controller
     // Usado por: rota GET /animal/cadastrar
     public function create(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
 
         $especieRepo = new EspecieRepository($this->db);
         $especies = $especieRepo->buscarAtivas();
@@ -88,18 +88,19 @@ class AnimalController extends Controller
     // Usado por: rota POST /animal
     public function store(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
         try {
             $data = $_POST;
             $protetorId = $this->obterProtetorIdAutenticado();
 
-            if ($protetorId <= 0 && ($_SESSION['tipo_perfil'] ?? '') !== 'administrador') {
+            if ($protetorId <= 0) {
                 throw new Exception('Perfil de protetor não encontrado para este usuário.');
             }
 
             // Força a fonte de identidade vinda da sessão backend
             $data['protetor_id'] = $protetorId;
 
+            $this->service->validarSelecaoRaca((int)($data['raca_id'] ?? 0), isset($data['especie_id']) ? (int)$data['especie_id'] : null);
             $animal = $this->buildAnimalFromArray($data);
 
             $this->service->cadastrarAnimal($animal);
@@ -121,7 +122,7 @@ class AnimalController extends Controller
     // Usado por: rota GET /animal/editar
     public function edit(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
 
         try {
             $id = $this->getIdFromRequest();
@@ -145,7 +146,7 @@ class AnimalController extends Controller
     // Usado por: rota POST /animal/editar
     public function update(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
         try {
             $id = (int)($_POST['id'] ?? 0);
             $animalExistente = $this->carregarEValidarPropriedade($id);
@@ -179,7 +180,7 @@ class AnimalController extends Controller
     // Usado por: rota GET /animal/excluir
     public function deleteView(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
 
         try {
             $id = $this->getIdFromRequest();
@@ -199,12 +200,15 @@ class AnimalController extends Controller
     // Usado por: rota POST /animal/excluir
     public function destroy(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
         try {
             $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
             $this->carregarEValidarPropriedade($id);
 
-            $animal = new Animal();
+            foreach (['nome', 'dt_nasc', 'sexo', 'porte', 'status', 'descricao', 'comportamento', 'historico_saude', 'raca_id', 'especie_id', 'vacinado', 'castrado'] as $campo) {
+            if (isset($data[$campo]) && !is_scalar($data[$campo])) throw new Exception('Formato inválido para ' . $campo . '.');
+        }
+        $animal = new Animal();
             $animal->setAnimalId($id);
             $this->service->desativarAnimal($animal);
 
@@ -217,7 +221,7 @@ class AnimalController extends Controller
     // Usado por: rota POST /animal/status
     public function status(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        $this->autenticacaoRequired(['protetor', 'ong']);
         try {
             $id = $this->getIdFromRequest();
             $this->carregarEValidarPropriedade($id);
@@ -238,6 +242,7 @@ class AnimalController extends Controller
     // Usado por: rota POST /animal/reativar
     public function reativar(): void
     {
+        // RF11 permite ao administrador reativar animais; demais perfis ficam limitados aos próprios.
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
         try {
             $id = $this->getIdFromRequest();

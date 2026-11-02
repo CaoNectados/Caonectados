@@ -177,9 +177,8 @@ class OnBoardingService
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
         ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero']);
 
-        if ((int)$dados['regiao_id'] <= 0) {
-            throw new Exception("Selecione um bairro/região válido.");
-        }
+        ValidationService::validarLocalizacao($dados['regiao_id'], $dados['obs_casa'], $dados['numero']);
+        ValidationService::validarDadosAdotante($dados, true);
 
         $conexao = ConnectionFactory::getConnection();
         $arquivosNovos = [];
@@ -289,8 +288,10 @@ class OnBoardingService
     {
         ValidationService::validarAceiteTermos($dados['aceite_termos'] ?? null);
         ValidationService::validarNome($dados['nome_fantasia'] ?? '');
+        ValidationService::validarTexto($dados['nome_fantasia'], 'Nome da ONG/protetor', 2, 45);
+        ValidationService::validarDadosPagina($dados, true);
 
-        $tipoDoc = isset($dados['tipo_documento']) ? strtolower($dados['tipo_documento']) : 'cpf';
+        $tipoDoc = strtolower(ValidationService::validarTexto($dados['tipo_documento'] ?? 'cpf', 'Tipo de documento', 3, 4));
         if (!in_array($tipoDoc, ['cpf', 'cnpj'], true)) throw new Exception('Tipo de documento inválido.');
         $tipoPerfil = ($tipoDoc === 'cnpj') ? 'ong' : 'protetor';
 
@@ -308,6 +309,8 @@ class OnBoardingService
         }
 
         ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero', 'cnpj_cpf']);
+
+        ValidationService::validarLocalizacao($dados['regiao_id'], $dados['obs_casa'], $dados['numero']);
 
         $documentoLimpo = preg_replace('/[^0-9]/', '', trim((string) $dados['cnpj_cpf']));
 

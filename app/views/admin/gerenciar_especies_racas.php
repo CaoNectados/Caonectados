@@ -6,12 +6,12 @@ echo renderVoltar('/admin/dashboard'); ?>
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-text-dark dark:text-white flex items-center gap-2">
-                <span class="text-3xl">📊</span> Gerenciamento Espécies/Raças
+                <?= renderIconeMenu("especies.svg", "", "h-8 w-8 text-primary dark:text-white dark:brightness-0 dark:invert") ?> Gerenciar Espécies e Raças
             </h1>
             <p class="text-sm text-text-muted mt-1">Aprove, edite ou gerencie as espécies e raças cadastradas no sistema.</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="<?= URL_BASE ?>/admin/especie/cadastrar" class="btn-secundario text-xs sm:text-sm whitespace-nowrap">
+            <a href="<?= URL_BASE ?>/admin/especie/cadastrar" class="btn-secundario text-xs sm:text-sm whitespace-nowrap dark:text-white">
                 + Nova Espécie
             </a>
             <a href="<?= URL_BASE ?>/admin/raca/cadastrar" class="btn-primario text-xs sm:text-sm whitespace-nowrap">
@@ -23,10 +23,10 @@ echo renderVoltar('/admin/dashboard'); ?>
     <!-- Abas Principais -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <a href="?aba=sugestoes" class="flex items-center justify-center gap-3 p-4 rounded-2xl <?= (isset($_GET['aba']) && $_GET['aba'] === 'sugestoes') ? 'bg-primary text-white shadow-md' : 'bg-surface dark:bg-preto2 border border-cinzaMarrom/30 text-text-dark dark:text-white hover:bg-rosa-1/40' ?> font-poppins font-semibold transition">
-            <span class="text-xl">💡</span> Sugestões da API
+            <?= renderIconeMenu("pesquisar.svg", "", "h-6 w-6") ?> Sugestões da API
         </a>
         <a href="?aba=ativos" class="flex items-center justify-center gap-3 p-4 rounded-2xl <?= (!isset($_GET['aba']) || $_GET['aba'] === 'ativos') ? 'bg-verdeMusgo text-white shadow-md' : 'bg-surface dark:bg-preto2 border border-cinzaMarrom/30 text-text-dark dark:text-white hover:bg-rosa-1/40' ?> font-poppins font-semibold transition">
-            <span class="text-xl">✅</span> Ativos no Banco
+            <?= renderIconeMenu("../geral/aprovado.svg", "", "h-6 w-6") ?> Ativos no Banco
         </a>
     </div>
 
@@ -36,12 +36,12 @@ echo renderVoltar('/admin/dashboard'); ?>
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h3 class="text-lg font-bold text-text-dark dark:text-white flex items-center gap-2">
-                        <span>🌐</span> Sugestões Externas (TheDogAPI & TheCatAPI)
+                        <?= renderIconeMenu("pesquisar.svg", "", "h-6 w-6") ?> Sugestões Externas (TheDogAPI & TheCatAPI)
                     </h3>
                     <p class="text-sm text-text-muted mt-1">Essas sugestões só são buscadas quando você clicar no botão — a página não faz nenhuma chamada externa sozinha.</p>
                 </div>
                 <button type="button" id="btn-buscar-sugestoes" onclick="buscarSugestoesApi()" class="btn-primario text-xs sm:text-sm whitespace-nowrap self-start sm:self-auto">
-                    🔎 Buscar Sugestões da API
+                    Buscar sugestões
                 </button>
             </div>
 
@@ -60,10 +60,10 @@ echo renderVoltar('/admin/dashboard'); ?>
         <h4 class="text-text-dark dark:text-white mb-3">Atalhos de Listagem</h4>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a href="<?= URL_BASE ?>/admin/especie" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-branco dark:bg-preto1 border border-cinzaMarrom/30 text-text-dark dark:text-white font-medium hover:border-primary transition">
-                🐾 Listar Espécies
+                <?= renderIconeMenu("patinha.svg", "", "inline-block h-7 w-7 dark:h-9 dark:w-9 dark:brightness-0 dark:invert") ?> Listar Espécies
             </a>
             <a href="<?= URL_BASE ?>/admin/raca" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-branco dark:bg-preto1 border border-cinzaMarrom/30 text-text-dark dark:text-white font-medium hover:border-primary transition">
-                🐶 Listar Raças
+                <?= renderIconeMenu("patinha.svg", "", "inline-block h-7 w-7 dark:h-9 dark:w-9 dark:brightness-0 dark:invert") ?> Listar Raças
             </a>
         </div>
     </div>
@@ -76,14 +76,18 @@ echo renderVoltar('/admin/dashboard'); ?>
                     <div>
                         <div class="flex items-center justify-between pb-3 border-b border-rosa-2/50 dark:border-preto3 mb-4">
                             <div class="flex items-center gap-2">
-                                <span class="text-2xl">🐾</span>
+                                <?= renderIconeMenu("patinha.svg", "", "h-10 w-10 dark:h-12 dark:w-12 dark:brightness-0 dark:invert") ?>
                                 <h2 class="text-xl font-bold text-text-dark dark:text-white">
                                     <?= htmlspecialchars($item['especie']->getNome()) ?>
                                 </h2>
                             </div>
                             <div class="flex items-center gap-2">
-                                <a href="<?= URL_BASE ?>/admin/especie/editar?id=<?= $item['especie']->getId(); ?>" title="Editar Espécie" class="text-text-muted hover:text-primary dark:hover:text-roxinhoFofo transition">✏️</a>
-                                <a href="<?= URL_BASE ?>/admin/especie/excluir?id=<?= $item['especie']->getId(); ?>" title="Desativar/Excluir" class="text-text-muted hover:text-rosaAlerta transition">🗑️</a>
+                                <a href="<?= URL_BASE ?>/admin/especie/editar?id=<?= $item['especie']->getId(); ?>" title="Editar espécie" aria-label="Editar espécie" class="rounded-lg p-1.5 text-primary hover:bg-rosa-1 dark:text-roxinhoFofo dark:hover:bg-preto3 transition">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.3 7.9a2.1 2.1 0 0 0-3-3L5 16.2 4 20Z"/><path d="M13.5 6.5 17.5 10.5"/></svg>
+                                </a>
+                                <a href="<?= URL_BASE ?>/admin/especie/excluir?id=<?= $item['especie']->getId(); ?>" title="Desativar ou excluir espécie" aria-label="Desativar ou excluir espécie" class="rounded-lg p-1.5 text-rosaAlerta hover:bg-rosaAlerta/10 transition">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/></svg>
+                                </a>
                             </div>
                         </div>
 
@@ -98,7 +102,7 @@ echo renderVoltar('/admin/dashboard'); ?>
                                                 <span class="text-text-dark dark:text-white font-medium"><?= htmlspecialchars($raca->getNome()) ?></span>
                                             </div>
                                             <div class="flex items-center gap-1.5 opacity-80 hover:opacity-100">
-                                                <a href="<?= URL_BASE ?>/admin/raca/editar?id=<?= $raca->getId(); ?>" class="text-xs text-primary dark:text-roxinhoFofo hover:underline">Editar</a>
+                                                <a href="<?= URL_BASE ?>/admin/raca/editar?id=<?= $raca->getId(); ?>" class="inline-flex items-center gap-1 text-xs text-primary dark:text-roxinhoFofo hover:underline"><svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5 4 4M4 20l4-.8L19.3 7.9a2.1 2.1 0 0 0-3-3L5 16.2 4 20Z"/></svg>Editar</a>
                                                 <span class="text-text-muted">|</span>
                                                 <a href="<?= URL_BASE ?>/admin/raca/excluir?id=<?= $raca->getId(); ?>" class="text-xs text-rosaAlerta hover:underline">Excluir</a>
                                             </div>
@@ -120,7 +124,7 @@ echo renderVoltar('/admin/dashboard'); ?>
             <?php endforeach; ?>
         <?php else: ?>
             <div class="col-span-full p-8 text-center border-2 border-dashed border-cinzaMarrom/30 rounded-2xl bg-surface dark:bg-surface">
-                <span class="text-4xl block mb-2 opacity-50">🐾</span>
+                <div class="mb-2 flex justify-center"><?= renderIconeMenu("patinha.svg", "", "h-12 w-12 dark:h-14 dark:w-14 dark:brightness-0 dark:invert") ?></div>
                 <p class="text-text-muted font-poppins">Nenhuma espécie ou raça encontrada.</p>
             </div>
         <?php endif; ?>
@@ -182,7 +186,7 @@ echo renderVoltar('/admin/dashboard'); ?>
             itensHtml = `
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-2">${itensHtml}</div>
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-cinzaMarrom/20">
-                    <button type="submit" class="btn-primario text-xs sm:text-sm">✅ Aceitar Espécie e Raças Marcadas</button>
+                    <button type="submit" class="btn-primario text-xs sm:text-sm">Aceitar Espécie e Raças Marcadas</button>
                 </div>`;
         } else {
             itensHtml = '<p class="text-text-muted italic text-xs py-4 text-center">Todas as raças desta espécie já foram importadas para o banco!</p>';

@@ -29,7 +29,7 @@ if (!empty($fotoNomeDet)) {
 ?>
 
 <div class="min-h-screen bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
-    <div class="w-full max-w-4xl bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors flex flex-col justify-between">
+    <div class="w-full max-w-4xl bg-surface dark:bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors flex flex-col justify-between">
         
         <div>
             <!-- Cabeçalho -->
@@ -41,9 +41,9 @@ if (!empty($fotoNomeDet)) {
                         <?= htmlspecialchars(strtoupper($solicitacao['tipo_documento'] ?? 'Documento')) ?>: <strong class="text-text-dark"><?= htmlspecialchars($solicitacao['codigo_documento'] ?? 'Não informado') ?></strong>
                     </p>
                 </div>
-                <a href="<?= URL_BASE ?>/admin/solicitacoes" class="self-start sm:self-center px-4 py-2 border-2 border-preto dark:border-cinzaMarrom rounded-xl text-xs sm:text-sm font-bold text-text-dark hover:bg-preto hover:text-white dark:hover:bg-primary transition flex items-center gap-2">
+                <a href="<?= URL_BASE ?>/admin/solicitacoes" class="self-start sm:self-center px-4 py-2 border-2 border-preto dark:border-roxinhoFofo rounded-xl text-xs sm:text-sm font-bold text-text-dark dark:text-white hover:bg-preto hover:text-white dark:hover:bg-primary transition flex items-center gap-2">
                     <span>Voltar para lista</span>
-                    <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="" class="w-3 h-3 -scale-x-100">
+                    <img src="<?= URL_BASE ?>/assets/icons/geral/seta-voltar.svg" alt="" class="w-3 h-3 -scale-x-100 dark:brightness-0 dark:invert">
                 </a>
             </div>
 
@@ -142,7 +142,7 @@ if (!empty($fotoNomeDet)) {
                     <!-- Data do Registro -->
                     <div class="flex items-start gap-4 pt-3">
                         <div class="w-14 h-14 bg-rosa-1/50 dark:bg-preto2 rounded-2xl border border-cinzaMarrom/30 shrink-0 flex items-center justify-center">
-                            <img src="<?= URL_BASE ?>/assets/icons/geral/relogio.svg" alt="" class="w-7 h-7">
+                            <img src="<?= URL_BASE ?>/assets/icons/geral/relogio.svg" alt="" class="w-7 h-7 dark:brightness-0 dark:invert">
                         </div>
                         <div class="flex-1">
                             <h4 class="font-bold text-text-dark text-sm sm:text-base">Data da Solicitação</h4>

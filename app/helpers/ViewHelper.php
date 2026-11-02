@@ -55,8 +55,8 @@ function renderIconeMenu(
     if ($ehSvgValido) {
         $conteudoSvg = file_get_contents($caminhoFisico);
         $conteudoSvg = preg_replace('/<\?xml.*?\?>/i', '', $conteudoSvg);
-        $conteudoSvg = preg_replace('/fill="(?!none)[^"]*"/i', 'fill="currentColor"', $conteudoSvg);
-        $conteudoSvg = preg_replace('/stroke="(?!none)[^"]*"/i', 'stroke="currentColor"', $conteudoSvg);
+        $conteudoSvg = preg_replace('/fill="(?!none|url\()[^"]*"/i', 'fill="currentColor"', $conteudoSvg);
+        $conteudoSvg = preg_replace('/stroke="(?!none|url\()[^"]*"/i', 'stroke="currentColor"', $conteudoSvg);
 
         if (preg_match('/<svg\b([^>]*)>/i', $conteudoSvg, $m)) {
             $atributosOriginais = preg_replace('/\s(width|height|class)="[^"]*"/i', '', $m[1]);

@@ -30,6 +30,7 @@ class EspecieService
     // Usado por: EspecieController::store (cadastro de espécie)
     public function cadastrar(Especie $especie): bool
     {
+        ValidationService::validarTexto($especie->getNome(), 'Espécie', 1, 100);
         if (trim($especie->getNome()) === '') {
             throw new InvalidArgumentException("O nome da espécie é obrigatório.");
         }
@@ -39,6 +40,7 @@ class EspecieService
     // Usado por: EspecieController::update
     public function atualizar(Especie $especie): bool
     {
+        ValidationService::validarTexto($especie->getNome(), 'Espécie', 1, 100);
         if ($especie->getId() <= 0 || trim($especie->getNome()) === '') {
             throw new InvalidArgumentException("Dados inválidos para atualizar espécie.");
         }

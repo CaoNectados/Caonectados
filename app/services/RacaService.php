@@ -33,6 +33,8 @@ class RacaService
     // Usado por: RacaController::store
     public function cadastrar(Raca $raca): bool
     {
+        ValidationService::validarTexto($raca->getNome(), 'Raça', 1, 100);
+        if (!(new EspecieRepository())->buscarPorId($raca->getEspecieId())) throw new InvalidArgumentException('Selecione uma espécie cadastrada.');
         if (trim($raca->getNome()) === '' || $raca->getEspecieId() <= 0) {
             throw new InvalidArgumentException("Nome da raça e espécie são obrigatórios.");
         }
@@ -42,6 +44,8 @@ class RacaService
     // Usado por: RacaController::update
     public function atualizar(Raca $raca): bool
     {
+        ValidationService::validarTexto($raca->getNome(), 'Raça', 1, 100);
+        if (!(new EspecieRepository())->buscarPorId($raca->getEspecieId())) throw new InvalidArgumentException('Selecione uma espécie cadastrada.');
         if ($raca->getId() <= 0 || trim($raca->getNome()) === '' || $raca->getEspecieId() <= 0) {
             throw new InvalidArgumentException("Dados inválidos para atualizar raça.");
         }
@@ -82,6 +86,8 @@ class RacaService
             return 0;
         }
 
+        ValidationService::validarTexto($especieNome, 'Espécie', 1, 100);
+        foreach ($racasAceitas as $nome) ValidationService::validarTexto($nome, 'Raça', 1, 100);
         $especie = $especieRepo->buscarOuCriarPorNome($especieNome);
         $cadastros = 0;
 
@@ -97,16 +103,6 @@ class RacaService
         }
 
         return $cadastros;
-    }
-
-    // Usado por: (não referenciado atualmente)
-    public function importarDeApisExternas(EspecieRepository $especieRepo): array
-    {
-        $sugestoes = $this->buscarSugestoesExternas();
-        $totalCaes = $this->importarSelecionadas($especieRepo, 'Cão', $sugestoes['caes']);
-        $totalGatos = $this->importarSelecionadas($especieRepo, 'Gato', $sugestoes['gatos']);
-
-        return ['sucesso' => true, 'total' => ($totalCaes + $totalGatos)];
     }
 
     /**

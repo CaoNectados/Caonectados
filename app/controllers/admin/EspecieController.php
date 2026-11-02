@@ -2,14 +2,13 @@
 
 namespace app\controllers\admin;
 
-use app\core\Controller;
 use app\models\Especie;
 use app\repositories\EspecieRepository;
 use app\services\EspecieService;
 use app\database\ConnectionFactory;
 use Exception;
 
-class EspecieController extends Controller
+class EspecieController extends AdminBaseController
 {
     private EspecieService $service;
     private EspecieRepository $especieRepo;
@@ -17,8 +16,7 @@ class EspecieController extends Controller
     // Usado por: instanciado pelo Router para todas as rotas /admin/especie/*
     public function __construct()
     {
-        // Trava nativa do Controller base restrita a administradores
-        $this->autenticacaoRequired(['administrador']);
+        parent::__construct();
         $this->validarCsrf();
 
         $pdo = ConnectionFactory::getConnection();
@@ -128,11 +126,11 @@ class EspecieController extends Controller
         }
     }
 
-    // Usado por: rota GET /admin/especie/reativar
+    // Usado por: rota POST /admin/especie/reativar (protegida por CSRF)
     public function reativar(): void
     {
         try {
-            $id = (int)($_GET['id'] ?? 0);
+            $id = (int)($_POST['id'] ?? 0);
             if ($id <= 0) {
                 throw new Exception('Espécie inválida.');
             }

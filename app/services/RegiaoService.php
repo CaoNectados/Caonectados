@@ -70,9 +70,34 @@ class RegiaoService
         }
     }
 
+    /** Remove várias regiões em uma transação, sem ignorar IDs inválidos. */
+    public function excluirRegioes(array $ids): int
+    {
+        $this->validarPermissaoAdmin();
+        if ($ids === []) {
+            throw new InvalidArgumentException('Nenhuma região foi selecionada para exclusão.');
+        }
+
+        $ids = array_map(static function ($id): int {
+            $valor = filter_var($id, FILTER_VALIDATE_INT);
+            if ($valor === false || $valor <= 0) {
+                throw new InvalidArgumentException('Seleção de regiões inválida.');
+            }
+            return $valor;
+        }, $ids);
+        $ids = array_values(array_unique($ids));
+
+        try {
+            return $this->regiaoRepository->excluirRegioes($ids);
+        } catch (\PDOException $e) {
+            throw new InvalidArgumentException('Não é possível excluir uma ou mais regiões pois existem usuários vinculados a elas.');
+        }
+    }
+
     // Usado por: cadastrarRegiao(), editarRegiao()
     private function validarRegiao(Regiao $regiao): void
     {
+        ValidationService::validarTexto($regiao->getNomeRegiao(), 'Bairro/região', 3, 100);
         $this->validarNome($regiao->getNomeRegiao());
     }
 

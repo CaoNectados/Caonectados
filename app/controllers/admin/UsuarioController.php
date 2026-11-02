@@ -2,17 +2,16 @@
 
 namespace app\controllers\admin;
 
-use app\core\Controller;
 use app\services\UsuarioAdminService;
 use Exception;
 
-class UsuarioController extends Controller
+class UsuarioController extends AdminBaseController
 {
     private UsuarioAdminService $adminService;
 
     public function __construct()
     {
-        $this->autenticacaoRequired(['administrador']);
+        parent::__construct();
         $this->validarCsrf();
         $this->adminService = new UsuarioAdminService();
     }

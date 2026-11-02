@@ -108,6 +108,9 @@ class Controller
         }
 
         if (empty($_SESSION['usuario_id'])) {
+            if ($this->isJsonRequest()) {
+                $this->json(401, ['status' => 'erro', 'mensagem' => 'Autenticação necessária.']);
+            }
             $this->redirecionarComMensagem('aviso', 'Você precisa estar logado para acessar esta página.', '/login');
         }
 
@@ -143,6 +146,9 @@ class Controller
 
         if (!empty($perfisPermitidos)) {
             if (!in_array($tipoUsuario, $perfisPermitidos, true)) {
+                if ($this->isJsonRequest()) {
+                    $this->json(403, ['status' => 'erro', 'mensagem' => 'Você não tem permissão para acessar esta área.']);
+                }
                 $this->redirecionarComMensagem('erro', 'Você não tem permissão para acessar esta área.', '/perfil');
             }
         }
@@ -172,6 +178,14 @@ class Controller
                 $this->redirect('/aguardando-aprovacao');
             }
         }
+    }
+
+    /** Requisições de API/AJAX recebem códigos de autorização; páginas mantêm os redirects da interface. */
+    private function isJsonRequest(): bool
+    {
+        $accept = strtolower((string)($_SERVER['HTTP_ACCEPT'] ?? ''));
+        $requestedWith = strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+        return str_contains($accept, 'application/json') || $requestedWith === 'xmlhttprequest';
     }
 
     /**
@@ -231,6 +245,41 @@ class Controller
         ];
 
         $this->redirect($rota);
+    }
+
+    /** Persiste o feedback e conclui o redirecionamento antes de executar avisos lentos. */
+    protected function redirecionarComMensagemAposResposta(string $tipo, string $mensagem, string $rota, callable $aposResposta): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION['feedback'] = ['tipo' => $tipo, 'mensagem' => $mensagem];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        ignore_user_abort(true);
+        ini_set('zlib.output_compression', '0');
+        http_response_code(303);
+        header('Location: ' . URL_BASE . $rota);
+        header('Content-Length: 0');
+
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            while (ob_get_level() > 0) {
+                if (!ob_end_flush()) break;
+            }
+            flush();
+        }
+
+        try {
+            $aposResposta();
+        } catch (\Throwable $e) {
+            error_log('Falha em notificação após o redirecionamento HTTP.');
+        }
+        exit;
     }
 
 

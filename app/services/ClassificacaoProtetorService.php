@@ -4,7 +4,7 @@ use app\database\ConnectionFactory;
 use DomainException;
 use Throwable;
 
-/** RF14: decisão manual e reversível, independente do bloqueio global. */
+/** Funcionalidade extra de apoio à RN12: decisão manual auditável, independente do bloqueio global. */
 class ClassificacaoProtetorService
 {
     public function classificar(int $usuarioId, int $adminId, bool $inadimplente, string $motivo): void

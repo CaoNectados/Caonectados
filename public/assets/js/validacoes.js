@@ -25,6 +25,7 @@ const CaonectadosValidator = {
 
     // Usado por: perfil/editar.php, protetor_onboarding.php e internamente por validarDocumento()/validarChavePix()
     isCpfValido: function(cpf) {
+        if (!/^[0-9. \-]+$/.test(cpf)) return false;
         cpf = cpf.replace(/[^\d]+/g, '');
         if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
 
@@ -45,6 +46,7 @@ const CaonectadosValidator = {
 
     // Usado por: perfil/editar.php, protetor_onboarding.php e internamente por validarDocumento()/validarChavePix()
     isCnpjValido: function(cnpj) {
+        if (!/^[0-9.\/ \-]+$/.test(cnpj)) return false;
         cnpj = cnpj.replace(/[^\d]+/g, '');
         if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
 
@@ -85,7 +87,7 @@ const CaonectadosValidator = {
     },
 
     // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php (uploads de foto/comprovante)
-    validarTamanhoArquivo: function(inputElement, tamanhoMaximoMB = 2) {
+    validarTamanhoArquivo: function(inputElement, tamanhoMaximoMB = 5) {
         if (inputElement.files && inputElement.files[0]) {
             const tamanhoEmMB = inputElement.files[0].size / (1024 * 1024);
             return tamanhoEmMB <= tamanhoMaximoMB;
@@ -96,69 +98,59 @@ const CaonectadosValidator = {
     // Usado por: perfil/editar.php e protetor_onboarding.php (campos de Instagram/Facebook)
     validarLinkSocial: function(url, rede) {
         if (!url || url.trim() === '') return true;
-
-        let link = url.trim().toLowerCase();
-        if (!link.startsWith('http://') && !link.startsWith('https://')) {
-            link = 'https://' + link;
-        }
-
+        let link = url.trim();
+        if (link.length > 255 || !['instagram', 'facebook', 'whatsapp', 'outro'].includes(rede)) return false;
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(link)) link = 'https://' + link;
         try {
-            const parsedUrl = new URL(link);
-            if (rede === 'instagram') {
-                return parsedUrl.hostname.includes('instagram.com');
-            }
-            if (rede === 'facebook') {
-                return parsedUrl.hostname.includes('facebook.com');
-            }
-            return true;
+            const parsed = new URL(link);
+            if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) return false;
+            const dominio = {instagram: 'instagram.com', facebook: 'facebook.com'}[rede];
+            return !dominio || parsed.hostname === dominio || parsed.hostname.endsWith('.' + dominio);
         } catch (_) {
             return false;
         }
     },
 
     // Usado por: perfil/editar.php e protetor_onboarding.php (campo de chave PIX)
-    validarChavePix: function(chave) {
+    validarChavePix: function(chave, tipo = 'auto') {
+        if (!['auto', 'cpf', 'cnpj', 'telefone', 'email', 'aleatoria'].includes(tipo)) return false;
         if (!chave || chave.trim() === '') return true;
         const c = chave.trim();
-
-        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return true;
-
-        const numeros = c.replace(/[^\d]+/g, '');
-        if (numeros.length === 11) return this.isCpfValido(numeros);
-        if (numeros.length === 14) return this.isCnpjValido(numeros);
-        if (numeros.length === 10 || numeros.length === 11) return true;
-
-        // Chave aleatória EVP (padrão UUID)
-        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c)) return true;
-
-        return false;
+        if (c.length > 255) return false;
+        const numeros = c.replace(/\D/g, '');
+        const documento = /^[0-9.\/\-]+$/.test(c);
+        const telefone = /^\+?[0-9() .\-]+$/.test(c);
+        const local = [12, 13].includes(numeros.length) && numeros.startsWith('55') ? numeros.slice(2) : numeros;
+        const validos = {
+            cpf: documento && this.isCpfValido(c),
+            cnpj: documento && this.isCnpjValido(c),
+            telefone: telefone && /^[1-9][0-9](?:[2-5][0-9]{7}|9[0-9]{8})$/.test(local),
+            email: c.length <= 150 && this.validarEmail(c),
+            aleatoria: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c)
+        };
+        return tipo === 'auto' ? Object.values(validos).includes(true) : validos[tipo];
     },
 
     // Usado por: adotante_onboarding.php e protetor_onboarding.php (etapa de dados pessoais)
     validarMaioridade: function(dataNascimento) {
-        if (!dataNascimento) return false;
-
+        if (!this.validarDataNaoFutura(dataNascimento)) return false;
         const hoje = new Date();
-        const nascimento = new Date(dataNascimento);
+        const nascimento = new Date(dataNascimento + 'T00:00:00');
         let idade = hoje.getFullYear() - nascimento.getFullYear();
-        const mes = hoje.getMonth() - nascimento.getMonth();
-
-        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-            idade--;
-        }
-
+        if (hoje.getMonth() < nascimento.getMonth() || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate())) idade--;
         return idade >= 18;
     },
 
     // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php
     validarNome: function(nome) {
-        return nome && nome.trim().length >= 2;
+        return typeof nome === 'string' && nome.trim().length >= 2 && nome.trim().length <= 150;
     },
 
     // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php
     validarTelefone: function(telefone) {
         if (!telefone || telefone.trim() === '') return true; // Campo opcional
 
+        if (!/^[0-9() .+\-]+$/.test(telefone)) return false;
         const numeros = telefone.replace(/[^\d]+/g, '');
         return numeros.length === 10 || numeros.length === 11;
     },
@@ -190,6 +182,8 @@ const CaonectadosValidator = {
 
         const dataEntrada = new Date(dataStr + 'T00:00:00');
         if (isNaN(dataEntrada.getTime())) return false;
+        const [ano, mes, dia] = dataStr.split('-').map(Number);
+        if (dataEntrada.getFullYear() !== ano || dataEntrada.getMonth() !== mes - 1 || dataEntrada.getDate() !== dia) return false;
 
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);

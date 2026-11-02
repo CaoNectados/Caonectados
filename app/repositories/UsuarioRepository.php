@@ -339,11 +339,25 @@ class UsuarioRepository extends BaseRepository
     public function excluirConta(int $usuarioId): bool
     {
         $sql = "UPDATE USUARIO
-                SET deletado_em = NOW(),
+                SET email = CONCAT('excluido+', usuario_id, '+', REPLACE(UUID(), '-', ''), '@conta.invalid'),
+                    deletado_em = NOW(),
                     status_conta = 'inativo'
                 WHERE usuario_id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([':id' => $usuarioId]);
+    }
+
+    /**
+     * Libera o e-mail de uma conta excluída para um novo cadastro, preservando
+     * a linha antiga e seus vínculos históricos. O cadastro novo terá outro ID.
+     */
+    public function liberarEmailDeContaExcluida(string $email): bool
+    {
+        $sql = "UPDATE USUARIO
+                SET email = CONCAT('excluido+', usuario_id, '+', REPLACE(UUID(), '-', ''), '@conta.invalid')
+                WHERE email = :email AND deletado_em IS NOT NULL";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([':email' => mb_strtolower(trim($email), 'UTF-8')]);
     }
 
     // Usado por: UsuarioAdminService::alterarStatusPerfil()

@@ -22,7 +22,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 <div class="relative">
                     <input type="password" name="senha" id="senha" placeholder="Crie uma senha" class="input-padrao pr-12">
                     <button type="button" onclick="togglePassword('senha', this)" class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none" aria-label="Mostrar senha">
-                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5">
+                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5 dark:brightness-0 dark:invert">
                     </button>
                 </div>
             </div>
@@ -31,14 +31,14 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                 <div class="relative">
                     <input type="password" name="senha_confirmacao" id="senha_confirmacao" placeholder="Confirme sua senha" class="input-padrao pr-12">
                     <button type="button" onclick="togglePassword('senha_confirmacao', this)" class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none" aria-label="Mostrar senha">
-                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5">
+                        <img src="<?= $urlBase ?>/assets/icons/olho-aberto.svg" alt="Mostrar senha" class="w-5 h-5 dark:brightness-0 dark:invert">
                     </button>
                 </div>
             </div>
 
-            <div class="flex items-start gap-3 text-sm text-text-dark">
-                <input type="checkbox" name="aceite_termos" id="aceite-termos-cadastro" value="1" required class="mt-1 h-5 w-5 shrink-0 accent-primary">
-                <label for="aceite-termos-cadastro">Li os <a href="<?= e(URL_BASE) ?>/termos" target="_blank" rel="noopener" class="underline">Termos de Uso e Privacidade</a> e concordo com o uso dos meus dados para criar a conta e realizar adoções.</label>
+            <div class="flex items-start gap-3 text-sm text-text-dark dark:text-white">
+                <input type="checkbox" name="aceite_termos" id="aceite-termos-cadastro" value="1" required aria-label="Li e aceito os Termos de Uso e Privacidade" class="mt-1 h-5 w-5 shrink-0 accent-primary">
+                <p>Li os <button type="button" id="abrir-termos-cadastro" onclick="abrirModalTermosCadastro()" class="underline">Termos de Uso e Privacidade</button> e concordo com o uso dos meus dados para criar a conta e realizar adoções.</p>
             </div>
             <button type="submit" class="btn-auth-primario text-white">Cadastrar</button>
 
@@ -51,7 +51,47 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
     </div>
 </div>
 
+<div id="modal-termos-cadastro" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/70 p-4" role="presentation" onclick="if (event.target === this) fecharModalTermosCadastro()">
+    <section class="flex max-h-[85vh] w-full max-w-lg flex-col rounded-3xl border border-rosa-3 bg-surface shadow-2xl dark:bg-preto1" role="dialog" aria-modal="true" aria-labelledby="titulo-termos-cadastro">
+        <header class="flex items-center justify-between border-b border-cinzaMarrom/20 p-5 sm:p-6">
+            <h2 id="titulo-termos-cadastro" class="font-shantell text-xl font-bold text-text-dark dark:text-white">Termos de Uso e Privacidade</h2>
+            <button type="button" onclick="fecharModalTermosCadastro()" class="rounded-full px-2 text-3xl leading-none text-text-muted transition hover:text-erro" aria-label="Fechar termos">&times;</button>
+        </header>
+        <div class="overflow-y-auto px-5 py-4 font-poppins text-sm text-text-dark dark:text-white sm:px-6">
+            <?php require __DIR__ . '/../templates/termos_conteudo.php'; ?>
+        </div>
+        <footer class="border-t border-cinzaMarrom/20 p-5 sm:p-6">
+            <button type="button" onclick="fecharModalTermosCadastro()" class="btn-primario min-h-11 w-full">Entendi</button>
+        </footer>
+    </section>
+</div>
+
 <script>
+let acionadorModalTermosCadastro = null;
+
+function abrirModalTermosCadastro() {
+    const modal = document.getElementById('modal-termos-cadastro');
+    acionadorModalTermosCadastro = document.getElementById('abrir-termos-cadastro');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+    modal.querySelector('[aria-label="Fechar termos"]').focus();
+}
+
+function fecharModalTermosCadastro() {
+    const modal = document.getElementById('modal-termos-cadastro');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+    acionadorModalTermosCadastro?.focus();
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && !document.getElementById('modal-termos-cadastro').classList.contains('hidden')) {
+        fecharModalTermosCadastro();
+    }
+});
+
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     const img = btn.querySelector('img');

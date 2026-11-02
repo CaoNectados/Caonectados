@@ -8,6 +8,7 @@ $perfis = [
         'id'       => 'adotante',
         'titulo'   => 'Quero Adotar',
         'cor'      => 'bg-rosa-4',
+        'corInfoEscuro' => 'dark:bg-rosa-4/15',
         'descricao'=> 'Encontre seu novo melhor amigo. Navegue por animais disponíveis e converse com protetores e ONGs.',
         'url'      => URL_BASE . '/onboarding/adotante',
     ],
@@ -15,6 +16,7 @@ $perfis = [
         'id'       => 'protetor',
         'titulo'   => 'Protetor Independente',
         'cor'      => 'bg-laranja-1',
+        'corInfoEscuro' => 'dark:bg-laranja-1/15',
         'descricao'=> 'Cadastre os animais que você resgata, gerencie solicitações de adoção e compartilhe sua causa com a comunidade.',
         'url'      => URL_BASE . '/onboarding/protetor',
     ],
@@ -22,6 +24,7 @@ $perfis = [
         'id'       => 'ong',
         'titulo'   => 'Sou uma ONG',
         'cor'      => 'bg-roxo2',
+        'corInfoEscuro' => 'dark:bg-roxo2/20',
         'descricao'=> 'Gerencie o feed de pets da sua instituição, com acesso a todas as funcionalidades de adoção do app.',
         'url'      => URL_BASE . '/onboarding/ong',
     ],
@@ -52,18 +55,18 @@ if (!empty($modoAdicao)) {
         <div class="space-y-3" id="lista-perfis">
             <?php foreach ($perfis as $p): ?>
                 <div class="perfil-opcao group rounded-xl overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-300" data-perfil="<?= $p['id'] ?>">
-                    <div class="flex items-stretch <?= $p['cor'] ?> dark:bg-preto2">
-                        <a href="<?= $p['url'] ?>" class="flex-1 min-w-0 px-5 py-4 font-shantell font-bold text-black dark:text-white hover:brightness-95 transition break-words">
+                    <div class="flex items-stretch <?= $p['cor'] ?>">
+                        <a href="<?= $p['url'] ?>" class="flex-1 min-w-0 px-5 py-4 font-shantell font-bold text-black dark:text-black hover:brightness-95 transition break-words">
                             <?= htmlspecialchars($p['titulo']) ?>
                         </a>
                         <button type="button"
                                 onclick="OnboardingSelecao.toggleInfo('<?= $p['id'] ?>')"
-                                class="px-4 text-white flex items-center justify-center hover:brightness-95 transition cursor-pointer"
+                                class="px-4 text-black flex items-center justify-center hover:brightness-95 transition cursor-pointer"
                                 aria-label="Saiba mais sobre o perfil <?= htmlspecialchars($p['titulo']) ?>">
-                            <img src="<?= $urlBase ?>/assets/icons/info.svg" alt="" class="w-5 h-5 brightness-0 dark:invert">
+                            <img src="<?= $urlBase ?>/assets/icons/info.svg" alt="" class="w-5 h-5 brightness-0">
                         </button>
                     </div>
-                    <div class="perfil-descricao hidden bg-branco dark:bg-preto2 border-t border-black/5 dark:border-white/5 px-5 py-3 transition-all duration-300">
+                    <div class="perfil-descricao hidden bg-branco <?= $p['corInfoEscuro'] ?> border-t border-black/5 dark:border-white/10 px-5 py-3 transition-all duration-300">
                         <p class="text-xs text-text-dark dark:text-white/90 leading-relaxed"><?= htmlspecialchars($p['descricao']) ?></p>
                     </div>
                 </div>
