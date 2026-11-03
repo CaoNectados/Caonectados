@@ -194,6 +194,7 @@ echo renderVoltar('/admin/dashboard'); ?>
 
         return `
             <form action="${urlBase}/admin/raca/importar" method="POST" class="border border-rosa-3/60 rounded-xl bg-branco dark:bg-preto1 overflow-hidden shadow-sm">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                 <input type="hidden" name="especie_nome" value="${escaparHtml(grupo.especie)}">
                 <button type="button" onclick="toggleAccordion('acc-${slug}')" class="w-full flex items-center justify-between p-4 bg-rosa-1/50 dark:bg-preto3 text-text-dark dark:text-white font-bold text-left transition">
                     <span class="flex items-center gap-2 text-base">

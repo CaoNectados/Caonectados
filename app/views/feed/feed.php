@@ -185,8 +185,8 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                             </div>
 
                             <?php if (count($fotos) > 1): ?>
-                                <button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
-                                <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
+                                <button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
+                                <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
                             <?php endif; ?>
 
                             <a href="<?= e($urlBase) ?>/denunciar?animal=<?= (int)$animal['animal_id'] ?>" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-8 right-3 z-20 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onclick="event.stopPropagation()">
@@ -613,8 +613,8 @@ require __DIR__ . '/filtros.php';
             const segmentosHtml = fotos.map((_, i) => `<div class="h-1 flex-1 rounded-full bg-white/40 overflow-hidden"><div class="h-full bg-white foto-segmento ${i === 0 ? 'w-full' : 'w-0'}"></div></div>`).join('');
             const fotosHtml = fotos.map((src, i) => `<img src="${src}" alt="Foto de ${animal.nome}" class="foto-item absolute inset-0 w-full h-full object-cover object-top ${i === 0 ? '' : 'hidden'}" onerror="this.onerror=null;this.src='${urlBase}/assets/img/perfil-placeholder.png';">`).join('');
             const setasHtml = fotos.length > 1 ?
-                `<button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
-               <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>` :
+                `<button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
+               <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>` :
                 '';
 
             const porte = PORTE_LABELS[animal.porte] || animal.porte;
