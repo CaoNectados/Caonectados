@@ -86,6 +86,39 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
+
+    @media (max-width: 1023px) {
+        #feed-track {
+            height: auto;
+            min-height: 0;
+            max-height: none;
+            overflow: visible;
+            scroll-snap-type: none;
+            gap: 1.25rem;
+        }
+        #feed-track .feed-card { height: auto; min-width: 0; }
+        #feed-track .feed-card > .relative.flex-1 {
+            flex: none;
+            aspect-ratio: 4 / 5;
+            min-height: 280px;
+            max-height: 65dvh;
+        }
+        #feed-track .btn-dar-petisco {
+            width: max-content;
+            max-width: calc(100% - 2rem);
+            min-height: 44px;
+            padding: .5rem 1.1rem;
+            font-size: .95rem;
+            white-space: nowrap;
+            bottom: .75rem;
+        }
+        #feed-track .btn-dar-petisco img { width: 24px; height: 24px; }
+        #feed-track .feed-card > .bg-primary { padding: .75rem; }
+        #feed-track .feed-card h2 { font-size: 1.1rem; overflow-wrap: anywhere; }
+        #feed-track .feed-card > .bg-primary > a { margin-top: .65rem; padding-block: .6rem; }
+        #card-fim-feed { min-height: 280px; padding: 1.5rem; }
+    }
+
 </style>
 
 <div class="w-full max-w-7xl mx-auto pb-24 lg:pb-10 relative">
@@ -433,7 +466,7 @@ require __DIR__ . '/filtros.php';
                     }
                 });
             }, {
-                root: track,
+                root: window.matchMedia('(min-width: 1024px)').matches ? track : document.getElementById('area-conteudo'),
                 threshold: 0.5
             });
 
@@ -476,7 +509,7 @@ require __DIR__ . '/filtros.php';
                         }
                     });
                 }, {
-                    root: track,
+                    root: window.matchMedia('(min-width: 1024px)').matches ? track : document.getElementById('area-conteudo'),
                     threshold: 0.1
                 });
 

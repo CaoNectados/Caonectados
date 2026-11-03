@@ -304,6 +304,18 @@
 </style>
 
 <style>
+    @media (max-width: 1023px) {
+        html, body, #area-conteudo, #area-conteudo * {
+            scrollbar-width: none;
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar,
+        #area-conteudo::-webkit-scrollbar,
+        #area-conteudo *::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+    }
     #area-conteudo::-webkit-scrollbar {
         width: 34px;
     }
