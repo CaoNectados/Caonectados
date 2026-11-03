@@ -184,13 +184,6 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                 <?php endforeach; ?>
                             </div>
 
-                            <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-                            <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-                            </button>
-
                             <?php if (count($fotos) > 1): ?>
                                 <button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
                                 <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
@@ -470,14 +463,6 @@ require __DIR__ . '/filtros.php';
                 }
             }
 
-            track.addEventListener('click', function(event) {
-                const controle = event.target.closest('.btn-animal-nav');
-                if (!controle) return;
-                event.preventDefault();
-                event.stopPropagation();
-                irParaVizinho(controle.classList.contains('btn-animal-anterior') ? -1 : 1);
-            });
-
             document.getElementById('btn-anterior-animal')?.addEventListener('click', () => irParaVizinho(-1));
             document.getElementById('btn-proximo-animal')?.addEventListener('click', () => irParaVizinho(1));
 
@@ -628,8 +613,8 @@ require __DIR__ . '/filtros.php';
             const segmentosHtml = fotos.map((_, i) => `<div class="h-1 flex-1 rounded-full bg-white/40 overflow-hidden"><div class="h-full bg-white foto-segmento ${i === 0 ? 'w-full' : 'w-0'}"></div></div>`).join('');
             const fotosHtml = fotos.map((src, i) => `<img src="${src}" alt="Foto de ${animal.nome}" class="foto-item absolute inset-0 w-full h-full object-cover object-top ${i === 0 ? '' : 'hidden'}" onerror="this.onerror=null;this.src='${urlBase}/assets/img/perfil-placeholder.png';">`).join('');
             const setasHtml = fotos.length > 1 ?
-                `<button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold">&lsaquo;</button>
-               <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold">&rsaquo;</button>` :
+                `<button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
+               <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-text-dark shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>` :
                 '';
 
             const porte = PORTE_LABELS[animal.porte] || animal.porte;
@@ -656,12 +641,10 @@ require __DIR__ . '/filtros.php';
                 <div class="absolute top-3 left-3 right-3 z-20 flex gap-1.5 pointer-events-none">${segmentosHtml}</div>
                 <a href="${urlBase}/pagina?id=${animal.protetor_id}" onclick="event.stopPropagation()"
                    class="absolute top-10 left-3 z-20 flex max-w-[calc(100%_-_5rem)] items-center gap-2 bg-white/90 dark:bg-preto1/90 rounded-full pl-1 pr-3 py-1 shadow hover:bg-white transition">
-                    <img src="${animal.foto_protetor ? escaparHtml(urlBase + '/' + animal.foto_protetor.replace(/^\/+/, '')) : urlBase + '/assets/img/perfil-placeholder.png'}" alt="" class="w-7 h-7 shrink-0 rounded-full object-cover">
+                    <img src="${animal.foto_protetor ? escaparHtml(/^https?:\/\//i.test(animal.foto_protetor) ? animal.foto_protetor : urlBase + '/' + animal.foto_protetor.replace(/^\/+/, '')) : urlBase + '/assets/img/perfil-placeholder.png'}" alt="" class="w-7 h-7 shrink-0 rounded-full object-cover">
                     <span class="truncate text-xs font-bold text-text-dark dark:text-white">${animal.nome_fantasia || 'Protetor independente'}</span>
                 </a>
                 <div class="foto-carrossel absolute inset-0 w-full h-full flex items-center justify-center cursor-pointer" onclick="window.location.href='${animal.url_detalhes}'">${fotosHtml}</div>
-                <button type="button" class="btn-animal-nav btn-animal-anterior lg:hidden absolute left-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Animal anterior"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg></button>
-                <button type="button" class="btn-animal-nav btn-animal-proximo lg:hidden absolute right-3 bottom-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/85 text-primary shadow-lg" aria-label="Próximo animal"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg></button>
                 ${setasHtml}
                 <a href="${urlBase}/denunciar?animal=${encodeURIComponent(animal.animal_id)}" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-8 right-3 z-20 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onclick="event.stopPropagation()"><img src="<?= e(asset('assets/img/icone-denunciar.png')) ?>" alt="" class="h-12 w-12 object-contain drop-shadow-[0_4px_4px_rgba(0,0,0,0.55)]"></a>
                 <button type="button" class="btn-dar-petisco absolute bottom-4 left-1/2 -translate-x-1/2 z-20 inline-flex items-center justify-center gap-2 border-2 border-primary/20 bg-rosa-1 hover:bg-rosa-2 text-text-dark font-shantell font-bold text-base sm:text-lg px-6 py-2.5 rounded-full shadow-lg transition hover:-translate-y-0.5 active:scale-95 dark:border-white/30 dark:bg-rosa-1 dark:text-text-dark"><img src="<?= e(asset('assets/img/icone-petisco-osso.png')) ?>" alt="" class="h-7 w-7 object-contain" aria-hidden="true"><span>Dar Petisco!</span></button>

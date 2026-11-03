@@ -36,12 +36,11 @@ $noFeedRodape = $caminhoRodape === rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: ''
     $inicioMenuInferior = match ($perfilMenuInferior) {
         'administrador' => '/admin/dashboard',
         'adotante' => '/feed',
+        'ong', 'protetor' => '/animal',
         default => '/',
     };
     $perfilDestinoInferior = $perfilMenuInferior === null ? '/login' : '/perfil';
     $pesquisaAtivaInferior = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/') === rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: '', '/') . '/pesquisar';
-    $animaisAtivosInferior = in_array(rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/'), [rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: '', '/') . '/animal', rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: '', '/') . '/gerenciar-animais'], true);
-    if ($animaisAtivosInferior && in_array($perfilMenuInferior, ['ong','protetor'], true)) $inicioMenuInferior = '/animal';
     ?>
     <nav id="menu-inferior-mobile" aria-label="Navegação inferior"
          class="fixed bottom-2 left-3 right-3 rounded-3xl z-30 bg-primary flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.2)] lg:hidden"
