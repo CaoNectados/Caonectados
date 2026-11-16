@@ -23,7 +23,6 @@ class PerfilController extends Controller
     private EspecieRepository $especieRepo;
     private ProtetorRepository $protetorRepo;
 
-    // Usado por: instanciado pelo Router para todas as rotas /perfil/*
     public function __construct()
     {
         $this->autenticacaoRequired();
@@ -34,18 +33,19 @@ class PerfilController extends Controller
         $this->protetorRepo = new ProtetorRepository();
     }
 
-    // Usado por: rota GET /perfil
     public function index(): void
     {
         $usuarioId = (int)$_SESSION['usuario_id'];
         $tipoPerfil = $_SESSION['tipo_perfil'] ?? 'usuario';
         $fotoPerfil = null;
+        $classificacaoAdministrativa = null;
 
         if ($tipoPerfil === 'adotante' || $tipoPerfil === 'usuario') {
             $adotanteRepo = new AdotanteRepository();
             $adotante = $adotanteRepo->buscarPorUsuarioId($usuarioId);
             $fotoPerfil = $adotante['foto_perfil'] ?? null;
         } elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
+            $classificacaoAdministrativa = (new \app\services\ClassificacaoProtetorService())->resumoDoProprioPerfil($usuarioId);
             $paginaRepo = new PaginaRepository();
             $protetor = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($protetor) {
@@ -56,26 +56,38 @@ class PerfilController extends Controller
 
         $this->view('perfil/perfil', [
             'titulo'     => 'Perfil',
-            'fotoPerfil' => $fotoPerfil
+            'fotoPerfil' => $fotoPerfil,
+            'classificacaoAdministrativa' => $classificacaoAdministrativa
         ]);
     }
 
     public function solicitarPerfil(): void
     {
-        $tipo = $_SESSION['tipo_perfil'];
-        if (!in_array($tipo, ['adotante', 'protetor', 'ong'], true)
-            || ($_SESSION['status_conta'] ?? '') !== 'ativo' || empty($_SESSION['validado'])) {
+        $tipo = $_SESSION['tipo_perfil'] ?? 'usuario';
+        $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
+        $perfisAtivos = array_intersect(
+            ['adotante', 'protetor', 'ong'],
+            $_SESSION['perfis_ativos'] ?? []
+        );
+
+        if (($tipo === 'usuario' && $perfisAtivos)
+            || !in_array($tipo, ['usuario', 'adotante', 'protetor', 'ong'], true)
+            || ($_SESSION['status_conta'] ?? '') !== 'ativo'
+            || ($tipo !== 'usuario' && empty($_SESSION['validado']))) {
             $this->redirecionarComMensagem('erro', 'Somente usuários verificados podem solicitar outro perfil.', '/perfil');
         }
+        if ($tipo === 'usuario') {
+            $this->redirect('/onboarding');
+        }
         if ($tipo === 'adotante') {
-            $pedido = $this->protetorRepo->buscarPorUsuarioId((int)$_SESSION['usuario_id']);
+            $pedido = $this->protetorRepo->buscarPorUsuarioId($usuarioId);
             if ($pedido && (empty($pedido['deletado_em']) || !empty($pedido['validado']))) {
                 $this->redirecionarComMensagem('aviso', 'Você já possui perfil aprovado ou solicitação em análise.', '/perfil');
             }
             $destino = $pedido ? '/onboarding/' . ($pedido['tipo_documento'] === 'cnpj' ? 'ong' : 'protetor') : '/onboarding';
         } else {
             $repo = new AdotanteRepository();
-            if ($repo->buscarPorUsuarioId((int)$_SESSION['usuario_id'])) {
+            if ($repo->buscarPorUsuarioId($usuarioId)) {
                 $this->redirecionarComMensagem('aviso', 'Você já possui perfil aprovado ou solicitação em análise.', '/perfil');
             }
             $destino = '/onboarding/adotante';
@@ -83,13 +95,11 @@ class PerfilController extends Controller
         $this->redirect($destino . '?modo=adicao');
     }
 
-    // Usado por: (não referenciado atualmente)
     public function perfil(): void
     {
         $this->index();
     }
 
-    // Usado por: rota GET /perfil/editar
     public function editar(): void
     {
         $usuarioId = (int)$_SESSION['usuario_id'];
@@ -163,7 +173,6 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /perfil/atualizar
     public function atualizar(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -189,7 +198,6 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/atualizar-foto
     public function atualizarFoto(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -224,7 +232,6 @@ class PerfilController extends Controller
 
     // FLUXOS DE SEGURANÇA (SENHA E E-MAIL)
 
-    // Usado por: rota GET /perfil/redefinir-senha
     public function telaRedefinirSenha(): void
     {
         $usuario = $this->usuarioRepo->buscarPorId((int)$_SESSION['usuario_id']);
@@ -238,7 +245,6 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /perfil/redefinir-senha/enviar-codigo
     public function enviarCodigoSenha(): void
     {
         try {
@@ -260,7 +266,6 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/redefinir-senha/confirmar
     public function confirmarNovaSenha(): void
     {
         try {
@@ -295,7 +300,6 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota GET /perfil/trocar-email
     public function telaTrocarEmail(): void
     {
         $usuario = $this->usuarioRepo->buscarPorId((int)$_SESSION['usuario_id']);
@@ -305,7 +309,6 @@ class PerfilController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /perfil/trocar-email/enviar-codigo
     public function enviarCodigoTrocaEmail(): void
     {
         try {
@@ -338,7 +341,6 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/trocar-email/confirmar
     public function confirmarTrocaEmail(): void
     {
         try {
@@ -372,7 +374,6 @@ class PerfilController extends Controller
         }
     }
 
-    // Usado por: rota POST /perfil/trocar
    public function alternar(): void
     {
         if ($_SESSION['tipo_perfil'] === 'administrador') {
@@ -446,7 +447,6 @@ class PerfilController extends Controller
         $this->redirecionarComMensagem('sucesso', 'Perfil alternado para ' . ucfirst($tipoSession) . ' com sucesso!', '/perfil');
     }
 
-    // Usado por: rota POST /perfil/excluir (soft delete da conta pelo próprio usuário)
     public function excluir(): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

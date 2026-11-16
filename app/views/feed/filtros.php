@@ -51,6 +51,15 @@ $destinoFiltros = $destinoFiltros ?? '/feed';
                 </div>
             </div>
 
+            <div>
+                <label for="filtro-traco" class="label-padrao">Característica do animal</label>
+                <select name="traco_id" id="filtro-traco" class="input-padrao">
+                    <option value="">Todas</option>
+                    <?php foreach ($tracosDisponiveis as $traco): ?>
+                    <option value="<?= (int) $traco['traco_id'] ?>" <?= (string) ($filtrosAtuais['traco_id'] ?? '') === (string) $traco['traco_id'] ? 'selected' : '' ?>><?= e($traco['traco']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="relative">
                 <label class="label-padrao" for="feed-input-busca-bairro">Bairro / Região</label>
                 <?php
@@ -64,10 +73,12 @@ $destinoFiltros = $destinoFiltros ?? '/feed';
                 ?>
                 <!-- Muitos bairros cadastrados — digitável (com autocomplete nativo via
                      datalist) em vez de <select>, pro adotante achar o dele mais rápido. -->
-                <input type="text" id="feed-input-busca-bairro" list="feed-lista-regioes"
-                       value="<?= htmlspecialchars($regiaoNomeAtual) ?>"
-                       placeholder="Digite o nome do bairro..." autocomplete="off"
-                       class="input-padrao input-com-seta">
+                <select id="feed-input-busca-bairro" data-regiao-selecionada="<?= e($regiaoNomeAtual) ?>" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white" aria-label="Bairro / Região">
+<option value="">Todos os bairros</option>
+                    <?php foreach ($regioes as $regiao): ?>
+                        <option data-id="<?= $regiao->getRegiaoId() ?>" value="<?= htmlspecialchars($regiao->getNomeRegiao()) ?>"><?= htmlspecialchars($regiao->getNomeRegiao()) ?></option>
+                    <?php endforeach; ?>
+                </select>
                 <datalist id="feed-lista-regioes">
                     <?php foreach ($regioes as $regiao): ?>
                         <option data-id="<?= $regiao->getRegiaoId() ?>" value="<?= htmlspecialchars($regiao->getNomeRegiao()) ?>"></option>

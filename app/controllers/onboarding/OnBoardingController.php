@@ -32,7 +32,6 @@ class OnBoardingController extends Controller
         $this->verificarSeJaPossuiPerfil();
     }
 
-    // Usado por: rota GET /onboarding
     public function index()
     {
         $this->view('onboarding/selecionar_perfil', [
@@ -42,7 +41,6 @@ class OnBoardingController extends Controller
         ]);
     }
 
-    // Usado por: rota GET /onboarding/adotante
     public function adotante(): void
     {
         $regioes = $this->regiaoRepo->buscarTodas();
@@ -56,7 +54,6 @@ class OnBoardingController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /onboarding/salvar-adotante (fluxo original de cadastro, e
     // RF 20 inverso - upgrade de Protetor/ONG para Adotante)
     public function salvarAdotante(): void
     {
@@ -79,13 +76,12 @@ class OnBoardingController extends Controller
                 $this->onboardingService->processarAdotante($dadosLimpos, $_FILES, (int)$usuarioId);
 
 
-
                 $this->json(200, [
                     'status'       => 'sucesso',
                     'mensagem'     => $ehUpgradeDeProtetorOuOng
                         ? 'Perfil de Adotante criado com sucesso! Use "Alternar Perfil" para acessá-lo.'
                         : 'Perfil de adotante criado com sucesso!',
-                    // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+
                     'redirect_url' => URL_BASE . '/perfil'
                 ]);
             } catch (Exception $e) {
@@ -97,7 +93,6 @@ class OnBoardingController extends Controller
         }
     }
 
-    // Usado por: rota GET /onboarding/ong
     public function ong(): void
     {
         $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
@@ -114,7 +109,6 @@ class OnBoardingController extends Controller
         ]);
     }
 
-    // Usado por: rota GET /onboarding/protetor
     public function protetor(): void
     {
         $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
@@ -131,7 +125,6 @@ class OnBoardingController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /onboarding/salvar-protetor (fluxo de ONG e de Protetor, e
     // RF 20 - upgrade de Adotante para Protetor/ONG)
     public function salvarProtetor(): void
     {
@@ -152,7 +145,6 @@ class OnBoardingController extends Controller
                 $this->onboardingService->processarOng($dadosLimpos, $_FILES, (int)$usuarioId);
 
 
-
                 $this->json(200, [
                     'status'       => 'sucesso',
                     'mensagem'     => $ehUpgradeDeAdotante
@@ -169,7 +161,6 @@ class OnBoardingController extends Controller
         }
     }
 
-    // Usado por: rota GET /onboarding/especies-ativas
     public function especiesAtivas(): void
     {
         try {
@@ -193,7 +184,6 @@ class OnBoardingController extends Controller
         }
     }
 
-    // Usado por: rota GET /aguardando-aprovacao
     public function aguardandoAprovacao(): void
     {
         $usuarioId = (int)($_SESSION['usuario_id'] ?? 0);
@@ -210,7 +200,7 @@ class OnBoardingController extends Controller
         if ($validado && !$recusado) {
             $_SESSION['boas_vindas_tipo'] = $tipoPerfil;
             $_SESSION['boas_vindas_nome'] = $_SESSION['usuario_nome'] ?? 'Protetor';
-            // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+
             $this->redirect('/perfil');
         }
 
@@ -228,7 +218,6 @@ class OnBoardingController extends Controller
         ]);
     }
 
-    // Usado por: __construct()
     private function verificarSeJaPossuiPerfil(): void
     {
         $usuarioId = $_SESSION['usuario_id'] ?? null;
@@ -350,7 +339,7 @@ class OnBoardingController extends Controller
         // Onboarding concluído (adotante, ou protetor/ong já validado): as rotas de
         // onboarding (inclusive /onboarding, /onboarding/adotante, /onboarding/protetor
         // e /onboarding/ong) ficam bloqueadas e o usuário é enviado de volta ao perfil.
-        // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
+
         if ($uriAtual !== '/perfil') {
             $this->redirect('/perfil');
         }

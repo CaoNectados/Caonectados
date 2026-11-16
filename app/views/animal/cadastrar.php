@@ -92,22 +92,13 @@ unset($_SESSION['old']);
                     <label for="status" class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2">Status <span class="text-rosaAlerta">*</span></label>
                     <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-white focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
                         <option value="disponivel" class="dark:bg-preto2" <?= ($old['status'] ?? 'disponivel') === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
-                        <option value="em_analise" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
-                        <option value="adotado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'adotado' ? 'selected' : '' ?>>Adotado</option>
+                        <option value="adotado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'adotado' ? 'selected' : '' ?>>Adotado fora da plataforma</option>
                         <option value="desativado" class="dark:bg-preto2" <?= ($old['status'] ?? '') === 'desativado' ? 'selected' : '' ?>>Desativado</option>
                     </select>
-                </div>
-                <div>
-                    <label for="comportamento" class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2">Comportamento</label>
-                    <select id="comportamento" name="comportamento" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl bg-transparent dark:bg-preto2 dark:text-white focus:border-rosaAlerta dark:focus:border-rosaAlerta outline-none transition-colors">
-                        <option value="" class="dark:bg-preto2">Escolha (Opcional)</option>
-                        <option value="calmo" class="dark:bg-preto2" <?= ($old['comportamento'] ?? '') === 'calmo' ? 'selected' : '' ?>>Calmo</option>
-                        <option value="ativo" class="dark:bg-preto2" <?= ($old['comportamento'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativo</option>
-                        <option value="docil" class="dark:bg-preto2" <?= ($old['comportamento'] ?? '') === 'docil' ? 'selected' : '' ?>>Dócil</option>
-                        <option value="arisco" class="dark:bg-preto2" <?= ($old['comportamento'] ?? '') === 'arisco' ? 'selected' : '' ?>>Arisco</option>
-                    </select>
+                    <p class="mt-2 text-xs text-text-muted">O estado em análise é definido ao analisar uma solicitação de adoção.</p>
                 </div>
             </div>
+            <?php require __DIR__ . '/tracos.php'; ?>
 
             <div>
                 <label for="historico_saude" class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2">Saúde</label>

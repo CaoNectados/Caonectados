@@ -58,7 +58,6 @@ class FeedRepository extends BaseRepository
      *   nenhuma, score sempre 0) saem em ordem "aleatória" estável — ver comentário na
      *   clausulaOrdemEstavel() sobre por que não uso RAND(seed) puro.
      */
-    // Usado por: FeedController::index() e carregarMais()
     public function buscarFeed(int $adotanteId, array $preferencias, array $filtros, int $seed, int $offset, int $limite): array
     {
         $params = [':adotante_id' => $adotanteId];
@@ -104,10 +103,13 @@ class FeedRepository extends BaseRepository
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $tracos = (new TracoRepository($this->db))->buscarPorAnimais(array_column($animais, 'animal_id'));
+        foreach ($animais as &$animal) $animal['tracos'] = $tracos[(int) $animal['animal_id']] ?? [];
+        unset($animal);
+        return $animais;
     }
 
-    // Usado por: FeedController — carrega todas as fotos (carrossel) dos animais de UMA
     // página do feed em uma única query (WHERE IN), evitando 1 query por card.
     public function buscarFotosPorAnimais(array $animalIds): array
     {
@@ -142,7 +144,6 @@ class FeedRepository extends BaseRepository
         return $porAnimal;
     }
 
-    // Usado por: buscarFeed() (uso interno) — monta a expressão de score de compatibilidade
     // com base nas preferências do adotante. Cada preferência vazia soma 0 (CASE sempre falso
     // com WHERE 1=0), então quem não preencheu nada cai tudo empatado em score 0 — normal.
     private function montarScorePreferencia(array $preferencias, array &$params): string
@@ -157,13 +158,12 @@ class FeedRepository extends BaseRepository
         return implode(' + ', array_map(fn(string $c) => "(CASE WHEN $c THEN 1 ELSE 0 END)", $partes));
     }
 
-    // Usado por: buscarFeed() (uso interno) — filtros avançados do UC 14.1
     private function montarFiltros(array $filtros, array &$params): string
     {
         $sql = '';
         if (!empty($filtros['q'])) {
-            $sql .= ' AND (a.nome LIKE :f_q1 OR r.nome LIKE :f_q2 OR e.nome LIKE :f_q3 OR p.nome_fantasia LIKE :f_q4 OR a.comportamento LIKE :f_q5 OR a.descricao LIKE :f_q6)';
-            for ($i=1;$i<=6;$i++) $params[':f_q'.$i] = '%' . $filtros['q'] . '%';
+            $sql .= ' AND (a.nome LIKE :f_q1 OR r.nome LIKE :f_q2 OR e.nome LIKE :f_q3 OR p.nome_fantasia LIKE :f_q4 OR a.comportamento LIKE :f_q5 OR a.descricao LIKE :f_q6 OR EXISTS (SELECT 1 FROM ANIMAL_TRACO atq JOIN TRACO tq ON tq.traco_id = atq.traco_id WHERE atq.animal_id = a.animal_id AND atq.opcao_id = \'sim\' AND tq.traco LIKE :f_q7))';
+            for ($i=1;$i<=7;$i++) $params[':f_q'.$i] = '%' . $filtros['q'] . '%';
             // Termos comuns da pesquisa também reconhecem a espécie cadastrada.
             $termo = mb_strtolower(trim($filtros['q']));
             $especie = ['cachorro'=>'cão','cachorros'=>'cão','caes'=>'cão','cães'=>'cão','gatinho'=>'gato','gatinhos'=>'gato'][$termo] ?? null;
@@ -173,6 +173,10 @@ class FeedRepository extends BaseRepository
             }
         }
 
+        if (!empty($filtros['traco_id'])) {
+            $sql .= " AND EXISTS (SELECT 1 FROM ANIMAL_TRACO atr WHERE atr.animal_id = a.animal_id AND atr.traco_id = :f_traco_id AND atr.opcao_id = 'sim')";
+            $params[':f_traco_id'] = (int) $filtros['traco_id'];
+        }
         if (!empty($filtros['porte'])) {
             $sql .= " AND a.porte = :f_porte";
             $params[':f_porte'] = $filtros['porte'];
@@ -209,7 +213,6 @@ class FeedRepository extends BaseRepository
         return $sql;
     }
 
-    // Usado por: montarScorePreferencia() (uso interno) — gera "coluna IN (:p0,:p1,...)" pra
     // uma lista de valores, ou a constante falsa "1=0" quando a lista está vazia (PDO não
     // aceita bind direto de array em IN(), por isso os placeholders numerados).
     private function clausulaInOuFalso(string $coluna, array $valores, string $prefixo, array &$params, int $tipoPdo): string
@@ -237,7 +240,6 @@ class FeedRepository extends BaseRepository
      * mesma posição relativa, então LIMIT/OFFSET em requisições separadas não se desalinha;
      * seeds diferentes (uma por sessão de navegação no feed) embaralham a ordem normalmente.
      */
-    // Usado por: buscarFeed() (uso interno). O placeholder :seed é bindado separadamente em
     // buscarFeed() (com PDO::PARAM_INT explícito), não faz parte do array $params genérico.
     private function clausulaOrdemEstavel(): string
     {

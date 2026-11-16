@@ -130,7 +130,7 @@ $paginasBotoes = array_chunk($botoes, 6);
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
 
-<div class="w-full max-w-md mx-auto bg-background min-h-[70vh] py-6 pb-20">
+<div id="perfil-pagina" class="perfil-responsivo w-full max-w-md mx-auto bg-background min-h-[70vh] py-6 pb-20">
     <div class="px-6 -mt-4 pt-10 flex flex-col items-center">
 
         <!-- Badge de Perfil Atual (formato de fita/banner, como no protótipo) -->
@@ -170,6 +170,25 @@ $paginasBotoes = array_chunk($botoes, 6);
         <h2 class="font-shantell text-2xl font-bold text-text-dark dark:text-white text-center mb-6">
             <?= htmlspecialchars($nomeUsuario) ?>
         </h2>
+
+        <?php if (in_array($tipoPerfil, ['protetor', 'ong'], true) && !empty($classificacaoAdministrativa)):
+            $situacaoInadimplente = !empty($classificacaoAdministrativa['inadimplente']);
+        ?>
+        <section class="mb-6 w-full min-w-0 rounded-2xl border border-rosa-3 bg-surface p-4 text-left text-text-dark shadow-sm dark:border-roxinhoFofo/60 dark:text-white sm:p-5" aria-labelledby="titulo-situacao-administrativa">
+            <h3 id="titulo-situacao-administrativa" class="font-poppins text-base font-bold">Situação administrativa</h3>
+            <span class="mt-3 inline-flex rounded-full bg-primary px-3 py-1 text-sm font-bold text-white"><?= $situacaoInadimplente ? 'Inadimplente' : 'Regular' ?></span>
+            <?php if (!empty($classificacaoAdministrativa['atualizado_em'])): ?>
+                <p class="mt-3 text-xs">Atualizada em <?= e((new DateTimeImmutable($classificacaoAdministrativa['atualizado_em']))->format('d/m/Y H:i')) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($classificacaoAdministrativa['motivo_inadimplencia'])): ?>
+                <p class="mt-3 text-sm font-semibold">Justificativa da equipe</p>
+                <p class="mt-1 whitespace-pre-wrap break-words text-sm"><?= e($classificacaoAdministrativa['motivo_inadimplencia']) ?></p>
+            <?php else: ?>
+                <p class="mt-3 text-sm">Nenhuma observação administrativa registrada.</p>
+            <?php endif; ?>
+            <p class="mt-3 text-xs leading-relaxed text-primary dark:text-white/85">Esta classificação não altera automaticamente o acesso à conta. Em caso de dúvida, entre em contato com a equipe CãoNectados.</p>
+        </section>
+        <?php endif; ?>
 
         <?php if ($statusSolicitacaoProtetor !== null): ?>
             <?php if ($statusSolicitacaoProtetor === 'recusada' && !empty($solicitacaoProtetor['motivo_recusa'])): ?>
@@ -239,13 +258,13 @@ $paginasBotoes = array_chunk($botoes, 6);
 
             <!-- Indicadores do Carrossel -->
             <?php if (count($paginasBotoes) > 1): ?>
-                <div class="flex justify-center gap-2 mt-4">
+                <div id="indicadores-perfil" class="flex justify-center gap-2 mt-4" aria-label="Páginas de atalhos">
                     <?php foreach ($paginasBotoes as $index => $pagina): ?>
                         <div class="w-2.5 h-2.5 rounded-full <?= $index === 0 ? 'bg-primary dark:bg-roxinhoFofo' : 'bg-text-muted' ?> indicador-pagina transition-all duration-300" data-index="<?= $index ?>"></div>
                     <?php endforeach; ?>
                 </div>
-                <button type="button" id="btn-prev" class="absolute inset-y-0 left-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-95">&lsaquo;</button>
-                <button type="button" id="btn-next" class="absolute inset-y-0 right-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-95">&rsaquo;</button>
+                <button type="button" id="btn-prev" aria-label="Atalhos anteriores" class="absolute inset-y-0 left-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-95">&lsaquo;</button>
+                <button type="button" id="btn-next" aria-label="Próximos atalhos" class="absolute inset-y-0 right-1 flex items-center px-2 cursor-pointer text-text-muted hover:text-text-dark dark:hover:text-white font-bold text-3xl drop-shadow-md z-10 transition-transform active:scale-95">&rsaquo;</button>
             <?php endif; ?>
         </div>
     </div>
@@ -364,6 +383,19 @@ $paginasBotoes = array_chunk($botoes, 6);
 </div>
 
 <style>
+    #perfil-pagina { min-width: 0; }
+    #slider-botoes > div { flex: 0 0 100%; min-width: 0; }
+    #indicadores-perfil[hidden], #btn-prev[hidden], #btn-next[hidden] { display: none !important; }
+    #btn-prev, #btn-next { min-width: 44px; }
+    @media (min-width: 1024px) {
+        #conteudo-dinamico:has(#perfil-pagina) { max-width: none; }
+        #perfil-pagina { max-width: 90rem; }
+        #perfil-pagina > div { padding-left: 2rem; padding-right: 2rem; }
+        #perfil-pagina > div > section,
+        #perfil-pagina > div > [role="status"] { max-width: 36rem; }
+        #slider-botoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); overflow: visible; gap: .75rem; }
+        #slider-botoes > div { display: contents; }
+    }
     .hide-scroll::-webkit-scrollbar {
         display: none;
     }
@@ -451,8 +483,21 @@ $paginasBotoes = array_chunk($botoes, 6);
     const btnNext = document.getElementById('btn-next');
 
     if (slider) {
+        const paginas = [...slider.children];
+        const indicadorContainer = document.getElementById('indicadores-perfil');
+        const posicoes = () => paginas.map(pagina => pagina.offsetLeft - paginas[0].offsetLeft);
+        const paginaAtual = () => posicoes().reduce((maisPerto, posicao, i, todas) =>
+            Math.abs(posicao - slider.scrollLeft) < Math.abs(todas[maisPerto] - slider.scrollLeft) ? i : maisPerto, 0);
+        const atualizarNavegacao = () => {
+            const transborda = slider.scrollWidth > slider.clientWidth + 2;
+            [btnPrev, btnNext].forEach(botao => { if (botao) botao.hidden = !transborda; });
+            if (indicadorContainer) indicadorContainer.hidden = !transborda;
+            if (!transborda) slider.scrollLeft = 0;
+        };
+        new ResizeObserver(atualizarNavegacao).observe(slider);
+        atualizarNavegacao();
         slider.addEventListener('scroll', () => {
-            let index = Math.round(slider.scrollLeft / slider.clientWidth);
+            const index = paginaAtual();
             indicadores.forEach((ind, i) => {
                 if (i === index) {
                     ind.classList.remove('bg-text-muted');
@@ -466,18 +511,18 @@ $paginasBotoes = array_chunk($botoes, 6);
 
         if (btnNext) {
             btnNext.addEventListener('click', () => {
-                let curr = Math.round(slider.scrollLeft / slider.clientWidth);
+                const curr = paginaAtual();
                 slider.scrollTo({
-                    left: curr >= indicadores.length - 1 ? 0 : (curr + 1) * slider.clientWidth,
+                    left: posicoes()[curr >= paginas.length - 1 ? 0 : curr + 1],
                     behavior: 'smooth'
                 });
             });
         }
         if (btnPrev) {
             btnPrev.addEventListener('click', () => {
-                let curr = Math.round(slider.scrollLeft / slider.clientWidth);
+                const curr = paginaAtual();
                 slider.scrollTo({
-                    left: curr === 0 ? (indicadores.length - 1) * slider.clientWidth : (curr - 1) * slider.clientWidth,
+                    left: posicoes()[curr === 0 ? paginas.length - 1 : curr - 1],
                     behavior: 'smooth'
                 });
             });

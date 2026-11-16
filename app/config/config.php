@@ -1,7 +1,12 @@
 <?php
 
+// Datas de formulários, códigos e limites diários seguem o horário de Foz do Iguaçu.
+date_default_timezone_set('America/Sao_Paulo');
+
 // Configuração do ambiente
 define('DEV_ENVIRONMENT', true);
+// Habilita os botões de exemplo para a apresentação; não altera as validações.
+define('APRESENTACAO', true);
 
 if (DEV_ENVIRONMENT === true) {
     ini_set('display_errors', 1);

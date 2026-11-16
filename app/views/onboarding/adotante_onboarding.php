@@ -68,15 +68,15 @@ require_once __DIR__ . '/../templates/header.php';
                 </div>
 
                 <div>
-                    <label for="telefone" class="label-padrao">Telefone (Opcional)</label>
-                    <input type="tel" name="telefone" id="telefone" placeholder="(00) 00000-0000" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                    <label for="telefone" class="label-padrao">Telefone / WhatsApp *</label>
+                    <input type="tel" required autocomplete="tel-national" name="telefone" id="telefone" placeholder="(00) 00000-0000" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                 </div>
             </div>
         </div>
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para Preferências</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -109,7 +109,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -145,16 +145,16 @@ require_once __DIR__ . '/../templates/header.php';
                 <select name="espaco_externo" id="espaco_externo" class="input-padrao bg-surface dark:bg-preto2 text-sm appearance-none bg-no-repeat pr-10 bg-[right_0.75rem_center] bg-[length:1.1rem] bg-[url('data:image/svg+xml,%3Csvg_xmlns=%27http://www.w3.org/2000/svg%27_viewBox=%270_0_24_24%27_fill=%27none%27_stroke=%27%23716C93%27_stroke-width=%272.5%27_stroke-linecap=%27round%27_stroke-linejoin=%27round%27%3E%3Cpath_d=%27m6_9_6_6_6-6%27/%3E%3C/svg%3E')]">
                     <option value="" disabled selected>Escolha</option>
                     <option value="nenhum">Não possui quintal</option>
-                    <option value="pequeno">Quintal pequeno</option>
-                    <option value="medio">Quintal médio</option>
-                    <option value="grande">Grande</option>
-                </select>
+                    <option value="pequeno">Quintal pequeno — até 20 m²</option>
+                    <option value="medio">Quintal médio — mais de 20 até 50 m²</option>
+                    <option value="grande">Quintal grande — mais de 50 m²</option>
+                </select><p class="text-xs text-text-muted mt-2">Áreas aproximadas para orientar o preenchimento.</p>
             </div>
         </div>
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -169,8 +169,19 @@ require_once __DIR__ . '/../templates/header.php';
         </div>
 
         <div class="mb-4 relative text-left">
-            <label for="input-busca-bairro" class="label-padrao">Pesquise seu Bairro / Região *</label>
-            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white">
+            <label for="input-busca-bairro" class="label-padrao">Selecione seu Bairro / Região *</label>
+            <select name="busca_bairro_texto" id="input-busca-bairro" data-regiao-selecionada="<?= e($d['nome_regiao'] ?? '') ?>" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white" aria-label="Bairro / Região">
+<option value="">Selecione seu bairro</option>
+                <?php if (!empty($regioes)): ?>
+                    <?php foreach ($regioes as $regiao): ?>
+                        <?php
+                        $regId = is_array($regiao) ? $regiao['regiao_id'] : $regiao->getRegiaoId();
+                        $regNome = is_array($regiao) ? $regiao['nome_regiao'] : $regiao->getNomeRegiao();
+                        ?>
+                        <option data-id="<?= $regId ?>" value="<?= e($regNome) ?>"><?= e($regNome) ?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -200,7 +211,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para Preferências</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -299,7 +310,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ler os Termos</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -329,7 +340,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <div class="flex items-center justify-between mt-8">
             <span class="font-medium text-text-dark dark:text-white">Ir para o Feed</span>
-            <button type="button" onclick="submeterFormularioAdotante()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-3 transition">&rarr;</button>
+            <button type="button" aria-label="Concluir cadastro de adotante" onclick="submeterFormularioAdotante()" class="w-12 h-12 rounded-full bg-rosaAlerta text-xl font-bold flex items-center justify-center text-white hover:bg-rosa-3 transition">&rarr;</button>
         </div>
     </div>
 </form>
@@ -513,7 +524,7 @@ require_once __DIR__ . '/../templates/header.php';
                 }
 
                 const telefoneInput = document.getElementById('telefone');
-                if (telefoneInput.value.trim() !== '' && !CaonectadosValidator.validarTelefone(telefoneInput.value)) {
+                if (!telefoneInput.value.trim() || !CaonectadosValidator.validarTelefone(telefoneInput.value)) {
                     mostrarModalFeedback('erro', "O telefone informado é inválido. Certifique-se de incluir o DDD.");
                     telefoneInput.focus();
                     return false;

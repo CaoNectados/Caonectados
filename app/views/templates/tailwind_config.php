@@ -124,6 +124,14 @@
         body {
             @apply bg-background font-poppins text-base text-text-dark antialiased;
         }
+        #conteudo-dinamico { min-width: 0; }
+        #conteudo-dinamico :where(h1, h2, h3, h4, p, dd, dt, legend) {
+            overflow-wrap: anywhere;
+        }
+        #conteudo-dinamico :where(input, select, textarea) {
+            min-width: 0;
+            max-width: 100%;
+        }
         h1 {
             @apply font-shantell text-[32px] leading-tight font-normal;
         }
@@ -487,4 +495,10 @@
         --color-aviso: 252 196 25;
         --color-informativo: 116 192 252;
     }
+</style>
+
+<style>
+    :where(.modal-centralizada, dialog) :where(h1, h2, h3, h4, p, dd, dt, span, label, a, button) { overflow-wrap: anywhere; min-width: 0; }
+    .modal-centralizada { inset: 0; width: 100%; height: 100dvh; margin: 0; box-sizing: border-box; align-items: center; justify-content: center; }
+    .modal-centralizada > :not(script):not(style) { max-height: calc(100dvh - 2rem); overflow-y: auto; }
 </style>

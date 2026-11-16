@@ -10,7 +10,6 @@ $protetores = $protetores ?? [];
 
 $porteLabels = ['pequeno' => 'Pequeno Porte', 'medio' => 'Médio Porte', 'grande' => 'Grande Porte'];
 $sexoLabels  = ['macho' => 'Macho', 'femea' => 'Fêmea', 'indefinido' => 'Indefinido'];
-$comportamentoLabels = ['calmo' => 'Calmo', 'ativo' => 'Ativo', 'docil' => 'Dócil', 'arisco' => 'Arisco'];
 
 // Verifica se há algum filtro ativo
 $temFiltroAtivo = false;
@@ -179,7 +178,6 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                         $fotos = [$urlBase . '/assets/img/perfil-placeholder.png'];
                     }
                     $porte = $porteLabels[$animal['porte']] ?? ucfirst((string) $animal['porte']);
-                    $comportamento = $comportamentoLabels[$animal['comportamento']] ?? null;
 
                     // Validação de destaques por filtro ativo
                     $fPorteAtivo = !empty($filtrosAtuais['porte']) && $filtrosAtuais['porte'] === $animal['porte'];
@@ -218,8 +216,8 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                             </div>
 
                             <?php if (count($fotos) > 1): ?>
-                                <button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
-                                <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
+                                <button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
+                                <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>
                             <?php endif; ?>
 
                             <a href="<?= e($urlBase) ?>/denunciar?animal=<?= (int)$animal['animal_id'] ?>" aria-label="Denunciar este animal" title="Denunciar este animal" class="absolute top-8 right-3 z-20 flex h-14 w-14 items-center justify-center transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" onclick="event.stopPropagation()">
@@ -254,10 +252,11 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
                                         <?= htmlspecialchars($animal['raca_nome'] ?? $animal['especie_nome']) ?>
                                     </span>
 
-                                    <?php if ($comportamento): ?>
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-white">
-                                            <?= htmlspecialchars($comportamento) ?>
-                                        </span>
+                                    <?php foreach (array_slice($animal['tracos'] ?? [], 0, 3) as $traco): ?>
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-white"><?= e($traco['traco']) ?></span>
+                                    <?php endforeach; ?>
+                                    <?php if (count($animal['tracos'] ?? []) > 3): ?>
+                                        <a href="<?= e($urlPerfilAnimal) ?>" class="text-xs text-white underline">+<?= count($animal['tracos']) - 3 ?> características</a>
                                     <?php endif; ?>
 
                                     <?php if ($animal['castrado']): ?>
@@ -314,19 +313,6 @@ function feedMontarUrlFoto(?string $caminho, string $urlBase): ?string
     <?php endif; ?>
 </div>
 
-<!-- BARRA INFERIOR MOBILE -->
-<nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-primary flex items-center justify-around h-16 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]">
-    <a href="<?= $urlBase ?>/feed" class="flex flex-col items-center justify-center text-white">
-        <img src="<?= $urlBase ?>/assets/icons/navbar/home.svg" alt="" class="w-6 h-6 brightness-0 invert">
-    </a>
-    <button type="button" onclick="document.getElementById('modal-filtros-feed').classList.remove('hidden')" class="flex flex-col items-center justify-center text-white/70">
-        <img src="<?= $urlBase ?>/assets/icons/navbar/pesquisar.svg" alt="Buscar" class="w-6 h-6 brightness-0 invert opacity-70">
-    </button>
-    <a href="<?= $urlBase ?>/perfil" class="flex flex-col items-center justify-center text-white/70">
-        <img src="<?= $urlBase ?>/assets/icons/navbar/perfil.svg" alt="Perfil" class="w-6 h-6 brightness-0 invert opacity-70">
-    </a>
-</nav>
-
 <!-- MODAL DE FILTROS MODULARIZADO -->
 <?php
 $idModalFiltros = 'modal-filtros-feed';
@@ -344,7 +330,6 @@ require __DIR__ . '/filtros.php';
         let temMais = <?= !empty($temMais) ? 'true' : 'false' ?>;
         let carregando = false;
 
-        // ---------- RF 08: "Dar Petisco!" ----------
         async function enviarPetisco(botao, e) {
             if (e) e.stopPropagation();
             const card = botao.closest('.feed-card');
@@ -399,7 +384,6 @@ require __DIR__ . '/filtros.php';
             });
         });
 
-        // ---------- Carrossel de fotos por card ----------
         function iniciarCarrossel(card) {
             const fotos = card.querySelectorAll('.foto-item');
             const segmentos = card.querySelectorAll('.foto-segmento');
@@ -448,7 +432,6 @@ require __DIR__ . '/filtros.php';
 
         document.querySelectorAll('.feed-card').forEach(iniciarCarrossel);
 
-        // ---------- Controle do Feed e Navegação ----------
         const track = document.getElementById('feed-track');
         let cardAtivoAtual = null;
 
@@ -646,8 +629,8 @@ require __DIR__ . '/filtros.php';
             const segmentosHtml = fotos.map((_, i) => `<div class="h-1 flex-1 rounded-full bg-white/40 overflow-hidden"><div class="h-full bg-white foto-segmento ${i === 0 ? 'w-full' : 'w-0'}"></div></div>`).join('');
             const fotosHtml = fotos.map((src, i) => `<img src="${src}" alt="Foto de ${animal.nome}" class="foto-item absolute inset-0 w-full h-full object-cover object-top ${i === 0 ? '' : 'hidden'}" onerror="this.onerror=null;this.src='${urlBase}/assets/img/perfil-placeholder.png';">`).join('');
             const setasHtml = fotos.length > 1 ?
-                `<button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
-               <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>` :
+                `<button type="button" class="btn-foto-anterior absolute left-2 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Foto anterior">&lsaquo;</button>
+               <button type="button" class="btn-foto-proxima absolute right-2 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-black text-2xl leading-none shadow font-bold" aria-label="Próxima foto">&rsaquo;</button>` :
                 '';
 
             const porte = PORTE_LABELS[animal.porte] || animal.porte;
@@ -662,6 +645,12 @@ require __DIR__ . '/filtros.php';
                 `<span class="px-3 py-1 rounded-full text-xs font-bold transition-colors ${fRacaEspecieAtivo ? 'bg-sucesso text-white' : 'bg-white/15 text-white'}">${animal.raca_nome || animal.especie_nome}</span>`,
             ];
 
+            (animal.tracos || []).slice(0, 3).forEach(traco => {
+                badges.push(`<span class="px-3 py-1 rounded-full text-xs font-bold bg-white/15 text-white">${escaparHtml(traco.traco)}</span>`);
+            });
+            if ((animal.tracos || []).length > 3) {
+                badges.push(`<a href="${animal.url_detalhes}" class="text-xs text-white underline">+${animal.tracos.length - 3} características</a>`);
+            }
             if (animal.castrado) {
                 badges.push(`<span class="px-3 py-1 rounded-full text-xs font-bold ${fCastradoAtivo ? 'bg-sucesso text-white font-extrabold' : 'bg-white/15 text-white'}">Castrado</span>`);
             }

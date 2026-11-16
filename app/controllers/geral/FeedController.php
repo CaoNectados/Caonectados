@@ -38,6 +38,7 @@ class FeedController extends Controller
                 'especies' => (new EspecieRepository())->buscarAtivas(),
                 'regioes' => (new RegiaoRepository())->buscarTodas(),
                 'protetores' => (new ProtetorRepository())->listarValidados(),
+                'tracosDisponiveis' => (new \app\repositories\TracoRepository())->listar(),
             ]);
         } catch (\DomainException $e) {
             $this->redirecionarComMensagem('erro', $e->getMessage(), '/pesquisar');
@@ -115,6 +116,7 @@ class FeedController extends Controller
                 'especies'        => (new EspecieRepository())->buscarAtivas(),
                 'regioes'         => (new RegiaoRepository())->buscarTodas(),
                 'protetores'      => (new ProtetorRepository())->listarValidados(),
+                'tracosDisponiveis' => (new \app\repositories\TracoRepository())->listar(),
             ]);
         } catch (Exception $e) {
             $this->redirecionarComMensagem('erro', 'Erro ao carregar o feed de adoção.', '/perfil', $e->getMessage());
@@ -172,17 +174,18 @@ class FeedController extends Controller
     {
         $q = $_GET['q'] ?? '';
         if (!is_string($q) || mb_strlen($q) > 100) throw new \DomainException('Pesquisa inválida.');
-        foreach (['porte','sexo','castrado','vacinado','regiao_id','especie_id','raca_id','protetor_id'] as $chave) {
+        foreach (['porte','sexo','castrado','vacinado','regiao_id','especie_id','raca_id','protetor_id','traco_id'] as $chave) {
             if (isset($_GET[$chave]) && !is_scalar($_GET[$chave])) throw new \DomainException('Filtro inválido.');
         }
         foreach (['porte' => ['pequeno','medio','grande'], 'sexo' => ['macho','femea'], 'castrado' => ['0','1'], 'vacinado' => ['0','1']] as $chave => $valores) {
             if (isset($_GET[$chave]) && $_GET[$chave] !== '' && !in_array((string)$_GET[$chave], $valores, true)) throw new \DomainException('Filtro inválido.');
         }
-        foreach (['regiao_id','especie_id','raca_id','protetor_id'] as $chave) {
+        foreach (['regiao_id','especie_id','raca_id','protetor_id','traco_id'] as $chave) {
             if (isset($_GET[$chave]) && $_GET[$chave] !== '' && (!ctype_digit((string)$_GET[$chave]) || (int)$_GET[$chave] < 1)) throw new \DomainException('Filtro inválido.');
         }
         return [
             'q' => trim($q),
+            'traco_id' => $_GET['traco_id'] ?? null,
             'porte'       => $_GET['porte'] ?? null,
             'sexo'        => $_GET['sexo'] ?? null,
             'castrado'    => $_GET['castrado'] ?? '',
@@ -262,6 +265,7 @@ class FeedController extends Controller
             'sexo'           => $animal['sexo'],
             'porte'          => $animal['porte'],
             'comportamento'  => $animal['comportamento'],
+            'tracos' => $animal['tracos'] ?? [],
             'raca_nome'      => $animal['raca_nome'],
             'especie_nome'   => $animal['especie_nome'],
             'nome_fantasia'  => $animal['nome_fantasia'],

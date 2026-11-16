@@ -7,7 +7,6 @@ use PDO;
 
 class ProtetorRepository extends BaseRepository
 {
-    // Usado por: FeedController (filtro por responsável habilitado)
     public function listarValidados(): array
     {
         $sql = "SELECT p.protetor_id, p.nome_fantasia, p.tipo_documento
@@ -19,7 +18,6 @@ class ProtetorRepository extends BaseRepository
         return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: DashboardController::index() — card "Cadastros Pendentes". Mesmo critério de
     // ProtetorRepository::listarSolicitacoes('pendentes'), mas como COUNT direto (sem trazer
     // colunas/joins desnecessários só pra contar).
     public function contarPendentes(): int
@@ -28,33 +26,7 @@ class ProtetorRepository extends BaseRepository
         return (int) $this->db->query($sql)->fetchColumn();
     }
 
-    // Usado por: AnimalController::show() — nome/validado do responsável, pra linkar a
-    // página pública sem precisar dos JOINs extras de buscarPorProtetorIdCompleto()
-    public function buscarBasicoPorId(int $protetorId): ?array
-    {
-        $sql = "SELECT protetor_id, nome_fantasia, validado, deletado_em FROM PROTETOR WHERE protetor_id = :protetor_id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
-        $stmt->execute();
 
-        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $resultado ?: null;
-    }
-
-    // Usado por: SolicitacaoAdocaoService — descobre quem é o dono da conta (USUARIO) por
-    // trás de um protetor_id, pra endereçar notificações (RN 06) a ele
-    public function buscarUsuarioIdPorProtetorId(int $protetorId): ?int
-    {
-        $sql = "SELECT usuario_id FROM PROTETOR WHERE protetor_id = :protetor_id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':protetor_id', $protetorId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $usuarioId = $stmt->fetchColumn();
-        return $usuarioId === false ? null : (int) $usuarioId;
-    }
-
-    // Usado por: AnimalController, PerfilController, OnBoardingService, AuthService, UsuarioAdminService e PerfilService
     public function buscarPorUsuarioId(int $usuarioId): ?array
     {
         $sql = "SELECT * FROM PROTETOR WHERE usuario_id = :usuario_id ORDER BY protetor_id DESC LIMIT 1";
@@ -72,7 +44,6 @@ class ProtetorRepository extends BaseRepository
      * vier, quem chamou sabe que a página não está disponível publicamente, sem precisar
      * repetir essa regra em cada controller que só busca esses dados.
      */
-    // Usado por: PaginaController::publica()
     public function buscarPorProtetorIdCompleto(int $protetorId): ?array
     {
         $sql = "SELECT
@@ -103,7 +74,6 @@ class ProtetorRepository extends BaseRepository
         return $resultado ?: null;
     }
 
-    // Usado por: OnBoardingService::obterDadosPreenchidosProtetor()
     public function buscarPorUsuarioIdCompleto(int $usuarioId): ?array
     {
         $sql = "SELECT
@@ -136,7 +106,6 @@ class ProtetorRepository extends BaseRepository
         return $resultado ?: null;
     }
 
-    // Usado por: SolicitacaoService::listar() -> SolicitacaoProtetorController::index()
     public function listarSolicitacoes(string $status = 'pendentes', string $busca = ''): array
     {
         $sql = "SELECT
@@ -205,7 +174,6 @@ class ProtetorRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: SolicitacaoService (detalhes, aprovação e recusa) -> SolicitacaoProtetorController
     public function buscarDetalhesSolicitacao(int $protetorId): ?array
     {
         $sql = "SELECT
@@ -245,7 +213,6 @@ class ProtetorRepository extends BaseRepository
         return $resultado ?: null;
     }
 
-    // Usado por: OnBoardingService::processarOng()
     public function salvar(object $protetor): int
     {
         $sql = "INSERT INTO PROTETOR (usuario_id, codigo_documento, tipo_documento, nome_fantasia, data_abertura_cnpj, comprovante_documento, validado)
@@ -263,7 +230,6 @@ class ProtetorRepository extends BaseRepository
         return (int)$this->db->lastInsertId();
     }
 
-    // Usado por: OnBoardingService::processarOng() (fluxo de reenvio de documentos)
     public function atualizarReenvio(int $protetorId, string $nomeFantasia, string $codigoDocumento, ?string $dataAbertura, ?string $comprovante): bool
     {
         $sql = "UPDATE PROTETOR
@@ -287,7 +253,6 @@ class ProtetorRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: SolicitacaoService::aprovarSolicitacao() -> SolicitacaoProtetorController::aprovar()
     public function aprovarSolicitacao(int $protetorId): bool
     {
         $sql = "UPDATE PROTETOR
@@ -301,7 +266,6 @@ class ProtetorRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: SolicitacaoService::recusarSolicitacao() -> SolicitacaoProtetorController::recusar()
     public function recusarSolicitacao(int $protetorId, string $motivo = ''): bool
     {
         $sql = "UPDATE PROTETOR

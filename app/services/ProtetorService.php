@@ -14,7 +14,6 @@ class ProtetorService
         $this->protetorRepository = $protetorRepository;
     }
 
-    // Usado por: (não referenciado atualmente)
     public function listarSolicitacoes(string $status = 'pendentes', string $busca = ''): array
     {
         $statusPermitidos = ['pendentes', 'aprovados', 'recusados'];
@@ -25,7 +24,6 @@ class ProtetorService
         return $this->protetorRepository->listarSolicitacoes($status, trim($busca));
     }
 
-    // Usado por: (não referenciado atualmente)
     public function obterDetalhesSolicitacao(int $protetorId): ?array
     {
         if ($protetorId <= 0) {
@@ -35,7 +33,6 @@ class ProtetorService
         return $this->protetorRepository->buscarDetalhesSolicitacao($protetorId);
     }
 
-    // Usado por: (não referenciado atualmente)
     public function aprovarSolicitacao(int $protetorId): bool
     {
         if ($protetorId <= 0) {
@@ -63,7 +60,6 @@ class ProtetorService
         return $sucesso;
     }
 
-    // Usado por: (não referenciado atualmente)
     public function recusarSolicitacao(int $protetorId, string $motivo = ''): bool
     {
         if ($protetorId <= 0) {

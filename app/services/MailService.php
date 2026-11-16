@@ -8,10 +8,28 @@ use Exception;
 
 class MailService
 {
+    private static bool $loteAtivo = false;
+    private static ?PHPMailer $mailerLote = null;
+
+    /** Reutiliza a conexão SMTP somente durante um lote desta requisição. */
+    public static function processarLote(callable $operacao): void
+    {
+        if (self::$loteAtivo) {
+            $operacao();
+            return;
+        }
+        self::$loteAtivo = true;
+        try {
+            $operacao();
+        } finally {
+            self::$mailerLote?->smtpClose();
+            self::$mailerLote = null;
+            self::$loteAtivo = false;
+        }
+    }
     /**
      * Envia o e-mail de código de verificação com textos dinâmicos por contexto.
      */
-    // Usado por: AuthController (cadastro/login admin/reenvio de código), PerfilController (redefinir senha/trocar e-mail), AuthService::solicitarRecuperacaoSenha
     public static function enviarCodigoVerificacao(string $emailDestino, string $nomeUsuario, string $codigo, string $contexto = 'cadastro'): bool
     {
         $assunto_email   = 'Seu código de verificação - CãoNectados';
@@ -50,7 +68,6 @@ class MailService
     /**
      * Envia o link de recuperação de senha (fluxo deslogado)
      */
-    // Usado por: AuthService::solicitarRecuperacaoSenha()
     public static function enviarEmailRecuperacao(string $emailDestino, string $nome, string $codigo): bool
     {
         $link = URL_BASE . "/redefinir-senha?email=" . urlencode($emailDestino) . "&codigo=" . $codigo;
@@ -68,7 +85,6 @@ class MailService
     /**
      * Envia e-mail notificando aprovação do cadastro de Protetor/ONG
      */
-    // Usado por: ProtetorService::aprovarSolicitacao, SolicitacaoService::aprovarSolicitacao
     public static function enviarNotificacaoAprovacao(string $emailDestino, string $nomeDestino): bool
     {
         return self::enviarEmailTemplate($emailDestino, $nomeDestino, 'Cadastro Aprovado! - CãoNectados', [
@@ -84,7 +100,6 @@ class MailService
     /**
      * Envia e-mail notificando recusa da solicitação com o motivo
      */
-    // Usado por: ProtetorService::recusarSolicitacao, SolicitacaoService::recusarSolicitacao
     public static function enviarNotificacaoRecusa(string $emailDestino, string $nomeDestino, string $motivo): bool
     {
         $motivoTexto = !empty($motivo) ? htmlspecialchars($motivo) : 'Documentação inconsistente ou ilegível.';
@@ -102,11 +117,16 @@ class MailService
     /**
      * Renderiza o template base correto localizado em app/views/templates/template_email_base.php
      */
-    // Usado por: enviarCodigoVerificacao(), enviarEmailRecuperacao(), enviarNotificacaoAprovacao(), enviarNotificacaoRecusa()
     public static function enviarEmailTemplate(string $emailDestino, string $nomeDestino, string $assunto, array $dadosTemplate): bool
     {
         try {
-            $mail = self::configurarMailer();
+            $mail = self::$loteAtivo
+                ? (self::$mailerLote ??= self::configurarMailer())
+                : self::configurarMailer();
+            $mail->SMTPKeepAlive = self::$loteAtivo;
+            $mail->clearAllRecipients();
+            $mail->clearAttachments();
+            $mail->clearReplyTos();
             $mail->addAddress($emailDestino, $nomeDestino);
             $mail->Subject = $assunto;
 
@@ -151,6 +171,7 @@ class MailService
 
             return $mail->send();
         } catch (PHPMailerException $e) {
+            self::$mailerLote?->smtpClose();
             throw new Exception("Falha ao enviar e-mail: " . $e->getMessage());
         } catch (Exception $e) {
             throw $e;
@@ -160,7 +181,6 @@ class MailService
     /**
      * Configuração padrão do PHPMailer (Porta 587 e STARTTLS)
      */
-    // Usado por: enviarEmailTemplate()
     private static function configurarMailer(): PHPMailer
     {
         $localPath = __DIR__ . '/../config/smtp.local.php';

@@ -1,5 +1,34 @@
 <?php 
-require_once __DIR__ . '/../templates/header.php'; 
+require_once __DIR__ . '/../templates/header.php';
+
+$visitanteHome = empty($_SESSION['usuario_id']);
+$avisoHome = null;
+if ($visitanteHome) {
+    $avisoHome = [
+        'mensagem' => 'Você ainda não fez login. Entre na sua conta ou crie um cadastro para acessar esta etapa da adoção.',
+        'url' => URL_BASE . '/login',
+        'textoBotao' => 'Entrar ou criar conta',
+    ];
+} elseif ($tipoPerfil === 'administrador') {
+    $avisoHome = [
+        'mensagem' => 'Você está conectado como administrador. O feed e o acompanhamento de pedidos são áreas do adotante. Para consultar e gerenciar os animais, acesse o painel administrativo.',
+        'url' => URL_BASE . '/admin/animais',
+        'textoBotao' => 'Gerenciar animais',
+    ];
+} elseif (in_array($tipoPerfil, ['ong', 'protetor'], true)) {
+    $avisoHome = [
+        'mensagem' => 'Esta etapa é para quem está usando o perfil de adotante. No seu perfil, você pode alternar para Adotante ou solicitar esse perfil para começar uma adoção.',
+        'url' => URL_BASE . '/perfil',
+        'textoBotao' => 'Ver meus perfis',
+    ];
+} elseif ($tipoPerfil !== 'adotante') {
+    $avisoHome = [
+        'mensagem' => 'Complete seu perfil de adotante para conhecer os animais e acompanhar suas solicitações.',
+        'url' => URL_BASE . '/onboarding',
+        'textoBotao' => 'Completar meu perfil',
+    ];
+}
+$atributoAvisoHome = $avisoHome ? ' data-aviso-home="' . e(json_encode($avisoHome, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '"' : '';
 ?>
 
 <section class="px-4 " aria-label="CãoNectados — Amor à primeira lambida">
@@ -68,7 +97,7 @@ require_once __DIR__ . '/../templates/header.php';
         <ol class="mt-12 grid list-none grid-cols-1 gap-6 md:grid-cols-3 ">
 
             <li>
-                <article class="group flex h-full flex-col items-center rounded-[2rem] border border-transparent bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:border-rosa-3 hover:shadow-2xl dark:bg-roxo1/25 dark:hover:border-roxo1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                <a href="<?= e(URL_BASE) ?>/login"<?= $visitanteHome ? $atributoAvisoHome : '' ?> class="group flex h-full no-underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-4 dark:focus-visible:ring-rosa-1 flex-col items-center rounded-[2rem] border border-transparent bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:border-rosa-3 hover:shadow-2xl dark:bg-roxo1/25 dark:hover:border-roxo1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                     <span class="flex h-20 w-20 items-center justify-center rounded-full bg-rosa-1 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 dark:bg-white dark:ring-2 dark:ring-rosa-1 motion-reduce:transition-none" aria-hidden="true">
                         <img src="<?= e(URL_BASE) ?>/assets/icons/geral/user-rosa.svg" alt="" class="h-14 w-14 transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
                     </span>
@@ -81,11 +110,12 @@ require_once __DIR__ . '/../templates/header.php';
                     <p class="mt-3 font-poppins text-sm leading-snug text-text-dark dark:text-white/80">
                         Diga se você mora em casa ou apartamento e o que busca em um pet.
                     </p>
-                </article>
+                    <span class="mt-auto pt-5 font-poppins text-sm font-bold text-primary underline underline-offset-4 dark:text-white">Começar meu perfil</span>
+                </a>
             </li>
 
             <li>
-                <article class="group flex h-full flex-col items-center rounded-[2rem] border border-transparent bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:border-rosa-3 hover:shadow-2xl dark:bg-roxo1/25 dark:hover:border-roxo1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                <a href="<?= e(URL_BASE) ?>/feed"<?= $atributoAvisoHome ?> class="group flex h-full no-underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-4 dark:focus-visible:ring-rosa-1 flex-col items-center rounded-[2rem] border border-transparent bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:border-rosa-3 hover:shadow-2xl dark:bg-roxo1/25 dark:hover:border-roxo1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                     <span class="flex h-20 w-20 items-center justify-center rounded-full bg-rosa-1 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 dark:bg-white dark:ring-2 dark:ring-rosa-1 motion-reduce:transition-none" aria-hidden="true">
                         <img src="<?= e(URL_BASE) ?>/assets/icons/geral/patinha-coracao.svg" alt="" class="h-14 w-14 transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
                     </span>
@@ -98,11 +128,12 @@ require_once __DIR__ . '/../templates/header.php';
                     <p class="mt-3 font-poppins text-sm leading-snug text-text-dark dark:text-white/80">
                         Navegue pelos animais das ONGs da fronteira e dê match com os seus favoritos.
                     </p>
-                </article>
+                    <span class="mt-auto pt-5 font-poppins text-sm font-bold text-primary underline underline-offset-4 dark:text-white">Conhecer os animais</span>
+                </a>
             </li>
 
             <li>
-                <article class="group flex h-full flex-col items-center rounded-[2rem] border border-transparent bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:border-rosa-3 hover:shadow-2xl dark:bg-roxo1/25 dark:hover:border-roxo1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                <a href="<?= e(URL_BASE) ?>/minhas-solicitacoes"<?= $atributoAvisoHome ?> class="group flex h-full no-underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-4 dark:focus-visible:ring-rosa-1 flex-col items-center rounded-[2rem] border border-transparent bg-branco p-8 text-center shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-2 hover:border-rosa-3 hover:shadow-2xl dark:bg-roxo1/25 dark:hover:border-roxo1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                     <span class="flex h-20 w-20 items-center justify-center rounded-full bg-rosa-1 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 dark:bg-white dark:ring-2 dark:ring-rosa-1 motion-reduce:transition-none" aria-hidden="true">
                         <img src="<?= e(URL_BASE) ?>/assets/icons/geral/casa-rosa.svg" alt="" class="h-14 w-14 transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none">
                     </span>
@@ -115,7 +146,8 @@ require_once __DIR__ . '/../templates/header.php';
                     <p class="mt-3 font-poppins text-sm leading-snug text-text-dark dark:text-white/80">
                         Converse com a ONG e leve seu novo amigo para casa.
                     </p>
-                </article>
+                    <span class="mt-auto pt-5 font-poppins text-sm font-bold text-primary underline underline-offset-4 dark:text-white">Acompanhar solicitações</span>
+                </a>
             </li>
         </ol>
     </div>
@@ -146,3 +178,17 @@ require_once __DIR__ . '/../templates/header.php';
 </section>
 
 <?php require __DIR__ . '/../templates/footer.php'; ?>
+
+<script>
+    document.querySelectorAll('[data-aviso-home]').forEach(link => {
+        link.addEventListener('click', event => {
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            const aviso = JSON.parse(link.dataset.avisoHome);
+            mostrarModalFeedback('informativo', aviso.mensagem, {
+                url: aviso.url,
+                textoBotao: aviso.textoBotao
+            });
+        });
+    });
+</script>

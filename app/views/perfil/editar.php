@@ -82,7 +82,7 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
                     <div>
                         <label class="label-padrao">Telefone / WhatsApp <span class="text-erro" aria-hidden="true">*</span></label>
-                        <input type="tel" name="telefone" id="telefone" value="<?= htmlspecialchars($usuario['telefone'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
+                        <input type="tel" <?= $tipoPerfil === 'adotante' ? 'required' : '' ?> autocomplete="tel-national" name="telefone" id="telefone" value="<?= htmlspecialchars($usuario['telefone'] ?? '') ?>" class="input-padrao bg-branco dark:bg-preto2 dark:text-white">
                     </div>
 
                     <div>
@@ -172,9 +172,18 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                                 $nomeRegiaoAtual = is_array($regiaoAtual) ? ($regiaoAtual['nome_regiao'] ?? '') : $regiaoAtual->getNomeRegiao();
                             }
                             ?>
-                            <input type="text" id="input-busca-bairro" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lista-regioes-combobox" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white"
-                                value="<?= htmlspecialchars($nomeRegiaoAtual) ?>"
-                                oninput="CaonectadosValidator.validarRegiao('input-busca-bairro', 'regiao_id_hidden', 'lista-regioes')">
+                            <select name="busca_bairro_texto" id="input-busca-bairro" data-regiao-selecionada="<?= e($nomeRegiaoAtual) ?>" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white" aria-label="Bairro / Região">
+<option value="">Selecione seu bairro</option>
+                                <?php if (!empty($regioes)): ?>
+                                    <?php foreach ($regioes as $regiao): ?>
+                                        <?php
+                                        $regId = is_array($regiao) ? $regiao['regiao_id'] : $regiao->getRegiaoId();
+                                        $regNome = is_array($regiao) ? $regiao['nome_regiao'] : $regiao->getNomeRegiao();
+                                        ?>
+                                        <option data-id="<?= $regId ?>" value="<?= htmlspecialchars($regNome) ?>"><?= htmlspecialchars($regNome) ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
                             <div id="lista-regioes-combobox" class="regiao-dropdown-panel hidden" role="listbox" aria-label="Bairros e regiões"></div>
 
                             <datalist id="lista-regioes">
@@ -274,10 +283,10 @@ $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
                             <label class="label-padrao">Espaço Externo / Quintal</label>
                             <select name="espaco_externo" id="espaco_externo" class="input-padrao bg-surface dark:bg-preto2 text-sm">
                                 <option value="nenhum" <?= (($especifico['espaco_externo'] ?? '') === 'nenhum') ? 'selected' : '' ?>>Não possui quintal</option>
-                                <option value="pequeno" <?= (($especifico['espaco_externo'] ?? '') === 'pequeno') ? 'selected' : '' ?>>Quintal pequeno</option>
-                                <option value="medio" <?= (($especifico['espaco_externo'] ?? '') === 'medio') ? 'selected' : '' ?>>Quintal médio</option>
-                                <option value="grande" <?= (($especifico['espaco_externo'] ?? '') === 'grande') ? 'selected' : '' ?>>Quintal grande</option>
-                            </select>
+                                <option value="pequeno" <?= (($especifico['espaco_externo'] ?? '') === 'pequeno') ? 'selected' : '' ?>>Quintal pequeno — até 20 m²</option>
+                                <option value="medio" <?= (($especifico['espaco_externo'] ?? '') === 'medio') ? 'selected' : '' ?>>Quintal médio — mais de 20 até 50 m²</option>
+                                <option value="grande" <?= (($especifico['espaco_externo'] ?? '') === 'grande') ? 'selected' : '' ?>>Quintal grande — mais de 50 m²</option>
+                            </select><p class="text-xs text-text-muted mt-2">Áreas aproximadas para orientar o preenchimento.</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">

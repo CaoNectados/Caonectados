@@ -51,11 +51,14 @@ class ConnectionFactory
             DB_NAME
         );
 
-        return new PDO($dsn, DB_USER, DB_PASS, [
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
+        // DATETIME de expiração e CURRENT_DATE precisam usar o mesmo relógio do PHP.
+        $pdo->exec('SET time_zone = ' . $pdo->quote(date('P')));
+        return $pdo;
     }
 
     private static function isUnknownDatabase(PDOException $exception): bool

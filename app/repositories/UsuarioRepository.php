@@ -13,7 +13,6 @@ class UsuarioRepository extends BaseRepository
         $stmt = $this->db->prepare('UPDATE USUARIO SET termos_aceitos_em=CURRENT_TIMESTAMP, versao_termos=? WHERE usuario_id=?');
         $stmt->execute([$versao, $usuarioId]);
     }
-    // Usado por: AuthService::autenticar(), registrar() e AuthController
     public function buscarPorEmail(string $email): ?Usuario
     {
         $sql = "SELECT * FROM USUARIO WHERE email = :email AND deletado_em IS NULL LIMIT 1";
@@ -25,7 +24,6 @@ class UsuarioRepository extends BaseRepository
         return $dados === false ? null : $this->mapUsuario($dados);
     }
 
-    // Usado por: Controller::sincronizarSessaoComBanco(), PerfilController e UsuarioAdminService::obterDetalhesUsuario()
     public function buscarPorId(int $usuarioId): ?array
     {
         $sql = "SELECT usuario_id, regiao_id, logradouro, numero, telefone, email, nome, dt_nasc, tipo_atual, perfis_ativos, status_conta, criado_em
@@ -43,7 +41,6 @@ class UsuarioRepository extends BaseRepository
     /**
      * Lista usuários com paginação, filtros e busca dinâmica de foto
      */
-    // Usado por: UsuarioAdminService::listarUsuarios()
     public function listarUsuariosAdmin(string $busca = '', string $filtroStatus = '', string $filtroPerfil = '', int $pagina = 1, int $porPagina = 10): array
     {
         $offset = ($pagina - 1) * $porPagina;
@@ -62,7 +59,7 @@ class UsuarioRepository extends BaseRepository
                              LIMIT 1)
                        ) AS foto_perfil
                 FROM USUARIO u
-                WHERE 1=1";
+                WHERE u.deletado_em IS NULL";
 
         $params = [];
 
@@ -102,10 +99,9 @@ class UsuarioRepository extends BaseRepository
     /**
      * Conta o total de usuários (para a paginação)
      */
-    // Usado por: UsuarioAdminService::listarUsuarios()
     public function contarUsuariosAdmin(string $busca = '', string $filtroStatus = '', string $filtroPerfil = ''): int
     {
-        $sql = "SELECT COUNT(*) as total FROM USUARIO u WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total FROM USUARIO u WHERE u.deletado_em IS NULL";
         $params = [];
 
         if (!empty($busca)) {
@@ -134,7 +130,6 @@ class UsuarioRepository extends BaseRepository
         return (int)($res['total'] ?? 0);
     }
 
-    // Usado por: DashboardController::index() — total de usuários ativos exibido no
     // "gráfico" de análise geral do dashboard admin.
     public function contarAtivos(): int
     {
@@ -142,16 +137,7 @@ class UsuarioRepository extends BaseRepository
         return (int) $this->db->query($sql)->fetchColumn();
     }
 
-    // Usado por: UsuarioAdminService::alterarStatusUsuario() e alterarStatusPerfil() (proteção contra remover o último admin)
-    public function contarAdminsAtivos(): int
-    {
-        $sql = "SELECT COUNT(*) as total FROM USUARIO WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos)) AND status_conta = 'ativo'";
-        $stmt = $this->db->query($sql);
-        $res = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return (int)($res['total'] ?? 0);
-    }
 
-    // Usado por: AuthService::redefinirSenha() e PerfilController (confirmação de código)
     public function buscarCodigoValido(int $usuarioId, string $codigo): ?array
     {
         $sql = "SELECT * FROM CODIGO_VERIFICACAO
@@ -170,7 +156,20 @@ class UsuarioRepository extends BaseRepository
         return $dados ?: null;
     }
 
-    // Usado por: AuthService::registrar()
+    /** Consome somente o desafio gerado para este login, uma única vez. */
+    public function consumirCodigoAdmin(int $usuarioId, int $codigoId, string $codigo): bool
+    {
+        $stmt = $this->db->prepare("UPDATE CODIGO_VERIFICACAO c
+            INNER JOIN USUARIO u ON u.usuario_id = c.usuario_id
+            SET c.usado = TRUE
+            WHERE c.codigo_id = :id AND c.usuario_id = :usuario AND c.codigo = :codigo
+              AND c.usado = FALSE AND c.expira_em >= NOW()
+              AND u.status_conta = 'ativo' AND u.deletado_em IS NULL
+              AND (u.tipo_atual = 'administrador' OR FIND_IN_SET('administrador', u.perfis_ativos))");
+        $stmt->execute([':id' => $codigoId, ':usuario' => $usuarioId, ':codigo' => $codigo]);
+        return $stmt->rowCount() === 1;
+    }
+
     public function salvarNovoUsuario(Usuario $usuario): int
     {
         $sql = "INSERT INTO USUARIO (email, senha, tipo_atual, perfis_ativos, status_conta)
@@ -187,8 +186,7 @@ class UsuarioRepository extends BaseRepository
         return (int) $this->db->lastInsertId();
     }
 
-    // Usado por: AuthService::solicitarRecuperacaoSenha(), AuthController e PerfilController
-    public function salvarCodigoVerificacao(int $usuarioId, string $codigo, string $expiraEm): void
+    public function salvarCodigoVerificacao(int $usuarioId, string $codigo, string $expiraEm): int
     {
         $sql = "INSERT INTO CODIGO_VERIFICACAO (usuario_id, codigo, expira_em) VALUES (:usuario_id, :codigo, :expira_em)";
         $stmt = $this->db->prepare($sql);
@@ -196,12 +194,12 @@ class UsuarioRepository extends BaseRepository
         $stmt->bindValue(':codigo', $codigo, PDO::PARAM_STR);
         $stmt->bindValue(':expira_em', $expiraEm, PDO::PARAM_STR);
         $stmt->execute();
+        return (int) $this->db->lastInsertId();
     }
 
     /**
      * Atualiza os dados de onboarding, define o tipo_atual e ADICIONA o perfil à lista de perfis_ativos (SET)
      */
-    // Usado por: OnBoardingService::processarAdotante() e processarOng()
     public function atualizarOnboarding(Usuario $usuario, string $novoPerfil): bool
     {
         // 'usuario' é apenas o estado transitório pré-onboarding: ao concluir o
@@ -245,7 +243,6 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: PerfilService::atualizarPerfil()
     public function atualizarDadosPerfil(int $usuarioId, string $nome, ?string $telefone, ?int $regiaoId, string $logradouro, string $numero): bool
     {
         $sql = "UPDATE USUARIO
@@ -267,7 +264,6 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: PerfilController::alternar()
     public function atualizarTipoAtual(int $usuarioId, string $tipoAtual): bool
     {
         $sql = "UPDATE USUARIO SET tipo_atual = :tipo WHERE usuario_id = :id";
@@ -277,7 +273,6 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: PerfilController::confirmarTrocaEmail()
     public function atualizarEmail(int $usuarioId, string $novoEmail): void
     {
         $sql = "UPDATE USUARIO SET email = :email WHERE usuario_id = :usuario_id";
@@ -288,7 +283,6 @@ class UsuarioRepository extends BaseRepository
         $stmt->execute();
     }
 
-    // Usado por: AuthService::redefinirSenha() e PerfilController::confirmarNovaSenha()
     public function atualizarSenha(int $usuarioId, string $novaSenhaHash): void
     {
         $sql = "UPDATE USUARIO SET senha = :senha WHERE usuario_id = :usuario_id";
@@ -298,7 +292,6 @@ class UsuarioRepository extends BaseRepository
         $stmt->execute();
     }
 
-    // Usado por: UsuarioAdminService::alterarStatusUsuario()
     public function atualizarStatusConta(int $usuarioId, string $novoStatus): bool
     {
         $sql = "UPDATE USUARIO SET status_conta = :status WHERE usuario_id = :id";
@@ -306,7 +299,6 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute([':status' => $novoStatus, ':id' => $usuarioId]);
     }
 
-    // Usado por: OnboardingService::restaurarPerfilAtivoOriginal() (RF 20 - upgrade cruzado
     // entre Adotante e Protetor/ONG). Restaura nome/telefone/endereço/data de nascimento que o
     // onboarding do NOVO perfil solicitado tenha sobrescrito em USUARIO — linha única,
     // compartilhada entre todos os perfis da mesma pessoa. Diferente de atualizarDadosPerfil()
@@ -335,7 +327,6 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: PerfilController::excluir() (soft delete da conta pelo próprio usuário)
     public function excluirConta(int $usuarioId): bool
     {
         $sql = "UPDATE USUARIO
@@ -360,7 +351,6 @@ class UsuarioRepository extends BaseRepository
         return $stmt->execute([':email' => mb_strtolower(trim($email), 'UTF-8')]);
     }
 
-    // Usado por: UsuarioAdminService::alterarStatusPerfil()
     public function atualizarPerfisAtivos(int $usuarioId, string $perfisAtivos, string $tipoAtual): bool
     {
         $sql = "UPDATE USUARIO SET perfis_ativos = :perfis, tipo_atual = :tipo WHERE usuario_id = :id";
@@ -372,7 +362,6 @@ class UsuarioRepository extends BaseRepository
         ]);
     }
 
-    // Usado por: AuthService::redefinirSenha() e PerfilController (confirmação de código)
     public function marcarCodigoComoUsado(int $codigoId): void
     {
         $sql = "UPDATE CODIGO_VERIFICACAO SET usado = TRUE WHERE codigo_id = :codigo_id";
@@ -381,7 +370,6 @@ class UsuarioRepository extends BaseRepository
         $stmt->execute();
     }
 
-    // Usado por: UsuarioRepository::buscarPorEmail() (uso interno)
     private function mapUsuario(array $row): Usuario
     {
         $usuario = new Usuario();

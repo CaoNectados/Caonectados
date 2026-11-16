@@ -25,7 +25,6 @@ class AnimalRepository extends BaseRepository
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    // Usado por: AnimalService::buscarPorId() e AnimalController (detalhes/edição)
     public function buscarPorId(int $id): ?Animal
     {
         $sql = "SELECT
@@ -58,10 +57,17 @@ class AnimalRepository extends BaseRepository
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $row === false ? null : $this->mapAnimal($row);
+        if ($row === false) return null;
+        $animal = $this->mapAnimal($row);
+        $tracos = new TracoRepository($this->db);
+        $animal->setTracos($tracos->buscarPorAnimais([$id])[$id] ?? []);
+        if (!$animal->getTracos() && $animal->getComportamento()) {
+            $ids = $tracos->idsDoComportamento($animal->getComportamento());
+            $animal->setTracos(array_values(array_filter($tracos->listar(), fn($t) => in_array((int) $t['traco_id'], $ids, true))));
+        }
+        return $animal;
     }
 
-    // Usado por: AnimalService::listarComFiltros() e AnimalController::index()
     public function listarComFiltros(string $tipoPerfil, int $protetorId, string $status = 'todos'): array
     {
         $sql = "SELECT
@@ -149,7 +155,6 @@ class AnimalRepository extends BaseRepository
         }, $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
-    // Usado por: (não referenciado atualmente)
     public function buscarPorProtetor(int $protetorId): array
     {
         $sql = "SELECT
@@ -184,113 +189,197 @@ class AnimalRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapAnimal($row), $rows);
     }
 
-    // Usado por: AnimalService::cadastrarAnimal() e AnimalController::cadastrar()
     public function cadastrarAnimal(Animal $animal): int
     {
-        $sql = "INSERT INTO ANIMAL (
-            protetor_id,
-            raca_id,
-            nome,
-            dt_nasc,
-            sexo,
-            porte,
-            status,
-            descricao,
-            vacinado,
-            castrado,
-            comportamento,
-            historico_saude,
-            atualizado_em
-        ) VALUES (
-            :protetor_id,
-            :raca_id,
-            :nome,
-            :dt_nasc,
-            :sexo,
-            :porte,
-            :status,
-            :descricao,
-            :vacinado,
-            :castrado,
-            :comportamento,
-            :historico_saude,
-            CURRENT_TIMESTAMP
-        )";
+        return $this->transacaoStatus(function () use ($animal): int {
+            if ($animal->getStatus() === 'em_analise') {
+                throw new \DomainException('O animal entra em análise por uma solicitação de adoção.');
+            }
+            $sql = "INSERT INTO ANIMAL (
+                protetor_id,
+                raca_id,
+                nome,
+                dt_nasc,
+                sexo,
+                porte,
+                status,
+                descricao,
+                vacinado,
+                castrado,
+                comportamento,
+                historico_saude,
+                atualizado_em
+            ) VALUES (
+                :protetor_id,
+                :raca_id,
+                :nome,
+                :dt_nasc,
+                :sexo,
+                :porte,
+                :status,
+                :descricao,
+                :vacinado,
+                :castrado,
+                :comportamento,
+                :historico_saude,
+                CURRENT_TIMESTAMP
+            )";
 
-        $stmt = $this->db->prepare($sql);
-        $this->bindAnimalValues($stmt, $animal);
-        $stmt->execute();
+            $stmt = $this->db->prepare($sql);
+            $this->bindAnimalValues($stmt, $animal);
+            $stmt->execute();
 
-        return (int) $this->db->lastInsertId();
+            $id = (int) $this->db->lastInsertId();
+            $this->salvarTracos($id, $animal);
+            $this->registrarStatus($id, null, $animal->getStatus());
+            $this->sincronizarDesativacao($id, $animal->getStatus());
+            return $id;
+        });
     }
 
-    // Usado por: AnimalService::editarAnimal() e AnimalController::editar()
     public function editarAnimal(Animal $animal): bool
     {
-        $sql = "UPDATE ANIMAL SET
-            protetor_id = :protetor_id,
-            raca_id = :raca_id,
-            nome = :nome,
-            dt_nasc = :dt_nasc,
-            sexo = :sexo,
-            porte = :porte,
-            status = :status,
-            descricao = :descricao,
-            vacinado = :vacinado,
-            castrado = :castrado,
-            comportamento = :comportamento,
-            historico_saude = :historico_saude,
-            atualizado_em = CURRENT_TIMESTAMP
-        WHERE animal_id = :animal_id";
+        return $this->transacaoStatus(function () use ($animal): bool {
+            $atual = $this->bloquearAnimal($animal->getAnimalId());
+            if ((int) $atual['protetor_id'] !== $animal->getProtetorId()) {
+                throw new \DomainException('O responsável pelo animal não pode ser alterado.');
+            }
+            $this->validarTransicaoManual($animal->getAnimalId(), $atual['status'], $animal->getStatus());
+            $sql = "UPDATE ANIMAL SET
+                protetor_id = :protetor_id,
+                raca_id = :raca_id,
+                nome = :nome,
+                dt_nasc = :dt_nasc,
+                sexo = :sexo,
+                porte = :porte,
+                status = :status,
+                descricao = :descricao,
+                vacinado = :vacinado,
+                castrado = :castrado,
+                comportamento = :comportamento,
+                historico_saude = :historico_saude,
+                atualizado_em = CURRENT_TIMESTAMP
+            WHERE animal_id = :animal_id";
 
-        $stmt = $this->db->prepare($sql);
-        $this->bindAnimalValues($stmt, $animal);
-        $stmt->bindValue(':animal_id', $animal->getAnimalId(), PDO::PARAM_INT);
+            $stmt = $this->db->prepare($sql);
+            $this->bindAnimalValues($stmt, $animal);
+            $stmt->bindValue(':animal_id', $animal->getAnimalId(), PDO::PARAM_INT);
 
-        return $stmt->execute();
+            $ok = $stmt->execute();
+            if ($animal->getTracoIds() !== null) $this->salvarTracos((int) $animal->getAnimalId(), $animal);
+            $this->registrarStatus($animal->getAnimalId(), $atual['status'], $animal->getStatus());
+            $this->sincronizarDesativacao($animal->getAnimalId(), $animal->getStatus());
+            return $ok;
+        });
     }
 
-    // Usado por: AnimalService::atualizarStatus() e AnimalController
     public function alterarStatus(int $id, string $status): bool
     {
-        $sql = "UPDATE ANIMAL SET status = :status, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':status', $status, PDO::PARAM_STR);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->rowCount() > 0;
+        return $this->transacaoStatus(function () use ($id, $status): bool {
+            $atual = $this->bloquearAnimal($id);
+            $this->validarTransicaoManual($id, $atual['status'], $status);
+            $this->persistirStatus($id, $atual['status'], $status);
+            return true;
+        });
     }
 
-    // Usado por: AnimalService::desativarAnimal() e AnimalController
     public function excluirLogico(int $id): bool
     {
-        $sql = "UPDATE ANIMAL SET status = 'desativado', deletado_em = CURRENT_TIMESTAMP, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->rowCount() > 0;
+        return $this->alterarStatus($id, 'desativado');
     }
 
-    // Usado por: AnimalService::reativarAnimal() e AnimalController::reativar()
     public function reativarAnimal(int $id): bool
     {
-        $sql = "UPDATE ANIMAL SET status = 'disponivel', deletado_em = NULL, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = :animal_id";
+        return $this->transacaoStatus(function () use ($id): bool {
+            $atual = $this->bloquearAnimal($id);
+            if (!in_array($atual['status'], ['adotado', 'desativado'], true)) {
+                throw new \DomainException('Somente animais adotados ou desativados podem ser reativados.');
+            }
+            $novo = $this->temSolicitacao($id, ['em_analise']) ? 'em_analise' : 'disponivel';
+            $this->persistirStatus($id, $atual['status'], $novo);
+            return true;
+        });
+    }
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':animal_id', $id, PDO::PARAM_INT);
-        $stmt->execute();
+    private function salvarTracos(int $id, Animal $animal): void
+    {
+        $repo = new TracoRepository($this->db);
+        $repo->salvar($id, $animal->getTracoIds() ?? $repo->idsDoComportamento($animal->getComportamento()));
+    }
 
-        return $stmt->rowCount() > 0;
+    private function transacaoStatus(callable $operacao)
+    {
+        $propria = !$this->db->inTransaction();
+        if ($propria) $this->db->beginTransaction();
+        try {
+            $resultado = $operacao();
+            if ($propria) $this->db->commit();
+            return $resultado;
+        } catch (\Throwable $e) {
+            if ($propria && $this->db->inTransaction()) $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    private function bloquearAnimal(int $id): array
+    {
+        $stmt = $this->db->prepare('SELECT status, protetor_id FROM ANIMAL WHERE animal_id = ? FOR UPDATE');
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: throw new \DomainException('Animal não encontrado.');
+    }
+
+    private function temSolicitacao(int $id, array $estados): bool
+    {
+        $marcadores = implode(',', array_fill(0, count($estados), '?'));
+        $stmt = $this->db->prepare("SELECT solicitacao_id FROM SOLICITACAO_ADOCAO WHERE animal_id = ? AND status_solicitacao IN ($marcadores) LIMIT 1 FOR UPDATE");
+        $stmt->execute([$id, ...$estados]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    private function validarTransicaoManual(int $id, string $anterior, string $novo): void
+    {
+        if (!in_array($novo, ['disponivel', 'em_analise', 'adotado', 'desativado'], true)) {
+            throw new \DomainException('Selecione um status válido.');
+        }
+        if ($anterior === $novo) return;
+        if (in_array($anterior, ['adotado', 'desativado'], true) && $novo !== 'desativado') {
+            throw new \DomainException('Use Reativar animal na listagem para disponibilizá-lo novamente.');
+        }
+        if ($novo === 'em_analise') {
+            throw new \DomainException('Coloque uma solicitação de adoção em análise para alterar este estado.');
+        }
+        if ($novo === 'adotado' && $this->temSolicitacao($id, ['pendente', 'em_analise', 'aprovada'])) {
+            throw new \DomainException('Confirme a adoção pela solicitação do adotante escolhido. Os demais pedidos serão cancelados automaticamente.');
+        }
+        if ($novo === 'disponivel' && $this->temSolicitacao($id, ['em_analise'])) {
+            throw new \DomainException('Finalize as solicitações em análise antes de disponibilizar o animal.');
+        }
+    }
+
+    private function persistirStatus(int $id, string $anterior, string $novo): void
+    {
+        $stmt = $this->db->prepare('UPDATE ANIMAL SET status = ?, atualizado_em = CURRENT_TIMESTAMP WHERE animal_id = ?');
+        $stmt->execute([$novo, $id]);
+        $this->sincronizarDesativacao($id, $novo);
+        $this->registrarStatus($id, $anterior, $novo);
+    }
+
+    private function sincronizarDesativacao(int $id, string $status): void
+    {
+        $stmt = $this->db->prepare("UPDATE ANIMAL SET deletado_em = IF(? = 'desativado', COALESCE(deletado_em, CURRENT_TIMESTAMP), NULL) WHERE animal_id = ?");
+        $stmt->execute([$status, $id]);
+    }
+
+    private function registrarStatus(int $id, ?string $anterior, string $novo): void
+    {
+        if ($anterior === $novo) return;
+        $stmt = $this->db->prepare('INSERT INTO HISTORICO_STATUS_ANIMAL (animal_id, status_antigo, status_novo) VALUES (?, ?, ?)');
+        $stmt->execute([$id, $anterior, $novo]);
     }
 
     /**
      * Substitui a foto principal do animal (modelo de foto única).
      */
-    // Usado por: AnimalService::salvarFoto()
     public function salvarFotoPrincipal(int $animalId, string $caminhoFoto): void
     {
         $stmtDelete = $this->db->prepare("DELETE FROM FOTO_ANIMAL WHERE animal_id = :animal_id AND foto_principal = 1");
@@ -331,9 +420,13 @@ class AnimalRepository extends BaseRepository
         $st->execute([$animalId,$caminho,$principal ? 1 : 0]);
     }
 
-    // Usado por: AnimalRepository::cadastrarAnimal() e editarAnimal() (uso interno)
     private function bindAnimalValues(PDOStatement $stmt, Animal $animal): void
     {
+        if ($animal->getTracoIds() !== null) {
+            $tracos = new TracoRepository($this->db);
+            $ids = $tracos->validarSelecao($animal->getTracoIds());
+            $animal->setComportamento($tracos->comportamentoResumo($ids));
+        }
         $stmt->bindValue(':protetor_id', $animal->getProtetorId(), PDO::PARAM_INT);
         $stmt->bindValue(':raca_id', $animal->getRacaId(), PDO::PARAM_INT);
         $stmt->bindValue(':nome', $animal->getNome(), PDO::PARAM_STR);
@@ -348,7 +441,6 @@ class AnimalRepository extends BaseRepository
         $stmt->bindValue(':historico_saude', $animal->getHistoricoSaude(), $animal->getHistoricoSaude() === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
     }
 
-    // Usado por: AnimalRepository::buscarPorId(), listarComFiltros() e buscarPorProtetor() (uso interno)
     private function mapAnimal(array $row): Animal
     {
         $animal = new Animal();

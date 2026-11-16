@@ -26,7 +26,6 @@ $dtNasc         = !empty($old['dt_nasc']) ? $old['dt_nasc'] : ($isObj ? $animalR
 $sexo           = !empty($old['sexo']) ? $old['sexo'] : ($isObj ? $animalRaw->getSexo() : ($animalRaw['sexo'] ?? ''));
 $porte          = !empty($old['porte']) ? $old['porte'] : ($isObj ? $animalRaw->getPorte() : ($animalRaw['porte'] ?? ''));
 $status         = !empty($old['status']) ? $old['status'] : ($isObj ? $animalRaw->getStatus() : ($animalRaw['status'] ?? 'disponivel'));
-$comportamento  = !empty($old['comportamento']) ? $old['comportamento'] : ($isObj ? $animalRaw->getComportamento() : ($animalRaw['comportamento'] ?? ''));
 $historicoSaude = !empty($old['historico_saude']) ? $old['historico_saude'] : ($isObj ? $animalRaw->getHistoricoSaude() : ($animalRaw['historico_saude'] ?? ''));
 $descricao      = !empty($old['descricao']) ? $old['descricao'] : ($isObj ? $animalRaw->getDescricao() : ($animalRaw['descricao'] ?? ''));
 
@@ -121,24 +120,20 @@ if (!empty($fotoCortadaOld)) {
                 <div>
                     <label for="status" class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2">Status <span class="text-rosaAlerta">*</span></label>
                     <select id="status" name="status" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-white focus:border-rosaAlerta outline-none transition-colors">
-                        <option value="disponivel" class="dark:bg-preto2" <?= $status === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
-                        <option value="em_analise" class="dark:bg-preto2" <?= $status === 'em_analise' ? 'selected' : '' ?>>Em Análise</option>
-                        <option value="adotado" class="dark:bg-preto2" <?= $status === 'adotado' ? 'selected' : '' ?>>Adotado</option>
-                        <option value="desativado" class="dark:bg-preto2" <?= $status === 'desativado' ? 'selected' : '' ?>>Desativado</option>
+                        <?php
+                        $statusAtual = $animal->getStatus();
+                        $opcoesStatus = [$statusAtual => ['disponivel'=>'Disponível', 'em_analise'=>'Em análise', 'adotado'=>'Adotado', 'desativado'=>'Desativado'][$statusAtual]];
+                        if ($statusAtual === 'disponivel') $opcoesStatus['adotado'] = 'Adotado fora da plataforma';
+                        $opcoesStatus['desativado'] = 'Desativado';
+                        foreach ($opcoesStatus as $valor => $rotulo): ?>
+                        <option value="<?= e($valor) ?>" class="dark:bg-preto2" <?= $status === $valor ? 'selected' : '' ?>><?= e($rotulo) ?></option>
+                        <?php endforeach; ?>
                     </select>
+                    <p class="mt-2 text-xs text-text-muted">Com pedidos em andamento, confirme a adoção em Solicitações recebidas. Para um animal adotado ou desativado, use Reativar animal na listagem.</p>
                 </div>
             </div>
 
-            <div>
-                <label for="comportamento" class="block font-poppins font-bold text-sm text-text-dark dark:text-white/90 mb-2">Comportamento</label>
-                <select id="comportamento" name="comportamento" class="w-full p-3 border-2 border-text-dark dark:border-branco/30 rounded-xl dark:bg-preto2 dark:text-white focus:border-rosaAlerta outline-none transition-colors">
-                    <option value="" class="dark:bg-preto2">Escolha (Opcional)</option>
-                    <option value="calmo" class="dark:bg-preto2" <?= $comportamento === 'calmo' ? 'selected' : '' ?>>Calmo</option>
-                    <option value="ativo" class="dark:bg-preto2" <?= $comportamento === 'ativo' ? 'selected' : '' ?>>Ativo</option>
-                    <option value="docil" class="dark:bg-preto2" <?= $comportamento === 'docil' ? 'selected' : '' ?>>Dócil</option>
-                    <option value="arisco" class="dark:bg-preto2" <?= $comportamento === 'arisco' ? 'selected' : '' ?>>Arisco</option>
-                </select>
-            </div>
+            <?php require __DIR__ . '/tracos.php'; ?>
 
             <div class="flex items-center gap-8 mt-2">
                 <label class="flex items-center gap-2 cursor-pointer">
@@ -172,7 +167,6 @@ if (!empty($fotoCortadaOld)) {
         </form>
     </div>
 </main>
-
 
 
 <script src="<?= e(asset('assets/js/animal-editar.js')) ?>" defer></script>

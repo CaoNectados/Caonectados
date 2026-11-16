@@ -1,7 +1,6 @@
-CREATE DATABASE IF NOT EXISTS caonectados CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE caonectados;
-
+-- Estrutura do banco CãoNectados (MySQL 5.7+ / MariaDB).
+-- Selecione o banco correto no phpMyAdmin antes de executar este arquivo.
+-- Para preencher catálogos e dados locais de demonstração, execute depois scripts_dados.sql.
 CREATE TABLE IF NOT EXISTS TRACO (
     traco_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     traco VARCHAR(45) NOT NULL
@@ -15,7 +14,8 @@ CREATE TABLE IF NOT EXISTS REGIAO (
 CREATE TABLE IF NOT EXISTS ESPECIE (
     especie_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    ativo BOOLEAN NOT NULL DEFAULT TRUE
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    UNIQUE KEY uq_especie_nome (nome)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS USUARIO (
@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS ADOTANTE (
     petiscos_diarios INT UNSIGNED NOT NULL DEFAULT 10,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
+    UNIQUE KEY uq_adotante_usuario_id (usuario_id),
     CONSTRAINT fk_adotante_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -95,6 +96,7 @@ CREATE TABLE IF NOT EXISTS PROTETOR (
     motivo_inadimplencia TEXT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deletado_em TIMESTAMP NULL DEFAULT NULL,
+    UNIQUE KEY uq_protetor_usuario_id (usuario_id),
     CONSTRAINT fk_protetor_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -103,6 +105,7 @@ CREATE TABLE IF NOT EXISTS RACA (
     especie_id INT UNSIGNED NOT NULL,
     nome VARCHAR(100) NOT NULL,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    UNIQUE KEY uq_raca_especie_nome (especie_id, nome),
     CONSTRAINT fk_raca_especie FOREIGN KEY (especie_id) REFERENCES ESPECIE (especie_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -157,6 +160,7 @@ CREATE TABLE IF NOT EXISTS PAGINA (
     foto_fundo VARCHAR(255) NULL,
     foto_perfil VARCHAR(255) NULL,
     chave_pix VARCHAR(255) NULL,
+    UNIQUE KEY uq_pagina_protetor_id (protetor_id),
     CONSTRAINT fk_pagina_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
@@ -249,13 +253,6 @@ CREATE TABLE IF NOT EXISTS CODIGO_VERIFICACAO (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_codigo_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-
-
--- INICIO ATUALIZAR BANCO EXISTENTE
--- Para banco já instalado: após backup, executar APENAS este bloco.
--- Não reaplicar os INSERTs de exemplos abaixo em um banco com dados.
-USE caonectados;
-
 CREATE TABLE IF NOT EXISTS HISTORICO_CLASSIFICACAO_PROTETOR (
     historico_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     protetor_id INT UNSIGNED NOT NULL,
@@ -263,212 +260,6 @@ CREATE TABLE IF NOT EXISTS HISTORICO_CLASSIFICACAO_PROTETOR (
     inadimplente BOOLEAN NOT NULL,
     motivo TEXT NOT NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_classificacao_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR(protetor_id),
-    CONSTRAINT fk_classificacao_admin FOREIGN KEY (admin_id) REFERENCES USUARIO(usuario_id)
+    CONSTRAINT fk_classificacao_protetor FOREIGN KEY (protetor_id) REFERENCES PROTETOR (protetor_id),
+    CONSTRAINT fk_classificacao_admin FOREIGN KEY (admin_id) REFERENCES USUARIO (usuario_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_recusa'),
-    'SELECT 1',
-    'ALTER TABLE PROTETOR ADD COLUMN motivo_recusa TEXT NULL'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'inadimplente'),
-    'SELECT 1',
-    'ALTER TABLE PROTETOR ADD COLUMN inadimplente BOOLEAN NOT NULL DEFAULT FALSE'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'PROTETOR' AND COLUMN_NAME = 'motivo_inadimplencia'),
-    'SELECT 1',
-    'ALTER TABLE PROTETOR ADD COLUMN motivo_inadimplencia TEXT NULL'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.STATISTICS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_adotante_dia'),
-    'SELECT 1',
-    'CREATE INDEX idx_solicitacao_adotante_dia ON SOLICITACAO_ADOCAO (adotante_id, data_solicitacao)'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.STATISTICS
-           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'SOLICITACAO_ADOCAO' AND INDEX_NAME = 'idx_solicitacao_animal_estado'),
-    'SELECT 1',
-    'CREATE INDEX idx_solicitacao_animal_estado ON SOLICITACAO_ADOCAO (animal_id, status_solicitacao)'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
--- Corrigir perfis ativos antigos sem apagar cadastros, animais ou históricos.
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='USUARIO' AND COLUMN_NAME='termos_aceitos_em'),
-    'SELECT 1', 'ALTER TABLE USUARIO ADD COLUMN termos_aceitos_em TIMESTAMP NULL DEFAULT NULL'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-SET @pos_banca_sql = IF(
-    EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='USUARIO' AND COLUMN_NAME='versao_termos'),
-    'SELECT 1', 'ALTER TABLE USUARIO ADD COLUMN versao_termos VARCHAR(20) NULL DEFAULT NULL'
-);
-PREPARE pos_banca_stmt FROM @pos_banca_sql;
-EXECUTE pos_banca_stmt;
-DEALLOCATE PREPARE pos_banca_stmt;
-
--- Não presumir aceite para cadastros antigos.
-UPDATE USUARIO
-SET tipo_atual = 'administrador', perfis_ativos = 'administrador'
-WHERE tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos) > 0;
--- FIM ATUALIZAR BANCO EXISTENTE
-
--- ===========================================
--- USUÁRIO EXCLUSIVAMENTE ADMINISTRADOR
--- ===========================================
-INSERT INTO USUARIO (
-    usuario_id,
-    regiao_id,
-    logradouro,
-    numero,
-    telefone,
-    senha,
-    tipo_atual,
-    perfis_ativos,
-    status_conta,
-    email,
-    nome
-) VALUES (
-    1,
-    NULL, 
-    'Av. Brasil',
-    '1000',
-    '45900000000',
-    '$2y$10$rMVohZcvkqsHoZoXCnaMm.BU77eBGYGIFxtDMS6PX7J/r22RVGhZi',
-    'administrador',
-    'administrador',
-    'ativo',
-    'caonectados2026@gmail.com',
-    'Admin CãoNectados'
-);
-
-INSERT INTO
-    REGIAO (nome_regiao)
-VALUES ('Alvorada'),
-    ('Náutica'),
-    ('Três Lagoas'),
-    ('Cidade Nova'),
-    ('Itaipu Binacional'),
-    ('Itaipu C'),
-    ('Pólo Universitário'),
-    ('Porto Belo'),
-    ('Morumbi'),
-    ('Portal'),
-    ('Bourbon'),
-    ('Porto Meira'),
-    ('Três Fronteiras'),
-    ('Panorama'),
-    ('São Roque'),
-    ('América'),
-    ('Monjolo'),
-    ('Portes'),
-    ('Lancaster'),
-    ('Três Bandeiras'),
-    ('Itaipu A'),
-    ('Itaipu B'),
-    ('KLP'),
-    ('IPÊ'),
-    ('Centro'),
-    ('Maracanã'),
-    ('Yolanda'),
-    ('Polo Centro'),
-    ('Centro Cívico'),
-    ('Campos do Iguaçu'),
-    ('Carimã'),
-    ('Mata Verde'),
-    ('Cataratas'),
-    ('Cognópolis'),
-    ('Lote Grande'),
-    ('Remanso'),
-    ('Parque Nacional');
-
-INSERT INTO ESPECIE (nome) VALUES ('Cão'), ('Gato');
-
-INSERT INTO
-    RACA (nome, especie_id)
-VALUES ('Sem Raça Definida (SRD)', 1),
-    ('Labrador Retriever', 1),
-    ('Poodle', 1),
-    ('Sem Raça Definida (SRD)', 2),
-    ('Siamês', 2),
-    ('Persa', 2);
-
--- ===========================================
--- USUÁRIOS DE TESTE (2 ONGs, 2 protetores, 2 adotantes)
--- Senha para todos: Senha123$  (hash gerado com password_hash/PASSWORD_BCRYPT,
--- o mesmo algoritmo usado por AuthService::registrar())
--- ===========================================
-
--- ONG 1 e ONG 2 (pessoa jurídica / CNPJ, já validadas pelo admin)
-INSERT INTO USUARIO (
-    usuario_id, regiao_id, logradouro, numero, telefone, senha,
-    tipo_atual, perfis_ativos, status_conta, email, nome, dt_nasc
-) VALUES
-    (2, 1, 'Rua das Acácias', '250', '45999990001', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'ong', 'ong', 'ativo', 'ong.patinhasfelizes9309@outlook.com', 'ONG Patinhas Felizes', NULL),
-    (3, 2, 'Rua do Porto', '480', '45999990002', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'ong', 'ong', 'ativo', 'ong.focinhosdorio2739@hotmail.com', 'ONG Focinhos do Rio', NULL);
-
--- Protetor 1 e Protetor 2 (pessoa física / CPF, já validados pelo admin)
-INSERT INTO USUARIO (
-    usuario_id, regiao_id, logradouro, numero, telefone, senha,
-    tipo_atual, perfis_ativos, status_conta, email, nome, dt_nasc
-) VALUES
-    (4, 3, 'Avenida das Cataratas', '1120', '45999990003', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'protetor', 'protetor', 'ativo', 'protetor.carlosmendes9103@outlook.com', 'Carlos Mendes', '1990-05-14'),
-    (5, 4, 'Rua Cidade Nova', '77', '45999990004', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'protetor', 'protetor', 'ativo', 'protetor.julianaalves3425@gmail.com', 'Juliana Alves', '1988-11-02');
-
--- Adotante 1 e Adotante 2
-INSERT INTO USUARIO (
-    usuario_id, regiao_id, logradouro, numero, telefone, senha,
-    tipo_atual, perfis_ativos, status_conta, email, nome, dt_nasc
-) VALUES
-    (6, 5, 'Rua Itaipu Binacional', '305', '45999990005', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'adotante', 'adotante', 'ativo', 'adotante.marianalima3182@hotmail.com', 'Mariana Lima', '1995-03-21'),
-    (7, 6, 'Rua Itaipu C', '19', '45999990006', '$2y$10$RDJFmAmgVefLOaWl1h3j.eRLYxLN/c5ifl2hi.R.zurNKtDXHzSL.', 'adotante', 'adotante', 'ativo', 'adotante.pedrosouza8045@yahoo.com', 'Pedro Souza', '1998-07-09');
-
--- Perfis PROTETOR das duas ONGs e dos dois protetores (CPF/CNPJ com dígitos verificadores válidos)
-INSERT INTO PROTETOR (
-    protetor_id, usuario_id, validado, codigo_documento, tipo_documento,
-    nome_fantasia, data_abertura_cnpj, data_validacao
-) VALUES
-    (2, 2, TRUE, '89189523000131', 'cnpj', 'ONG Patinhas Felizes', '2015-03-10', CURRENT_TIMESTAMP),
-    (3, 3, TRUE, '85443027000101', 'cnpj', 'ONG Focinhos do Rio', '2018-07-22', CURRENT_TIMESTAMP),
-    (4, 4, TRUE, '42914818025', 'cpf', 'Carlos Mendes', NULL, CURRENT_TIMESTAMP),
-    (5, 5, TRUE, '62142463754', 'cpf', 'Juliana Alves', NULL, CURRENT_TIMESTAMP);
-
--- Páginas institucionais/públicas das ONGs e protetores
-INSERT INTO PAGINA (pagina_id, protetor_id, descricao, chave_pix) VALUES
-    (2, 2, 'ONG dedicada ao resgate e cuidado de cães e gatos em situação de rua.', 'ong.patinhasfelizes9309@outlook.com'),
-    (3, 3, 'Protegemos e encontramos lares para animais abandonados na região do Porto.', 'ong.focinhosdorio2739@hotmail.com'),
-    (4, 4, 'Protetor independente: resgato e cuido de cães até encontrarem um novo lar.', 'protetor.carlosmendes9103@outlook.com'),
-    (5, 5, 'Cuido de gatos resgatados até a adoção responsável.', 'protetor.julianaalves3425@gmail.com');
-
--- Perfis ADOTANTE
-INSERT INTO ADOTANTE (
-    adotante_id, usuario_id, tipo_moradia, tamanho_interno_moradia, descricao, detalhes
-) VALUES
-    (2, 6, 'apartamento', 'medio', 'Apaixonada por animais, busco um companheiro para minha rotina tranquila.', '{"possui_criancas":"nao","possui_outros_pets":"nao","espaco_externo":"nenhum"}'),
-    (3, 7, 'casa', 'grande', 'Tenho um quintal grande e quero adotar um cão de porte médio.', '{"possui_criancas":"sim","possui_outros_pets":"sim","espaco_externo":"grande"}');

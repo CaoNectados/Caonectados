@@ -9,13 +9,13 @@ use Exception;
 class SolicitacaoService
 {
     private ProtetorRepository $protetorRepository;
+    private array $avisosPendentes = [];
 
-    public function __construct(?ProtetorRepository $protetorRepository = null)
+    public function __construct(?ProtetorRepository $protetorRepository = null, private bool $adiarAvisos = false)
     {
         $this->protetorRepository = $protetorRepository ?? new ProtetorRepository();
     }
 
-    // Usado por: SolicitacaoProtetorController::index (listagem de solicitações de protetor)
     public function listarSolicitacoes(string $status = 'pendentes', string $busca = ''): array
     {
         $statusPermitidos = ['pendentes', 'aprovados', 'recusados'];
@@ -27,7 +27,6 @@ class SolicitacaoService
         return array_map([$this, 'adicionarStatusFormatado'], $lista);
     }
 
-    // Usado por: SolicitacaoProtetorController (detalhes da solicitação)
     public function obterDetalhesSolicitacao(int $protetorId): ?array
     {
         if ($protetorId <= 0) {
@@ -42,7 +41,6 @@ class SolicitacaoService
         return $this->adicionarStatusFormatado($detalhes);
     }
 
-    // Usado por: SolicitacaoProtetorController::aprovar
     public function aprovarSolicitacao(int $protetorId): bool
     {
         if ($protetorId <= 0) {
@@ -79,20 +77,13 @@ class SolicitacaoService
         }
 
         if ($sucesso && !empty($solicitacao['usuario_email'])) {
-            try {
-                MailService::enviarNotificacaoAprovacao(
-                    $solicitacao['usuario_email'],
-                    $solicitacao['nome_fantasia'] ?: $solicitacao['usuario_nome']
-                );
-            } catch (Exception $e) {
-                error_log("Erro ao enviar e-mail de aprovação: " . $e->getMessage());
-            }
+            $this->avisosPendentes[] = ['aprovada', $solicitacao, ''];
+            if (!$this->adiarAvisos) $this->enviarAvisosPendentes();
         }
 
         return $sucesso;
     }
 
-    // Usado por: SolicitacaoProtetorController::recusar
     public function recusarSolicitacao(int $protetorId, string $motivo = ''): bool
     {
         if ($protetorId <= 0) {
@@ -122,21 +113,30 @@ class SolicitacaoService
         }
 
         if ($sucesso && !empty($solicitacao['usuario_email'])) {
-            try {
-                MailService::enviarNotificacaoRecusa(
-                    $solicitacao['usuario_email'],
-                    $solicitacao['nome_fantasia'] ?: $solicitacao['usuario_nome'],
-                    $motivo
-                );
-            } catch (Exception $e) {
-                error_log("Erro ao enviar e-mail de recusa: " . $e->getMessage());
-            }
+            $this->avisosPendentes[] = ['recusada', $solicitacao, trim($motivo)];
+            if (!$this->adiarAvisos) $this->enviarAvisosPendentes();
         }
 
         return $sucesso;
     }
 
-    // Usado por: listarSolicitacoes(), obterDetalhesSolicitacao() (formatação do status exibido)
+    public function enviarAvisosPendentes(): void
+    {
+        $avisos = $this->avisosPendentes;
+        $this->avisosPendentes = [];
+        MailService::processarLote(static function () use ($avisos): void {
+            foreach ($avisos as [$estado, $solicitacao, $motivo]) {
+                $nome = $solicitacao['nome_fantasia'] ?: $solicitacao['usuario_nome'];
+                try {
+                    if ($estado === 'aprovada') MailService::enviarNotificacaoAprovacao($solicitacao['usuario_email'], $nome);
+                    else MailService::enviarNotificacaoRecusa($solicitacao['usuario_email'], $nome, $motivo);
+                } catch (\Throwable $e) {
+                    error_log('Falha no aviso de decisão do cadastro de protetor #'.(int)$solicitacao['protetor_id']);
+                }
+            }
+        });
+    }
+
     private function adicionarStatusFormatado(array $registro): array
     {
         if (!empty($registro['deletado_em'])) {

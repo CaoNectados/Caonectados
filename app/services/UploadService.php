@@ -26,7 +26,6 @@ class UploadService
      * @param string $tipo Tipo do upload (ex: 'foto_perfil', 'foto_pagina', 'comprovante')
      * @return string|null Retorna o caminho relativo para salvar no banco (ex: 'assets/uploads/foto_perfil/img_xxx.png')
      */
-    // Usado por: AnimalService, OnBoardingService, PerfilService (upload de fotos, comprovantes e imagens de animais)
     public function salvar($arquivoOuBase64, string $tipo): ?string
     {
         if (empty($arquivoOuBase64)) {
@@ -119,7 +118,6 @@ class UploadService
      * Apaga do disco um arquivo previamente salvo por salvar(), a partir do caminho
      * relativo armazenado no banco (ex: 'assets/uploads/animais/xxx.png').
      */
-    // Usado por: AnimalService, OnBoardingService, PerfilService (troca/substituição de fotos e documentos)
     public function remover(?string $caminhoRelativo): void
     {
         if (empty($caminhoRelativo)) {

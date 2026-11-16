@@ -24,7 +24,6 @@ class SolicitacaoAdocaoController extends Controller
         $this->service = new SolicitacaoAdocaoService();
     }
 
-    // ===================== ADOTANTE (RF 08 / UC 15) =====================
 
     /** Registra uma manifestação de interesse ("Dar Petisco!"). Usado pelo Feed via AJAX (POST /solicitacoes/criar). */
     public function criar(): void
@@ -93,7 +92,6 @@ class SolicitacaoAdocaoController extends Controller
         }
     }
 
-    // ===================== PROTETOR / ONG (RF 09 / UC 18) =====================
 
     /** Painel de solicitações recebidas, segmentado por aba. Usado pela rota GET /solicitacoes. */
     public function painel(): void
@@ -147,9 +145,10 @@ class SolicitacaoAdocaoController extends Controller
             $solicitacaoId = (int) ($_POST['id'] ?? 0);
             $protetorId = $this->obterProtetorIdAutenticado();
 
-            $this->service->colocarEmAnalise($solicitacaoId, $protetorId, (int) $_SESSION['usuario_id']);
+            $service = new SolicitacaoAdocaoService(null, null, true);
+            $service->colocarEmAnalise($solicitacaoId, $protetorId, (int) $_SESSION['usuario_id']);
 
-            $this->redirecionarComMensagem('sucesso', 'Solicitação colocada em análise.', '/solicitacoes');
+            $this->redirecionarComMensagemAposResposta('sucesso', 'Solicitação colocada em análise.', '/solicitacoes', [$service, 'enviarAvisosPendentes']);
         } catch (\Throwable $e) {
             $this->redirecionarComMensagem('erro', 'Não foi possível atualizar a solicitação.', '/solicitacoes', $e->getMessage());
         }
@@ -166,9 +165,10 @@ class SolicitacaoAdocaoController extends Controller
             $justificativa = (string) ($_POST['justificativa'] ?? '');
             $protetorId = $this->obterProtetorIdAutenticado();
 
-            $this->service->recusar($solicitacaoId, $protetorId, (int) $_SESSION['usuario_id'], $justificativa);
+            $service = new SolicitacaoAdocaoService(null, null, true);
+            $service->recusar($solicitacaoId, $protetorId, (int) $_SESSION['usuario_id'], $justificativa);
 
-            $this->redirecionarComMensagem('sucesso', 'Solicitação recusada.', '/solicitacoes');
+            $this->redirecionarComMensagemAposResposta('sucesso', 'Solicitação recusada.', '/solicitacoes', [$service, 'enviarAvisosPendentes']);
         } catch (\Throwable $e) {
             $this->redirecionarComMensagem('erro', 'Não foi possível recusar a solicitação.', '/solicitacoes/detalhes?id=' . (int) ($_POST['id'] ?? 0), $e->getMessage());
         }
@@ -184,15 +184,15 @@ class SolicitacaoAdocaoController extends Controller
             $solicitacaoId = (int) ($_POST['id'] ?? 0);
             $protetorId = $this->obterProtetorIdAutenticado();
 
-            $this->service->aprovar($solicitacaoId, $protetorId, (int) $_SESSION['usuario_id']);
+            $service = new SolicitacaoAdocaoService(null, null, true);
+            $service->aprovar($solicitacaoId, $protetorId, (int) $_SESSION['usuario_id']);
 
-            $this->redirecionarComMensagem('sucesso', 'Adoção aprovada.', '/solicitacoes?aba=aprovadas');
+            $this->redirecionarComMensagemAposResposta('sucesso', 'Adoção aprovada.', '/solicitacoes?aba=aprovadas', [$service, 'enviarAvisosPendentes']);
         } catch (\Throwable $e) {
             $this->redirecionarComMensagem('erro', 'Não foi possível aprovar a solicitação.', '/solicitacoes', $e->getMessage());
         }
     }
 
-    // ===================== Uso interno =====================
 
     /**
      * Bloqueia o perfil fora do escopo do método (ex: protetor tentando criar()) — por

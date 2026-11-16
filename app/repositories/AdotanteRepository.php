@@ -8,7 +8,6 @@ use PDO;
 
 class AdotanteRepository extends BaseRepository
 {
-    // Usado por: PerfilController, OnBoardingService e PerfilService::atualizarPerfil()
     public function buscarPorUsuarioId(int $usuarioId): ?array
     {
         $sql = "SELECT * FROM ADOTANTE WHERE usuario_id = :usuario_id AND deletado_em IS NULL LIMIT 1";
@@ -20,7 +19,6 @@ class AdotanteRepository extends BaseRepository
         return $dados ?: null;
     }
 
-    // Usado por: OnBoardingService::processarAdotante() e PerfilService::atualizarPerfil()
     public function salvar(Adotante $adotante): int
     {
         $sql = "INSERT INTO ADOTANTE (usuario_id, tipo_moradia, foto_perfil, descricao, tamanho_interno_moradia, detalhes)
@@ -39,7 +37,6 @@ class AdotanteRepository extends BaseRepository
         return (int) $this->db->lastInsertId();
     }
 
-    // Usado por: PerfilService::atualizarPerfil()
     public function atualizarDadosAdotante(int $usuarioId, string $tipoMoradia, ?string $tamanhoInterno, string $detalhesJson, ?string $fotoPerfil): bool
     {
         $sql = "UPDATE ADOTANTE 

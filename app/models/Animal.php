@@ -17,6 +17,8 @@ class Animal
     private bool $vacinado = false;
     private bool $castrado = false;
     private ?string $comportamento = null;
+    private ?array $tracoIds = null;
+    private array $tracos = [];
     private ?string $historicoSaude = null;
     private ?string $criadoEm = null;
     private ?string $deletadoEm = null;
@@ -59,6 +61,15 @@ class Animal
 
     public function getComportamento(): ?string { return $this->comportamento; }
     public function setComportamento(?string $comportamento): void { $this->comportamento = $comportamento; }
+
+    public function getTracoIds(): ?array { return $this->tracoIds; }
+    public function setTracoIds(?array $ids): void { $this->tracoIds = $ids; }
+    public function getTracos(): array { return $this->tracos; }
+    public function setTracos(array $tracos): void
+    {
+        $this->tracos = $tracos;
+        $this->tracoIds = array_map('intval', array_column($tracos, 'traco_id'));
+    }
 
     public function getHistoricoSaude(): ?string { return $this->historicoSaude; }
     public function setHistoricoSaude(?string $historicoSaude): void { $this->historicoSaude = $historicoSaude; }

@@ -9,7 +9,6 @@ use PDO;
 
 class RacaRepository extends BaseRepository
 {
-    // Usado por: RacaService::listarTodas() e RacaController
     public function listarTodas(string $status = 'todos'): array
     {
         $sql = "SELECT r.*, e.nome AS especie_nome
@@ -30,7 +29,6 @@ class RacaRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapRaca($row), $dados);
     }
 
-    // Usado por: RacaController (listagem para cadastro público de animal)
     public function buscarTodas(): array
     {
         $sql = "SELECT raca_id, especie_id, nome, ativo
@@ -42,7 +40,6 @@ class RacaRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: RacaController::buscarPorEspecie() (endpoint AJAX)
     public function buscarPorEspecie(int $especieId): array
     {
         $sql = "SELECT raca_id, especie_id, nome, ativo
@@ -56,7 +53,6 @@ class RacaRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: RacaService::buscarPorId() e RacaController
     public function buscarPorId(int $id): ?Raca
     {
         $sql = "SELECT * FROM RACA WHERE raca_id = :id";
@@ -68,11 +64,11 @@ class RacaRepository extends BaseRepository
         return $row === false ? null : $this->mapRaca($row);
     }
 
-    // Usado por: RacaService::importarSelecionadas()
-    public function existePorNomeEEspecie(string $nome, int $especieId): bool
+    public function existePorNomeEEspecie(string $nome, int $especieId, int $excetoId = 0): bool
     {
-        $sql = "SELECT COUNT(*) FROM RACA WHERE LOWER(nome) = LOWER(:nome) AND especie_id = :especie_id";
+        $sql = "SELECT COUNT(*) FROM RACA WHERE LOWER(nome) = LOWER(:nome) AND especie_id = :especie_id AND raca_id <> :exceto_id";
         $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':exceto_id', $excetoId, PDO::PARAM_INT);
         $stmt->bindValue(':nome', $nome, PDO::PARAM_STR);
         $stmt->bindValue(':especie_id', $especieId, PDO::PARAM_INT);
         $stmt->execute();
@@ -80,7 +76,6 @@ class RacaRepository extends BaseRepository
         return (int) $stmt->fetchColumn() > 0;
     }
 
-    // Usado por: RacaService::cadastrar() e RacaController::store()
     public function cadastrar(Raca $raca): bool
     {
         $sql = "INSERT INTO RACA (nome, especie_id) VALUES (:nome, :especie_id)";
@@ -91,7 +86,6 @@ class RacaRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: RacaService::atualizar() e RacaController::update()
     public function atualizar(Raca $raca): bool
     {
         $sql = "UPDATE RACA SET nome = :nome, especie_id = :especie_id WHERE raca_id = :id";
@@ -103,7 +97,6 @@ class RacaRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: RacaService::excluir() e RacaController::destroy()
     public function excluir(int $id): bool
     {
         $sql = "UPDATE RACA SET ativo = FALSE WHERE raca_id = :id";
@@ -113,7 +106,6 @@ class RacaRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: RacaService::reativar() e RacaController
     public function reativar(int $id): bool
     {
         try {
@@ -142,7 +134,6 @@ class RacaRepository extends BaseRepository
         }
     }
 
-    // Usado por: RacaRepository::listarTodas() e buscarPorId() (uso interno)
     private function mapRaca(array $row): Raca
     {
         $raca = new Raca();

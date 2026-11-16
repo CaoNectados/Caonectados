@@ -10,29 +10,32 @@ use InvalidArgumentException;
 class RacaService
 {
     private RacaRepository $repository;
-    private string $dogApiKey = 'live_ixYSWbjGA97zCwFVQ30KVxvNyCrXlIJWxVcJRgnMnAmtnr96Q0pwth20JGBIm1LD';
-    private string $catApiKey = 'live_gcPUybmq8t9eNB1iOjDnHPGLfqUOMHtiQaY03pR6sVpRYePIMTQdtRthIt3lDP9K';
+    private string $dogApiKey;
+    private string $catApiKey;
 
     public function __construct(RacaRepository $repository)
     {
         $this->repository = $repository;
+        $arquivoLocal = __DIR__ . '/../config/animais_api.local.php';
+        $configuracao = is_file($arquivoLocal) ? require $arquivoLocal : [];
+        $this->dogApiKey = getenv('DOG_API_KEY') ?: ($configuracao['dog'] ?? '');
+        $this->catApiKey = getenv('CAT_API_KEY') ?: ($configuracao['cat'] ?? '');
     }
 
-    // Usado por: RacaController (listagem/filtro de raças)
     public function listarTodas(string $status = 'todos'): array
     {
         return $this->repository->listarTodas($status);
     }
 
-    // Usado por: RacaController (edição/exclusão de raça)
     public function buscarPorId(int $id): ?Raca
     {
         return $this->repository->buscarPorId($id);
     }
 
-    // Usado por: RacaController::store
     public function cadastrar(Raca $raca): bool
     {
+        $raca->setNome(trim($raca->getNome()));
+        if ($this->repository->existePorNomeEEspecie($raca->getNome(), $raca->getEspecieId())) throw new InvalidArgumentException('Este nome já está cadastrado para esta espécie.');
         ValidationService::validarTexto($raca->getNome(), 'Raça', 1, 100);
         if (!(new EspecieRepository())->buscarPorId($raca->getEspecieId())) throw new InvalidArgumentException('Selecione uma espécie cadastrada.');
         if (trim($raca->getNome()) === '' || $raca->getEspecieId() <= 0) {
@@ -41,9 +44,10 @@ class RacaService
         return $this->repository->cadastrar($raca);
     }
 
-    // Usado por: RacaController::update
     public function atualizar(Raca $raca): bool
     {
+        $raca->setNome(trim($raca->getNome()));
+        if ($this->repository->existePorNomeEEspecie($raca->getNome(), $raca->getEspecieId(), (int) $raca->getId())) throw new InvalidArgumentException('Este nome já está cadastrado para esta espécie.');
         ValidationService::validarTexto($raca->getNome(), 'Raça', 1, 100);
         if (!(new EspecieRepository())->buscarPorId($raca->getEspecieId())) throw new InvalidArgumentException('Selecione uma espécie cadastrada.');
         if ($raca->getId() <= 0 || trim($raca->getNome()) === '' || $raca->getEspecieId() <= 0) {
@@ -52,13 +56,11 @@ class RacaService
         return $this->repository->atualizar($raca);
     }
 
-    // Usado por: RacaController::destroy
     public function excluir(int $id): bool
     {
         return $this->repository->excluir($id);
     }
 
-    // Usado por: RacaController (reativar raça desativada)
     public function reativar(int $id): bool
     {
         return $this->repository->reativar($id);
@@ -67,7 +69,6 @@ class RacaService
     /**
      * Retorna sugestões brutas de cães e gatos utilizando o método unificado.
      */
-    // Usado por: RacaController (busca de sugestões de raças via API externa)
     public function buscarSugestoesExternas(): array
     {
         return [
@@ -79,7 +80,6 @@ class RacaService
     /**
      * Cadastra em lote as raças selecionadas pelo administrador.
      */
-    // Usado por: RacaController::importar
     public function importarSelecionadas(EspecieRepository $especieRepo, string $especieNome, array $racasAceitas): int
     {
         if (empty($racasAceitas)) {
@@ -88,27 +88,31 @@ class RacaService
 
         ValidationService::validarTexto($especieNome, 'Espécie', 1, 100);
         foreach ($racasAceitas as $nome) ValidationService::validarTexto($nome, 'Raça', 1, 100);
-        $especie = $especieRepo->buscarOuCriarPorNome($especieNome);
-        $cadastros = 0;
-
-        foreach ($racasAceitas as $nomeRaca) {
-            $nomeRaca = trim($nomeRaca);
-            if ($nomeRaca !== '' && !$this->repository->existePorNomeEEspecie($nomeRaca, $especie->getId())) {
+        $db = \app\database\ConnectionFactory::getConnection();
+        $propria = !$db->inTransaction();
+        if ($propria) $db->beginTransaction();
+        try {
+            $especie = $especieRepo->buscarOuCriarPorNome(trim($especieNome));
+            $cadastros = 0;
+            foreach (array_unique(array_map('trim', $racasAceitas)) as $nomeRaca) {
+                if ($nomeRaca === '' || $this->repository->existePorNomeEEspecie($nomeRaca, $especie->getId())) continue;
                 $raca = new Raca();
                 $raca->setNome($nomeRaca);
                 $raca->setEspecieId($especie->getId());
                 $this->repository->cadastrar($raca);
                 $cadastros++;
             }
+            if ($propria) $db->commit();
+            return $cadastros;
+        } catch (\Throwable $e) {
+            if ($propria && $db->inTransaction()) $db->rollBack();
+            throw $e;
         }
-
-        return $cadastros;
     }
 
     /**
      * Método unificado e privado para consumir qualquer API externa de raças.
      */
-    // Usado por: buscarSugestoesExternas()
     private function buscarDaApi(string $url, string $apiKey): array
     {
         $headers = [

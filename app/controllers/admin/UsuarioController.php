@@ -18,24 +18,32 @@ class UsuarioController extends AdminBaseController
 
     public function classificacao(): void
     {
-        $this->validarCsrf();
-        $id=(int)($_POST['usuario_id'] ?? $_GET['id'] ?? 0);
+        $id = filter_var($_POST['usuario_id'] ?? $_GET['id'] ?? 0, FILTER_VALIDATE_INT);
+        if ($id === false || $id < 1) {
+            $this->redirecionarComMensagem('erro', 'Perfil inválido.', '/admin/gerenciar-usuarios');
+        }
+        $service = new \app\services\ClassificacaoProtetorService();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $valor=$_POST['inadimplente'] ?? '';
-                if (!in_array($valor,['0','1'],true)) throw new \DomainException('Classificação inválida.');
-                (new \app\services\ClassificacaoProtetorService())->classificar($id,(int)$_SESSION['usuario_id'],$valor === '1',(string)($_POST['motivo'] ?? ''));
-                $this->redirecionarComMensagem('sucesso','Classificação registrada.','/admin/gerenciar-usuarios');
+                $motivo = $_POST['motivo'] ?? '';
+                if (!in_array($valor,['0','1'],true) || !is_string($motivo)) throw new \DomainException('Classificação ou justificativa inválida.');
+                $service->classificar($id,(int)$_SESSION['usuario_id'],$valor === '1',$motivo);
+                $this->redirecionarComMensagem('sucesso','Classificação registrada no histórico.','/admin/protetores/classificacao?id='.$id);
             } catch (\Throwable $e) {
                 $this->redirecionarComMensagem('erro',$e instanceof \DomainException ? $e->getMessage() : 'Não foi possível registrar a classificação.','/admin/protetores/classificacao?id='.$id);
             }
         }
-        $p=(new \app\repositories\ProtetorRepository())->buscarPorUsuarioId($id);
-        if (!$p) { http_response_code(404); return; }
-        $this->view('admin/classificacao_protetor',['titulo'=>'Classificação do protetor','protetor'=>$p,'usuarioId'=>$id]);
+        try {
+            $pagina = filter_var($_GET['pagina'] ?? 1, FILTER_VALIDATE_INT);
+            if ($pagina === false) throw new \DomainException('Página inválida.');
+            $dados = $service->consultarParaAdmin($id, (int) $_SESSION['usuario_id'], $pagina);
+            $this->view('admin/classificacao_protetor', $dados + ['titulo'=>'Classificação do protetor','usuarioId'=>$id]);
+        } catch (\Throwable $e) {
+            $this->redirecionarComMensagem('erro', $e instanceof \DomainException ? $e->getMessage() : 'Não foi possível consultar a classificação.', '/admin/gerenciar-usuarios');
+        }
     }
 
-    // Usado por: rota GET /admin/gerenciar-usuarios
     public function index(): void
     {
         $filtros = [
@@ -53,7 +61,6 @@ class UsuarioController extends AdminBaseController
         ]));
     }
 
-    // Usado por: rota GET /admin/usuarios/detalhes
     public function detalhes(): void
     {
         try {
@@ -69,7 +76,6 @@ class UsuarioController extends AdminBaseController
         }
     }
 
-    // Usado por: rota POST /admin/usuarios/alterar-status
     public function alterarStatusUsuario(): void
     {
         try {
@@ -88,7 +94,6 @@ class UsuarioController extends AdminBaseController
         }
     }
 
-    // Usado por: rota POST /admin/usuarios/alterar-status-perfil
     public function alterarStatusPerfil(): void
     {
         try {

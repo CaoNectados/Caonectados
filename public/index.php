@@ -55,8 +55,6 @@ $router->get('/aguardando-aprovacao', 'onboarding/OnBoardingController@aguardand
 // ==========================================
 // 3. ROTAS GERAIS (PERFIL)
 // ==========================================
-// Feed temporariamente removido desta etapa do projeto (controller/view/repository
-// mantidos no código para reativação futura — só a rota está desligada).
 $router->get('/feed', 'geral/FeedController@index');
 $router->get('/feed/carregar-mais', 'geral/FeedController@carregarMais');
 $router->get('/pesquisar', 'geral/FeedController@pesquisar');
@@ -127,10 +125,9 @@ $router->post('/redefinir-senha/processar', 'auth/AuthController@processarRedefi
 
 // Dashboard
 $router->get('/admin/dashboard', 'admin/DashboardController@index');
-
-// Relatórios e Estatísticas (RF 12) — visão global e consolidada
-
-// Denúncias (listagem básica — fluxo de moderação ainda não implementado)
+$router->get('/admin/animais', 'admin/AnimalController@index');
+$router->post('/admin/animais/desativar', 'admin/AnimalController@desativar');
+$router->post('/admin/animais/reativar', 'admin/AnimalController@reativar');
 
 // Solicitações de Cadastro (ONGs e Protetores)
 $router->get('/admin/solicitacoes/documento', 'admin/SolicitacaoProtetorController@documento');

@@ -16,7 +16,6 @@ class RegiaoService
         $this->regiaoRepository = $regiaoRepository;
     }
 
-    // Usado por: RegiaoController::store
     public function cadastrarRegiao(Regiao $regiao): void
     {
         $this->validarRegiao($regiao);
@@ -36,7 +35,6 @@ class RegiaoService
         $regiao->setRegiaoId($resultado);
     }
 
-    // Usado por: RegiaoController::update
     public function editarRegiao(Regiao $regiao): void
     {
         $this->validarRegiao($regiao);
@@ -54,7 +52,6 @@ class RegiaoService
         }
     }
 
-    // Usado por: RegiaoController::destroy
     public function excluirRegiao(int $id): void
     {
         $this->validarPermissaoAdmin();
@@ -94,14 +91,12 @@ class RegiaoService
         }
     }
 
-    // Usado por: cadastrarRegiao(), editarRegiao()
     private function validarRegiao(Regiao $regiao): void
     {
         ValidationService::validarTexto($regiao->getNomeRegiao(), 'Bairro/região', 3, 100);
         $this->validarNome($regiao->getNomeRegiao());
     }
 
-    // Usado por: validarRegiao()
     private function validarNome(?string $nome): void
     {
         if (trim((string) $nome) === '') {
@@ -113,7 +108,6 @@ class RegiaoService
         }
     }
 
-    // Usado por: cadastrarRegiao(), editarRegiao(), excluirRegiao()
     private function validarPermissaoAdmin(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {

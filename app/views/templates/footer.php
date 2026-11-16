@@ -254,5 +254,9 @@ $noFeedRodape = $caminhoRodape === rtrim(parse_url(URL_BASE, PHP_URL_PATH) ?: ''
     <?php unset($_SESSION['feedback']); ?>
     <?php endif; ?>
 
+<script src="<?= e(asset('assets/js/interface-acessivel.js')) ?>"></script>
+<?php if (defined('APRESENTACAO') && APRESENTACAO === true): ?>
+<script src="<?= e(asset('assets/js/preenchimento-apresentacao.js')) ?>" data-base="<?= e(URL_BASE) ?>" data-logo="<?= e(asset('assets/img/logo.png')) ?>" defer></script>
+<?php endif; ?>
 </body>
 </html>

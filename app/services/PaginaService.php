@@ -33,7 +33,6 @@ class PaginaService
         $this->uploadService = new UploadService();
     }
 
-    // Usado por: PaginaController::editar() — dados pra tela de gestão (área logada)
     public function obterDadosGerenciamento(int $protetorId): array
     {
         return [
@@ -42,7 +41,6 @@ class PaginaService
         ];
     }
 
-    // Usado por: PaginaController::atualizar() (UC 19.1 / UC 19.2 — descrição e chave PIX)
     public function atualizarDescricaoEChavePix(int $protetorId, ?string $descricao, ?string $chavePix, string $tipoChavePix = 'auto'): void
     {
         $descricao = trim($descricao ?? '');
@@ -78,7 +76,6 @@ class PaginaService
      * disco (UC 19.3). $tipoFoto controla qual coluna é afetada — a outra fica intocada
      * graças ao COALESCE em PaginaRepository::atualizarPagina().
      */
-    // Usado por: PaginaController::atualizar()
     public function atualizarFoto(int $protetorId, string $tipoFoto, $arquivoOuBase64): void
     {
         if (!in_array($tipoFoto, ['foto_perfil', 'foto_fundo'], true)) {
@@ -119,7 +116,6 @@ class PaginaService
         }
     }
 
-    // Usado por: PaginaController::adicionarRede() (UC 19.2)
     public function adicionarRede(int $protetorId, string $tipoRede, string $linkRede): void
     {
         $tipoRede = strtolower(trim($tipoRede));
@@ -145,7 +141,6 @@ class PaginaService
         $this->redeRepo->salvar($rede);
     }
 
-    // Usado por: PaginaController::removerRede() (UC 19.2)
     public function removerRede(int $redeId, int $protetorIdEsperado): void
     {
         $rede = $this->redeRepo->buscarPorId($redeId);
@@ -164,7 +159,6 @@ class PaginaService
      * visível (RN 01 — protetor não validado/deletado), já checado dentro da própria query
      * de ProtetorRepository::buscarPorProtetorIdCompleto().
      */
-    // Usado por: PaginaController::publica()
     public function obterDadosPublicos(int $protetorId): ?array
     {
         $protetor = $this->protetorRepo->buscarPorProtetorIdCompleto($protetorId);

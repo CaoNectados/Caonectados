@@ -1,7 +1,6 @@
 <?php
 // app/helpers/ViewHelper.php
 
-// Usado por: dezenas de trechos em app/views/templates/header.php, footer.php, modal_boas_vindas.php, home/index.php e onboarding/adotante_onboarding.php (escape de saída HTML)
 if (!function_exists('e')) {
     function e(?string $valor): string
     {
@@ -18,7 +17,6 @@ function renderVoltar(string $rota, string $rotulo = 'Voltar'): string
         . '" alt="" class="h-6 w-6 dark:brightness-0 dark:invert">' . e($rotulo) . '</a></nav>';
 }
 
-// Usado por: templates/footer.php e views com <script>/<link> próprios — versiona arquivos
 // estáticos (JS/CSS) via query string a partir do horário de modificação do arquivo, para
 // que o navegador busque a versão nova assim que o arquivo é editado em vez de servir uma
 // cópia em cache (ex.: o bug de "CaonectadosValidator.validarEmail is not a function" após
@@ -36,7 +34,6 @@ if (!function_exists('asset')) {
     }
 }
 
-// Usado por: app/views/templates/header.php (itens do menu de navegação)
 function renderIconeMenu(
     string $nomeArquivo,
     string $descricao,

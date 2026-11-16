@@ -9,11 +9,11 @@
             </h1>
             <p class="text-sm text-text-muted mt-1">Gerencie, aprove ou desative as raças do catálogo.</p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="<?= URL_BASE ?>/admin/raca/cadastrar" class="btn-primario text-xs sm:text-sm whitespace-nowrap">
+        <div class="grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <a href="<?= URL_BASE ?>/admin/raca/cadastrar" class="btn-primario min-h-11 min-w-0 text-center text-xs sm:text-sm whitespace-normal">
                 + Cadastrar Nova Raça
             </a>
-            <a href="<?= URL_BASE ?>/admin/especie" class="btn-secundario text-xs sm:text-sm whitespace-nowrap dark:text-white">
+            <a href="<?= URL_BASE ?>/admin/especie" class="btn-secundario min-h-11 min-w-0 text-center text-xs sm:text-sm whitespace-normal dark:text-white">
                 Ir para Espécies
             </a>
         </div>
@@ -27,7 +27,7 @@
     <!-- Filtros de Status e Busca -->
     <div class="card-padrao mb-6 border border-rosa-1 dark:border-preto3 p-4 bg-surface dark:bg-surface">
         <form method="GET" action="<?= URL_BASE ?>/admin/raca/" class="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="flex w-full min-w-0 flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <label for="status" class="text-sm font-semibold text-text-dark dark:text-white whitespace-nowrap">Filtrar por Status:</label>
                 <select name="status" id="status" onchange="this.form.submit()" class="input-padrao py-1.5 px-3 text-sm bg-branco dark:bg-preto2 text-text-dark dark:text-white border-cinzaMarrom/40">
                     <option value="todos" <?= ($_GET['status'] ?? 'todos') === 'todos' ? 'selected' : '' ?>>Todos</option>

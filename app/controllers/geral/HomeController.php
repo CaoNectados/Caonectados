@@ -11,7 +11,6 @@ use app\core\Controller;
  */
 class HomeController extends Controller
 {
-    // Usado por: rotas GET / e GET /home
     public function index(): void
     {
         $this->view('home/index', [

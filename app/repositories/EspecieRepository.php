@@ -8,7 +8,6 @@ use PDO;
 
 class EspecieRepository extends BaseRepository
 {
-    // Usado por: EspecieService::listarTodas() e EspecieController
     public function listarTodas(string $status = 'todos'): array
     {
         $sql = "SELECT * FROM ESPECIE";
@@ -27,7 +26,6 @@ class EspecieRepository extends BaseRepository
         return array_map(fn(array $row) => $this->mapEspecie($row), $dados);
     }
 
-    // Usado por: PerfilController::exibirPerfil()
     public function listarAtivas(): array
     {
         $sql = "SELECT especie_id, nome, ativo
@@ -38,7 +36,6 @@ class EspecieRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: EspecieController::index() e OnBoardingController
     public function buscarTodas(): array
     {
         $sql = "SELECT especie_id, nome FROM ESPECIE WHERE ativo = TRUE ORDER BY nome ASC";
@@ -47,7 +44,6 @@ class EspecieRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: AnimalController::cadastrarForm()
     public function buscarAtivas(): array
     {
         $sql = "SELECT especie_id, nome FROM ESPECIE WHERE ativo = 1 ORDER BY nome ASC";
@@ -55,7 +51,6 @@ class EspecieRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Usado por: EspecieService::buscarPorId() e EspecieController
     public function buscarPorId(int $especieId): ?Especie
     {
         $sql = "SELECT * FROM ESPECIE WHERE especie_id = :id LIMIT 1";
@@ -67,7 +62,6 @@ class EspecieRepository extends BaseRepository
         return $res ? $this->mapEspecie($res) : null;
     }
 
-    // Usado por: RacaService::importarSelecionadas()
     public function buscarOuCriarPorNome(string $nome): Especie
     {
         $sql = "SELECT * FROM ESPECIE WHERE LOWER(nome) = LOWER(:nome)";
@@ -92,7 +86,13 @@ class EspecieRepository extends BaseRepository
         return $especie;
     }
 
-    // Usado por: EspecieService::cadastrar() e EspecieController::store()
+    public function existePorNome(string $nome, int $excetoId = 0): bool
+    {
+        $stmt = $this->db->prepare('SELECT 1 FROM ESPECIE WHERE nome = ? AND especie_id <> ? LIMIT 1');
+        $stmt->execute([trim($nome), $excetoId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function cadastrar(Especie $especie): bool
     {
         $sql = "INSERT INTO ESPECIE (nome) VALUES (:nome)";
@@ -102,7 +102,6 @@ class EspecieRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: EspecieService::atualizar() e EspecieController::update()
     public function atualizar(Especie $especie): bool
     {
         $sql = "UPDATE ESPECIE SET nome = :nome WHERE especie_id = :id";
@@ -113,7 +112,6 @@ class EspecieRepository extends BaseRepository
         return $stmt->execute();
     }
 
-    // Usado por: EspecieService::excluir() e EspecieController::destroy()
     public function excluir(int $id): bool
     {
         try {
@@ -136,7 +134,6 @@ class EspecieRepository extends BaseRepository
         }
     }
 
-    // Usado por: EspecieService::reativar() e EspecieController
     public function reativar(int $id): bool
     {
         try {
@@ -159,7 +156,6 @@ class EspecieRepository extends BaseRepository
         }
     }
 
-    // Usado por: EspecieRepository::listarTodas(), buscarPorId() e buscarOuCriarPorNome() (uso interno)
     private function mapEspecie(array $row): Especie
     {
         $especie = new Especie();

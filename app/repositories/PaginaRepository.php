@@ -8,7 +8,6 @@ use PDO;
 
 class PaginaRepository extends BaseRepository
 {
-    // Usado por: PerfilController, PerfilService e OnBoardingService (também usado em views/perfil/perfil.php)
     public function buscarPorProtetorId(int $protetorId): ?array
     {
         $sql = "SELECT * FROM PAGINA WHERE protetor_id = :protetor_id LIMIT 1";
@@ -20,7 +19,6 @@ class PaginaRepository extends BaseRepository
         return $dados ?: null;
     }
 
-    // Usado por: OnBoardingService::processarOng() e PerfilService::atualizarPerfil()
     public function salvar(Pagina $pagina): int
     {
         $sql = "INSERT INTO PAGINA (protetor_id, descricao, foto_fundo, foto_perfil, chave_pix)
@@ -37,7 +35,6 @@ class PaginaRepository extends BaseRepository
         return (int) $this->db->lastInsertId();
     }
 
-    // Usado por: PerfilService::atualizarPerfil() e OnBoardingService (fluxo de reenvio de protetor)
     public function atualizarPagina(int $protetorId, ?string $descricao, ?string $chavePix, ?string $fotoPerfil, ?string $fotoFundo = null): bool
     {
         $sql = "UPDATE PAGINA

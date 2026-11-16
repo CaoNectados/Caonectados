@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const datalist = document.getElementById('lista-regioes');
     const hiddenId = document.getElementById('regiao_id_hidden');
     const panel = document.getElementById('lista-regioes-combobox');
-    if (!input || !datalist || !hiddenId || !panel) return;
+    if (!input || input.tagName === 'SELECT' || !datalist || !hiddenId || !panel) return;
 
     const regioes = [...datalist.options].map((option) => ({
         id: option.dataset.id || '',

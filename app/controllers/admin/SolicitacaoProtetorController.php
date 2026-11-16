@@ -12,10 +12,9 @@ class SolicitacaoProtetorController extends AdminBaseController
     {
         parent::__construct();
         $this->validarCsrf();
-        $this->solicitacaoService = new SolicitacaoService();
+        $this->solicitacaoService = new SolicitacaoService(null, true);
     }
 
-    // Usado por: rota GET /admin/solicitacoes
     public function index(): void
     {
         $status = $_GET['status'] ?? 'pendentes';
@@ -55,7 +54,6 @@ class SolicitacaoProtetorController extends AdminBaseController
         readfile($caminho);
     }
 
-    // Usado por: rota GET /admin/solicitacoes/detalhes
     public function detalhes(): void
     {
         $id = (int)($_GET['id'] ?? 0);
@@ -74,7 +72,6 @@ class SolicitacaoProtetorController extends AdminBaseController
         ]);
     }
 
-    // Usado por: rota POST /admin/solicitacoes/aprovar
     public function aprovar(): void
     {
         $id = (int)($_POST['protetor_id'] ?? 0);
@@ -84,7 +81,7 @@ class SolicitacaoProtetorController extends AdminBaseController
 
         try {
         if ($this->solicitacaoService->aprovarSolicitacao($id)) {
-            $this->redirecionarComMensagem('sucesso', 'Cadastro aprovado e validado com sucesso!', '/admin/solicitacoes');
+            $this->redirecionarComMensagemAposResposta('sucesso', 'Cadastro aprovado e validado com sucesso!', '/admin/solicitacoes', [$this->solicitacaoService, 'enviarAvisosPendentes']);
         }
         } catch (\Throwable $e) {
             $this->redirecionarComMensagem('erro', 'Não foi possível aprovar o cadastro. Confira o estado da solicitação.', '/admin/solicitacoes');
@@ -93,7 +90,6 @@ class SolicitacaoProtetorController extends AdminBaseController
         $this->redirecionarComMensagem('erro', 'Ocorreu um erro ao aprovar o cadastro.', '/admin/solicitacoes');
     }
 
-    // Usado por: rota POST /admin/solicitacoes/rejeitar
     public function rejeitar(): void
     {
         $id = (int)($_POST['protetor_id'] ?? 0);
@@ -109,7 +105,7 @@ class SolicitacaoProtetorController extends AdminBaseController
 
         try {
         if ($this->solicitacaoService->recusarSolicitacao($id, $motivo)) {
-            $this->redirecionarComMensagem('sucesso', 'Solicitação recusada com sucesso.', '/admin/solicitacoes');
+            $this->redirecionarComMensagemAposResposta('sucesso', 'Solicitação recusada com sucesso.', '/admin/solicitacoes', [$this->solicitacaoService, 'enviarAvisosPendentes']);
         }
         } catch (\Throwable $e) {
             $this->redirecionarComMensagem('erro', $e instanceof \Exception && !($e instanceof \PDOException) ? $e->getMessage() : 'Não foi possível recusar o cadastro.', '/admin/solicitacoes/detalhes?id=' . $id);

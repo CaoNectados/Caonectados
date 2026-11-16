@@ -13,7 +13,6 @@ class RegiaoController extends AdminBaseController
     private RegiaoService $service;
     private RegiaoRepository $regiaoRepo;
 
-    // Usado por: instanciado pelo Router para todas as rotas /admin/regiao/*
     public function __construct()
     {
         parent::__construct();
@@ -24,7 +23,6 @@ class RegiaoController extends AdminBaseController
         $this->service = new RegiaoService($this->regiaoRepo);
     }
 
-    // Usado por: rota GET /admin/regiao
     public function index(): void
     {
         try {
@@ -38,7 +36,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota GET /admin/regiao/cadastrar
     public function create(): void
     {
         $this->view('regiao/cadastrar', [
@@ -46,7 +43,6 @@ class RegiaoController extends AdminBaseController
         ]);
     }
 
-    // Usado por: rota POST /admin/regiao/salvar
     public function store(): void
     {
         try {
@@ -62,7 +58,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota GET /admin/regiao/editar
     public function edit(): void
     {
         try {
@@ -82,7 +77,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota POST /admin/regiao/atualizar
     public function update(): void
     {
         try {
@@ -100,7 +94,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota GET /admin/regiao/excluir
     public function deleteView(): void
     {
         try {
@@ -120,7 +113,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota POST /admin/regiao/deletar
     public function destroy(): void
     {
         try {
@@ -135,7 +127,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota GET /admin/regiao/json
     public function buscarJson(): void
     {
         try {
@@ -146,7 +137,6 @@ class RegiaoController extends AdminBaseController
         }
     }
 
-    // Usado por: rota POST /admin/regiao/deletar-multiplos
     public function deletarMultiplos(): void
     {
         try {

@@ -11,7 +11,6 @@ use PDO;
  */
 class HistoricoSolicitacaoRepository extends BaseRepository
 {
-    // Usado por: SolicitacaoAdocaoService — toda transição de status (criação inclusive,
     // com status_antigo = null)
     public function registrar(int $solicitacaoId, int $usuarioResponsavelId, ?string $statusAntigo, string $statusNovo): void
     {

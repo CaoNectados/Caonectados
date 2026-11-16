@@ -27,7 +27,7 @@
         }
 
         .text-muted {
-            color: #9E9E9E !important;
+            color: #62596B !important;
             font-family: 'Poppins', Arial, sans-serif;
         }
 
@@ -116,7 +116,7 @@
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed; padding: 40px 0;" class="email-bg">
         <tr>
             <td align="center">
-                <table border="0" cellpadding="0" cellspacing="0" width="600" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" class="email-container">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="width:100%; max-width:600px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" class="email-container">
 
                     <!-- HEADER DO EMAIL -->
                     <tr>

@@ -7,7 +7,6 @@ use app\repositories\UsuarioRepository;
 
 class DashboardController extends AdminBaseController
 {
-    // Usado por: rota GET /admin/dashboard
     public function index()
     {
         $protetorRepo = new ProtetorRepository();

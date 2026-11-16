@@ -21,7 +21,6 @@ class AuthController extends Controller
         $this->authService = new AuthService();
     }
 
-    // Usado por: rota GET /login
     public function login()
     {
         $this->redirecionarSeAutenticado();
@@ -31,7 +30,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /login
     public function processarLogin()
     {
         $email = trim($_POST['email'] ?? '');
@@ -50,12 +48,15 @@ class AuthController extends Controller
                 $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
                 $usuarioRepo = new UsuarioRepository();
-                $usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
+                $codigoId = $usuarioRepo->salvarCodigoVerificacao($usuario->getUsuarioId(), $codigo, $expiraEm);
 
                 // Define as sessões para a validação do 2FA
                 $_SESSION['admin_2fa'] = [
                     'usuario_id' => $usuario->getUsuarioId(),
-                    'email'      => $usuario->getEmail()
+                    'email'      => $usuario->getEmail(),
+                    'codigo_id'  => $codigoId,
+                    'tentativas' => 0,
+                    'expira_em'  => $expiraEm
                 ];
                 // Variável usada na view verificar_email.php
                 $_SESSION['email_pendente_verificacao'] = $usuario->getEmail();
@@ -84,7 +85,6 @@ class AuthController extends Controller
                 $urlRedirect = '/aguardando-aprovacao';
             } else {
                 // Adotantes e Protetores validados (1) vão para o perfil.
-                // TODO: trocar para '/feed' quando o Feed voltar a ser implementado.
                 $urlRedirect = '/perfil';
             }
 
@@ -99,7 +99,6 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /cadastro
     public function cadastro()
     {
         $this->redirecionarSeAutenticado();
@@ -114,7 +113,6 @@ class AuthController extends Controller
         $this->view('auth/termos', ['titulo' => 'Termos e privacidade']);
     }
 
-    // Usado por: rota POST /cadastro
     public function processarCadastro()
     {
         $email = trim($_POST['email'] ?? '');
@@ -175,7 +173,6 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /logout
     public function logout()
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -186,13 +183,11 @@ class AuthController extends Controller
         $this->redirecionarComMensagem('sucesso', 'Sessão encerrada com sucesso.', '/login');
     }
 
-    // Usado por: rota GET /verificar-email
     public function telaVerificacao()
     {
         $this->view('auth/verificar_email', ['titulo' => 'Verificação de Segurança']);
     }
 
-    // Usado por: rota POST /verificar-email/validar
     public function processarVerificacao()
     {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -212,14 +207,19 @@ class AuthController extends Controller
                 $dadosPendente = $_SESSION['admin_2fa'];
                 $usuarioRepo = new UsuarioRepository();
 
-                $registro = $usuarioRepo->buscarCodigoValido($dadosPendente['usuario_id'], $codigoInformado);
-
-                if (!$registro) {
-                    $this->json(400, ['status' => 'erro', 'mensagem' => 'Código inválido ou expirado.']);
+                if (strtotime($dadosPendente['expira_em'] ?? '') < time()
+                    || ($_SESSION['admin_2fa']['tentativas'] ?? 0) >= 5) {
+                    unset($_SESSION['admin_2fa'], $_SESSION['email_pendente_verificacao']);
+                    $this->json(429, ['status' => 'erro', 'mensagem' => 'Verificação expirada. Entre novamente para receber um novo código.']);
                     return;
                 }
-
-                $usuarioRepo->marcarCodigoComoUsado((int)$registro['codigo_id']);
+                $_SESSION['admin_2fa']['tentativas'] = ($dadosPendente['tentativas'] ?? 0) + 1;
+                if (!$usuarioRepo->consumirCodigoAdmin((int)$dadosPendente['usuario_id'], (int)($dadosPendente['codigo_id'] ?? 0), $codigoInformado)) {
+                    $limite = $_SESSION['admin_2fa']['tentativas'] >= 5;
+                    if ($limite) unset($_SESSION['admin_2fa'], $_SESSION['email_pendente_verificacao']);
+                    $this->json($limite ? 429 : 400, ['status' => 'erro', 'mensagem' => $limite ? 'Muitas tentativas. Entre novamente para solicitar outro código.' : 'Código inválido ou expirado.']);
+                    return;
+                }
 
                 $usuarioObj = $usuarioRepo->buscarPorEmail($dadosPendente['email']);
                 if ($usuarioObj) {
@@ -282,7 +282,6 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /reenviar-codigo
     public function reenviarCodigo()
     {
         try {
@@ -297,7 +296,8 @@ class AuthController extends Controller
                 $expiraEm = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
                 $usuarioRepo = new UsuarioRepository();
-                $usuarioRepo->salvarCodigoVerificacao($usuarioId, $novoCodigo, $expiraEm);
+                $_SESSION['admin_2fa']['codigo_id'] = $usuarioRepo->salvarCodigoVerificacao($usuarioId, $novoCodigo, $expiraEm);
+                $_SESSION['admin_2fa']['expira_em'] = $expiraEm;
 
                 $usuarioAtual = $usuarioRepo->buscarPorId((int)$usuarioId);
                 MailService::enviarCodigoVerificacao($email, $usuarioAtual['nome'] ?? 'Administrador', $novoCodigo, 'login_admin');
@@ -324,14 +324,12 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /esqueci-senha
     public function esqueciSenha()
     {
         $this->redirecionarSeAutenticado();
         $this->view('auth/esqueci_senha', ['titulo' => 'Esqueci minha senha']);
     }
 
-    // Usado por: rota POST /esqueci-senha/processar
     public function processarEsqueciSenha()
     {
         $email = trim($_POST['email'] ?? '');
@@ -355,7 +353,6 @@ class AuthController extends Controller
         }
     }
 
-    // Usado por: rota GET /redefinir-senha
     public function redefinirSenha()
     {
         $this->redirecionarSeAutenticado();
@@ -374,7 +371,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // Usado por: rota POST /redefinir-senha/processar
     public function processarRedefinirSenha()
     {
         $email = trim($_POST['email'] ?? '');

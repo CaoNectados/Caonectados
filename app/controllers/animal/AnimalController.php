@@ -30,10 +30,12 @@ class AnimalController extends Controller
         $this->service = new AnimalService($repository);
     }
 
-    // Usado por: rotas GET /animal e GET /gerenciar-animais
     public function index(): void
     {
-        $this->autenticacaoRequired(['protetor', 'ong']);
+        $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        if (($_SESSION['tipo_perfil'] ?? '') === 'administrador') {
+            $this->redirect('/admin/animais');
+        }
 
         try {
             $tipoPerfil = $_SESSION['tipo_perfil'] ?? '';
@@ -52,7 +54,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota GET /animal/mostrar
     public function show(): void
     {
         // Perfil público do animal: qualquer usuário autenticado (inclusive adotantes
@@ -74,7 +75,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota GET /animal/cadastrar
     public function create(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -82,10 +82,9 @@ class AnimalController extends Controller
         $especieRepo = new EspecieRepository($this->db);
         $especies = $especieRepo->buscarAtivas();
 
-        $this->view('animal/cadastrar', ['titulo' => 'Cadastrar Animal', 'especies' => $especies]);
+        $this->view('animal/cadastrar', ['titulo' => 'Cadastrar Animal', 'especies' => $especies, 'tracosDisponiveis' => (new \app\repositories\TracoRepository($this->db))->listar()]);
     }
 
-    // Usado por: rota POST /animal
     public function store(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -115,7 +114,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota GET /animal/editar
     public function edit(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -130,6 +128,7 @@ class AnimalController extends Controller
             $racas = array_filter((new RacaRepository($this->db))->listarTodas(), fn($r) => $r->isAtivo() || $r->getId() === $animal->getRacaId());
             $this->view('animal/editar', [
                 'titulo' => 'Editar Animal', 'animal' => $animal,
+                'tracosDisponiveis' => (new \app\repositories\TracoRepository($this->db))->listar(),
                 'fotosGaleria' => (new AnimalRepository($this->db))->listarFotos($id),
                 'especieAtual' => $racaAtual?->getEspecieId(),
                 'especies' => (new EspecieRepository($this->db))->listarTodas(),
@@ -140,7 +139,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota POST /animal/editar
     public function update(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -156,6 +154,7 @@ class AnimalController extends Controller
 
             $animal = $this->buildAnimalFromArray($data);
             $animal->setAnimalId($id);
+            if (!isset($data['tracos_presentes'])) $animal->setTracoIds($animalExistente->getTracoIds());
             $fotoEnviada = !empty($_POST['foto_cortada'])
                 ? $_POST['foto_cortada'] : ($_FILES['foto'] ?? null);
             $this->persistirComFotos($animal, $fotoEnviada, $_POST['fotos_galeria'] ?? [], false);
@@ -199,6 +198,17 @@ class AnimalController extends Controller
                 $caminhos[] = $caminho;
             }
             $this->db->beginTransaction();
+            if (!$novo) {
+                $lock = $this->db->prepare('SELECT animal_id FROM ANIMAL WHERE animal_id = ? FOR UPDATE');
+                $lock->execute([$animal->getAnimalId()]);
+                $atuais = $repo->listarFotos((int)$animal->getAnimalId());
+                if (count($atuais) + count($caminhos) > 10) {
+                    throw new Exception('O animal pode ter até 10 fotos no total. Recarregue para ver as fotos atuais.');
+                }
+                if ($principalId && !in_array($principalId, array_column($atuais, 'foto_id'))) {
+                    throw new Exception('A foto principal selecionada não está mais disponível.');
+                }
+            }
             if ($novo) $this->service->cadastrarAnimal($animal);
             else $this->service->editarAnimal($animal);
             foreach ($caminhos as $indice => $caminho) {
@@ -214,7 +224,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota GET /animal/excluir
     public function deleteView(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -234,7 +243,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota POST /animal/excluir
     public function destroy(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -242,10 +250,7 @@ class AnimalController extends Controller
             $id = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
             $this->carregarEValidarPropriedade($id);
 
-            foreach (['nome', 'dt_nasc', 'sexo', 'porte', 'status', 'descricao', 'comportamento', 'historico_saude', 'raca_id', 'especie_id', 'vacinado', 'castrado'] as $campo) {
-            if (isset($data[$campo]) && !is_scalar($data[$campo])) throw new Exception('Formato inválido para ' . $campo . '.');
-        }
-        $animal = new Animal();
+            $animal = new Animal();
             $animal->setAnimalId($id);
             $this->service->desativarAnimal($animal);
 
@@ -255,7 +260,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota POST /animal/status
     public function status(): void
     {
         $this->autenticacaoRequired(['protetor', 'ong']);
@@ -264,6 +268,7 @@ class AnimalController extends Controller
             $this->carregarEValidarPropriedade($id);
 
             $status = $_POST['status'] ?? '';
+            if (!is_string($status)) throw new Exception('Selecione um status válido.');
 
             $animal = new Animal();
             $animal->setAnimalId($id);
@@ -276,11 +281,20 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: rota POST /animal/reativar
     public function reativar(): void
     {
         // RF11 permite ao administrador reativar animais; demais perfis ficam limitados aos próprios.
         $this->autenticacaoRequired(['protetor', 'ong', 'administrador']);
+        if (($_SESSION['tipo_perfil'] ?? '') === 'administrador') {
+            try {
+                (new \app\services\AnimalAdminService($this->db))->alterarDisponibilidade(
+                    $this->getIdFromRequest(), (int) $_SESSION['usuario_id'], true
+                );
+                $this->redirecionarComMensagem('sucesso', 'Animal reativado.', '/admin/animais');
+            } catch (\Throwable $e) {
+                $this->redirecionarComMensagem('erro', $e instanceof \DomainException ? $e->getMessage() : 'Não foi possível reativar o animal.', '/admin/animais');
+            }
+        }
         try {
             $id = $this->getIdFromRequest();
             $this->carregarEValidarPropriedade($id);
@@ -295,7 +309,6 @@ class AnimalController extends Controller
         }
     }
 
-    // Usado por: deleteView(), edit(), update(), status(), reativar() e destroy()
     private function carregarEValidarPropriedade(int $animalId): Animal
     {
         $animal = $this->service->buscarPorId($animalId);
@@ -317,7 +330,6 @@ class AnimalController extends Controller
         return $animal;
     }
 
-    // Usado por: index(), store() e carregarEValidarPropriedade()
     private function obterProtetorIdAutenticado(): int
     {
         if (isset($_SESSION['protetor_id']) && (int)$_SESSION['protetor_id'] > 0) {
@@ -337,7 +349,6 @@ class AnimalController extends Controller
         return 0;
     }
 
-    // Usado por: store() e update()
     private function buildAnimalFromArray(?array $data): Animal
     {
         if (!is_array($data)) {
@@ -356,13 +367,21 @@ class AnimalController extends Controller
         $animal->setDescricao((string) ($data['descricao'] ?? ''));
         $animal->setVacinado(!empty($data['vacinado']));
         $animal->setCastrado(!empty($data['castrado']));
-        $animal->setComportamento(($data['comportamento'] ?? '') === '' ? null : $data['comportamento']);
+        if (isset($data['tracos_presentes'])) {
+            $tracos = new \app\repositories\TracoRepository($this->db);
+            $ids = $tracos->validarSelecao($data['tracos'] ?? []);
+            $animal->setTracoIds($ids);
+            $animal->setComportamento($tracos->comportamentoResumo($ids));
+        } else {
+            $comportamento = $data['comportamento'] ?? '';
+            if (!is_string($comportamento)) throw new Exception('Comportamento inválido.');
+            $animal->setComportamento($comportamento === '' ? null : $comportamento);
+        }
         $animal->setHistoricoSaude($data['historico_saude'] ?? null);
 
         return $animal;
     }
 
-    // Usado por: deleteView(), show(), edit(), status() e reativar()
     private function getIdFromRequest(): int
     {
         $id = $_GET['id'] ?? $_POST['id'] ?? null;

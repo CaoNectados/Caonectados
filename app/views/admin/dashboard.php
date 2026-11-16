@@ -7,6 +7,7 @@ $cards=[
 ];
 $atalhos=[['nome'=>'Gerenciar usuários','texto'=>'Contas, perfis e permissões','icone'=>'usuarios.svg','rota'=>'/admin/gerenciar-usuarios'],['nome'=>'Validar cadastros','texto'=>'Analise documentos de protetores e ONGs','icone'=>'auditoria.svg','rota'=>'/admin/solicitacoes'],['nome'=>'Regiões','texto'=>'Bairros e áreas de atuação','icone'=>'bairros.svg','rota'=>'/admin/regiao'],['nome'=>'Espécies e raças','texto'=>'Categorias disponíveis nos cadastros','icone'=>'especies.svg','rota'=>'/admin/gerenciar-especies-racas']];
 ?>
+<?php $atalhos[] = ['nome' => 'Gerenciar animais', 'texto' => 'Anúncios de todas as ONGs e protetores', 'icone' => 'especies.svg', 'rota' => '/admin/animais']; ?>
 <section class="mx-auto max-w-4xl py-6 text-text-dark">
     <div class="mb-6 flex items-center justify-between gap-4 overflow-hidden rounded-3xl border border-rosa-3/50 bg-gradient-to-r from-rosa-1/60 via-surface to-surface px-5 py-4 shadow-sm dark:border-roxinhoFofo/50 dark:from-background dark:via-primary dark:to-surface sm:px-6 sm:py-5">
         <div class="min-w-0">

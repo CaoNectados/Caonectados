@@ -25,8 +25,8 @@ $statusLabels = [
 ];
 
 $tipoPerfilSessao = $_SESSION['tipo_perfil'] ?? '';
-$podeEditar = ($tipoPerfilSessao === 'administrador')
-    || ((int) ($_SESSION['protetor_id'] ?? 0) > 0 && (int) $_SESSION['protetor_id'] === (int) $animal->getProtetorId());
+$podeEditar = in_array($tipoPerfilSessao, ['protetor', 'ong'], true)
+    && (int) ($_SESSION['protetor_id'] ?? 0) > 0 && (int) $_SESSION['protetor_id'] === (int) $animal->getProtetorId();
 ?>
 
 <main class="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -69,10 +69,14 @@ $podeEditar = ($tipoPerfilSessao === 'administrador')
                 <dt class="text-xs uppercase font-bold opacity-60">Vacinado / Castrado</dt>
                 <dd><?= $animal->isVacinado() ? 'Vacinado' : 'Não vacinado' ?> · <?= $animal->isCastrado() ? 'Castrado' : 'Não castrado' ?></dd>
             </div>
-            <?php if (!empty($animal->getComportamento())): ?>
-            <div>
-                <dt class="text-xs uppercase font-bold opacity-60">Comportamento</dt>
-                <dd class="capitalize"><?= htmlspecialchars($animal->getComportamento()) ?></dd>
+            <?php if ($animal->getTracos()): ?>
+            <div class="sm:col-span-2">
+                <dt class="text-xs uppercase font-bold opacity-60 mb-2">Características</dt>
+                <dd class="flex flex-wrap gap-2">
+                    <?php foreach ($animal->getTracos() as $traco): ?>
+                    <span class="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm dark:border-white/30"><?= e($traco['traco']) ?></span>
+                    <?php endforeach; ?>
+                </dd>
             </div>
             <?php endif; ?>
         </dl>

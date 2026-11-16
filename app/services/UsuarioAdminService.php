@@ -21,7 +21,17 @@ class UsuarioAdminService
         $this->protetorRepo = new ProtetorRepository();
     }
 
-    // Usado por: UsuarioController::index
+    private function bloquearAdministradoresAtivos(\PDO $db, int $adminId): void
+    {
+        $ids = $db->query("SELECT usuario_id FROM USUARIO
+            WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos))
+              AND status_conta = 'ativo' AND deletado_em IS NULL
+            ORDER BY usuario_id FOR UPDATE")->fetchAll(\PDO::FETCH_COLUMN);
+        if (!in_array($adminId, array_map('intval', $ids), true)) {
+            throw new Exception('Administrador ativo obrigatório para esta operação.');
+        }
+    }
+
     public function listarUsuarios(array $filtros): array
     {
         $busca = trim($filtros['busca'] ?? '');
@@ -41,7 +51,6 @@ class UsuarioAdminService
         ];
     }
 
-    // Usado por: UsuarioController (detalhes do usuário)
     public function obterDetalhesUsuario(int $usuarioId): array
     {
         $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
@@ -96,7 +105,6 @@ class UsuarioAdminService
         ];
     }
 
-    // Usado por: UsuarioController (ativar/desativar conta de usuário)
     public function alterarStatusUsuario(int $usuarioId, string $acao, int $adminLogadoId): string
     {
         if (!in_array($acao, ['ativar', 'desativar'], true)) {
@@ -113,6 +121,7 @@ class UsuarioAdminService
         $db->beginTransaction();
 
         try {
+            $this->bloquearAdministradoresAtivos($db, $adminLogadoId);
             $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? AND deletado_em IS NULL FOR UPDATE');
             $stmt->execute([$usuarioId]);
             $usuario = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -130,7 +139,7 @@ class UsuarioAdminService
                 || in_array('administrador', $perfisDoUsuario, true);
 
             if ($novoStatus === 'inativo' && $ehAdmin) {
-                // COUNT dentro da mesma transação enxerga o estado real pós-lock.
+                // Os administradores ativos já estão bloqueados nesta transação.
                 $totalAdminsAtivos = (int) $db->query(
                     "SELECT COUNT(*) FROM USUARIO
                      WHERE (tipo_atual = 'administrador' OR FIND_IN_SET('administrador', perfis_ativos))
@@ -158,7 +167,6 @@ class UsuarioAdminService
             : "Usuário desativado com sucesso! O acesso global à plataforma foi bloqueado.";
     }
 
-    // Usado por: UsuarioController (ativar/desativar perfil específico do usuário)
     public function alterarStatusPerfil(int $usuarioId, string $tipoPerfil, string $acao, int $adminLogadoId): string
     {
         $tipoPerfil = strtolower(trim($tipoPerfil));
@@ -171,6 +179,7 @@ class UsuarioAdminService
         $db->beginTransaction();
 
         try {
+            $this->bloquearAdministradoresAtivos($db, $adminLogadoId);
             $stmt = $db->prepare('SELECT * FROM USUARIO WHERE usuario_id = ? AND deletado_em IS NULL FOR UPDATE');
             $stmt->execute([$usuarioId]);
             $usuario = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -210,12 +219,8 @@ class UsuarioAdminService
                     throw new Exception("Este perfil já está desativado.");
                 }
 
-                if (count($perfisAtivos) <= 1) {
-                    $mensagem = $tipoPerfil === 'administrador'
-                        ? "O perfil administrativo é exclusivo — para bloqueá-lo use 'Desativar Conta'."
-                        : "Este é o único perfil ativo deste usuário. Para bloqueá-lo, use a opção "
-                          . "'Desativar Conta' (bloqueio global).";
-                    throw new Exception($mensagem);
+                if ($tipoPerfil === 'administrador' && count($perfisAtivos) <= 1) {
+                    throw new Exception("Para desativar o perfil administrativo exclusivo, use Desativar Conta.");
                 }
 
                 $perfisAtivos = array_values(array_diff($perfisAtivos, [$tipoPerfil]));
@@ -232,7 +237,6 @@ class UsuarioAdminService
                 return "Perfil " . strtoupper($tipoPerfil) . " desativado com sucesso!";
             }
 
-            // ===== Reativar =====
             if (in_array($tipoPerfil, $perfisAtivos, true)) {
                 throw new Exception("Este perfil já se encontra ativo.");
             }

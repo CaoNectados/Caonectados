@@ -10,7 +10,7 @@ $finalizada = in_array($status, ['aprovada', 'reprovada', 'cancelada'], true);
 
 $tipoMoradiaLabels = ['casa' => 'Casa', 'apartamento' => 'Apartamento', 'sitio' => 'Sítio', 'outro' => 'Outro'];
 $tamanhoLabels = ['pequeno' => 'Pequeno', 'medio' => 'Médio', 'grande' => 'Grande'];
-$espacoExternoLabels = ['nenhum' => 'Não possui quintal', 'pequeno' => 'Quintal pequeno', 'medio' => 'Quintal médio', 'grande' => 'Quintal grande'];
+$espacoExternoLabels = ['nenhum' => 'Não possui quintal', 'pequeno' => 'Quintal pequeno (até 20 m²)', 'medio' => 'Quintal médio (mais de 20 até 50 m²)', 'grande' => 'Quintal grande (mais de 50 m²)'];
 
 $detalhesAdotante = json_decode($solicitacao['adotante_detalhes'] ?? '{}', true) ?: [];
 $possuiCriancas = $detalhesAdotante['possui_criancas'] ?? null;
@@ -22,23 +22,29 @@ if (!empty($solicitacao['adotante_dt_nasc'])) {
     $idade = (new DateTime())->diff(new DateTime($solicitacao['adotante_dt_nasc']))->y;
 }
 
-$fotoAnimal = !empty($solicitacao['animal_foto']) ? $urlBase . '/' . ltrim($solicitacao['animal_foto'], '/') : null;
+$caminhoFoto = $solicitacao['animal_foto'] ?? '';
+$fotoAnimal = $caminhoFoto ? (preg_match('#^https?://#i', $caminhoFoto) ? $caminhoFoto : $urlBase . '/' . ltrim($caminhoFoto, '/')) : null;
+$caminhoFotoAdotante = $solicitacao['adotante_foto'] ?? '';
+$fotoAdotante = $caminhoFotoAdotante ? (preg_match('#^https?://#i', $caminhoFotoAdotante) ? $caminhoFotoAdotante : $urlBase . '/' . ltrim($caminhoFotoAdotante, '/')) : null;
+$preferencias = $detalhesAdotante['preferencias'] ?? [];
+$preferenciasLabels = ['especie' => 'Espécie', 'porte' => 'Porte', 'sexo' => 'Sexo'];
+$valoresPreferencias = ['cao'=>'Cão', 'cachorro'=>'Cão', 'gato'=>'Gato', 'pequeno'=>'Pequeno', 'medio'=>'Médio', 'grande'=>'Grande', 'macho'=>'Macho', 'femea'=>'Fêmea', 'indiferente'=>'Indiferente'];
 ?>
 
-<div class="min-h-[70vh] bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
-    <div class="w-full max-w-4xl bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors flex flex-col justify-between">
+<div class="min-h-[70vh] bg-background text-text-dark px-0 py-4 sm:p-6 md:p-8 flex flex-col items-center">
+    <div class="w-full max-w-5xl bg-surface rounded-3xl md:rounded-[2.5rem] p-4 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors flex flex-col justify-between">
 
         <div>
             <!-- Cabeçalho -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-2 border-b border-cinzaMarrom/20">
-                <div class="flex items-center gap-3">
+                <div class="flex min-w-0 items-center gap-3">
                     <?php if ($fotoAnimal): ?>
-                        <img src="<?= htmlspecialchars($fotoAnimal) ?>" alt="" class="w-12 h-12 rounded-2xl object-cover border border-cinzaMarrom/30">
+                        <img src="<?= htmlspecialchars($fotoAnimal) ?>" alt="" class="w-12 h-12 shrink-0 rounded-2xl object-cover border border-cinzaMarrom/30">
                     <?php endif; ?>
-                    <div>
+                    <div class="min-w-0">
                         <h2 class="font-shantell text-2xl font-bold text-text-dark tracking-tight">Detalhes da Solicitação</h2>
                         <p class="text-xs sm:text-sm text-text-muted mt-0.5">
-                            <?= htmlspecialchars($solicitacao['animal_nome']) ?> 🐾 • solicitante: <strong class="text-text-dark"><?= htmlspecialchars($solicitacao['adotante_nome']) ?></strong>
+                            <?= htmlspecialchars($solicitacao['animal_nome']) ?> • solicitante: <strong class="text-text-dark"><?= htmlspecialchars($solicitacao['adotante_nome']) ?></strong>
                         </p>
                     </div>
                 </div>
@@ -49,20 +55,37 @@ $fotoAnimal = !empty($solicitacao['animal_foto']) ? $urlBase . '/' . ltrim($soli
 
             <!-- Informações do solicitante -->
             <div class="mb-8">
+                <div class="flex items-center gap-4 rounded-2xl border border-rosa-2/60 bg-rosa-1/25 dark:bg-primary/20 p-4 sm:p-5 mb-5">
+                    <?php if ($fotoAdotante): ?>
+                        <img src="<?= htmlspecialchars($fotoAdotante) ?>" alt="Foto de <?= htmlspecialchars($solicitacao['adotante_nome']) ?>" class="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-full object-cover border-4 border-white dark:border-cinzaMarrom shadow-md">
+                    <?php else: ?>
+                        <div aria-hidden="true" class="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-full border-4 border-white dark:border-cinzaMarrom bg-primary/20 dark:bg-roxinhoFofo flex items-center justify-center text-2xl font-bold text-primary dark:text-white">
+                            <?= htmlspecialchars(mb_strtoupper(mb_substr($solicitacao['adotante_nome'] ?? '?', 0, 1))) ?>
+                        </div>
+                    <?php endif; ?>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold uppercase tracking-wide text-text-muted">Perfil de adotante</p>
+                        <h3 class="font-shantell text-xl sm:text-2xl font-bold text-text-dark truncate"><?= htmlspecialchars($solicitacao['adotante_nome']) ?></h3>
+                        <p class="text-sm text-text-muted"><?= $idade !== null ? htmlspecialchars((string)$idade) . ' anos' : 'Idade não informada' ?></p>
+                    </div>
+                    <span class="hidden sm:inline-flex items-center rounded-full bg-white/80 dark:bg-preto2 px-3 py-1 text-xs font-bold text-primary dark:text-white">Solicitante</span>
+                </div>
                 <h3 class="text-lg font-bold text-text-dark mb-1">Informações do solicitante</h3>
-                <p class="text-xs text-text-muted mb-4">Verifique os dados antes de decidir</p>
+                <p class="text-xs text-text-muted mb-4">Conheça a rotina e o espaço que a família oferece antes de decidir.</p>
 
-                <div class="space-y-4 divide-y divide-cinzaMarrom/20">
-                    <div class="pt-3 first:pt-0">
-                        <h4 class="font-bold text-text-dark text-sm sm:text-base">Nome</h4>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="min-w-0 rounded-2xl border border-cinzaMarrom/30 bg-white/40 dark:bg-preto2/30 p-4 sm:p-5">
+                        <h4 class="flex items-center gap-2 font-bold text-text-dark text-sm sm:text-base"><img src="<?= $urlBase ?>/public/assets/icons/navbar/perfil.svg" alt="" class="h-5 w-5"> Contato</h4>
                         <p class="text-xs text-text-muted font-medium">
                             <?= htmlspecialchars($solicitacao['adotante_nome']) ?><?= $idade !== null ? ", {$idade} anos" : '' ?>
                         </p>
                         <p class="text-xs text-text-muted font-medium"><?= htmlspecialchars($solicitacao['adotante_email']) ?></p>
+                        <p class="mt-2 text-sm text-text-dark">Telefone: <?= htmlspecialchars($solicitacao['adotante_telefone'] ?: 'Não informado') ?></p>
+                        <p class="mt-2 text-xs text-text-muted">Solicitação enviada em <?= !empty($solicitacao['data_solicitacao']) ? date('d/m/Y H:i', strtotime($solicitacao['data_solicitacao'])) : 'Data não informada' ?></p>
                     </div>
 
-                    <div class="pt-3">
-                        <h4 class="font-bold text-text-dark text-sm sm:text-base">Sobre a moradia</h4>
+                    <div class="min-w-0 rounded-2xl border border-cinzaMarrom/30 bg-white/40 dark:bg-preto2/30 p-4 sm:p-5">
+                        <h4 class="flex items-center gap-2 font-bold text-text-dark text-sm sm:text-base"><img src="<?= $urlBase ?>/public/assets/icons/geral/casa-rosa.svg" alt="" class="h-5 w-5"> Moradia</h4>
                         <p class="text-xs text-text-muted font-medium">
                             <?= htmlspecialchars($tipoMoradiaLabels[$solicitacao['tipo_moradia']] ?? 'Não informado') ?><?= !empty($solicitacao['adotante_regiao']) ? ', ' . htmlspecialchars($solicitacao['adotante_regiao']) : '' ?>
                         </p>
@@ -70,10 +93,18 @@ $fotoAnimal = !empty($solicitacao['animal_foto']) ? $urlBase . '/' . ltrim($soli
                         <p class="text-xs text-text-muted">Espaço externo: <?= htmlspecialchars($espacoExternoLabels[$espacoExterno] ?? 'Não informado') ?></p>
                     </div>
 
-                    <div class="pt-3">
-                        <h4 class="font-bold text-text-dark text-sm sm:text-base">Sobre a convivência</h4>
+                    <div class="min-w-0 rounded-2xl border border-cinzaMarrom/30 bg-white/40 dark:bg-preto2/30 p-4 sm:p-5">
+                        <h4 class="flex items-center gap-2 font-bold text-text-dark text-sm sm:text-base"><img src="<?= $urlBase ?>/public/assets/icons/navbar/patinha.svg" alt="" class="h-5 w-5"> Convivência</h4>
                         <p class="text-xs text-text-muted">Possui crianças em casa? <?= $possuiCriancas === 'sim' ? 'Sim' : ($possuiCriancas === 'nao' ? 'Não' : 'Não informado') ?></p>
                         <p class="text-xs text-text-muted">Possui outros pets? <?= $possuiOutrosPets === 'sim' ? 'Sim' : ($possuiOutrosPets === 'nao' ? 'Não' : 'Não informado') ?></p>
+                    </div>
+                    <div class="min-w-0 rounded-2xl border border-cinzaMarrom/30 bg-white/40 dark:bg-preto2/30 p-4 sm:p-5">
+                        <h4 class="flex items-center gap-2 font-bold text-text-dark text-sm sm:text-base"><img src="<?= $urlBase ?>/public/assets/icons/geral/patinha-coracao.svg" alt="" class="h-5 w-5"> Preferências e apresentação</h4>
+                        <?php foreach ($preferenciasLabels as $campo => $rotulo): ?>
+                            <?php $itens = is_array($preferencias[$campo] ?? null) ? $preferencias[$campo] : []; ?>
+                            <p class="mt-1 text-xs text-text-muted"><?= $rotulo ?>: <?= htmlspecialchars($itens ? implode(', ', array_map(static fn($item) => $valoresPreferencias[$item] ?? (string)$item, $itens)) : 'Sem preferência informada') ?></p>
+                        <?php endforeach; ?>
+                        <p class="mt-3 text-sm text-text-dark whitespace-pre-line"><?= htmlspecialchars($solicitacao['adotante_descricao'] ?: 'Apresentação não informada.') ?></p>
                     </div>
                 </div>
             </div>
@@ -102,9 +133,9 @@ $fotoAnimal = !empty($solicitacao['animal_foto']) ? $urlBase . '/' . ltrim($soli
 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <input type="hidden" name="id" value="<?= (int) $solicitacao['solicitacao_id'] ?>">
                         <button type="button"
-                                onclick="abrirModalConfirmacao('Confirmar adoção', 'Confirmar a adoção? As demais solicitações enviadas para este animal serão canceladas.', () => document.getElementById('form-aprovar-solicitacao').requestSubmit(), 'Confirmar 🐾', 'Voltar')"
+                                onclick="abrirModalConfirmacao('Confirmar adoção', 'Confirmar a adoção? As demais solicitações enviadas para este animal serão canceladas.', () => document.getElementById('form-aprovar-solicitacao').requestSubmit(), 'Confirmar', 'Voltar')"
                                 class="w-full py-3 bg-verdeMusgo hover:opacity-90 text-white font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:scale-95 transition">
-                            Confirmar 🐾
+                            Confirmar
                         </button>
                     </form>
                 </div>

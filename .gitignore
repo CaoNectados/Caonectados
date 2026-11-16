@@ -2,3 +2,6 @@
 /app/config/smtp.local.php
 /.env
 /.env.*
+
+/app/config/animais_api.local.php
+/CONTAS_DEMONSTRACAO.txt

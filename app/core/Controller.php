@@ -193,7 +193,6 @@ class Controller
      * esqueci/redefinir senha) para impedir que um usuário já logado navegue de volta para
      * elas. Redireciona para o painel correspondente ao estado atual da conta.
      */
-    // Usado por: AuthController (login, cadastro, esqueci-senha, redefinir-senha)
     protected function redirecionarSeAutenticado(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -208,7 +207,6 @@ class Controller
         $this->redirect($this->resolverDestinoPainel());
     }
 
-    // Usado por: redirecionarSeAutenticado()
     private function resolverDestinoPainel(): string
     {
         $tipoUsuario = $_SESSION['tipo_perfil'] ?? 'usuario';
@@ -283,7 +281,6 @@ class Controller
     }
 
 
-    // Usado por: autenticacaoRequired() — mantém a sessão alinhada com o banco a cada
     // requisição autenticada. A sessão só era preenchida no login (AuthService::iniciarSessao)
     // e nunca era revalidada depois disso, então uma conta/perfil desativado pelo admin (ou
     // editado direto no banco) só tinha efeito quando o usuário deslogava e logava de novo.

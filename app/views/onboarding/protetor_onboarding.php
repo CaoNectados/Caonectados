@@ -103,7 +103,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <span class="text-sm font-medium text-text-muted">Clique para avançar</span>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -118,8 +118,19 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
         </div>
 
         <div class="mb-4 text-left">
-            <label for="input-busca-bairro" class="label-padrao">Pesquise seu Bairro / Região *</label>
-            <input type="text" name="busca_bairro_texto" id="input-busca-bairro" list="lista-regioes" value="<?= htmlspecialchars($d['nome_regiao'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Digite o nome do seu bairro..." autocomplete="off" oninput="OnboardingManager.sincronizarRegiaoId()" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white">
+            <label for="input-busca-bairro" class="label-padrao">Selecione seu Bairro / Região *</label>
+            <select name="busca_bairro_texto" id="input-busca-bairro" data-regiao-selecionada="<?= e($d['nome_regiao'] ?? '') ?>" class="input-padrao input-com-seta bg-branco dark:bg-preto2 dark:text-white" aria-label="Bairro / Região">
+<option value="">Selecione seu bairro</option>
+                <?php if (!empty($regioes)): ?>
+                    <?php foreach ($regioes as $regiao): ?>
+                        <?php
+                        $regId = is_array($regiao) ? $regiao['regiao_id'] : $regiao->getRegiaoId();
+                        $regNome = is_array($regiao) ? $regiao['nome_regiao'] : $regiao->getNomeRegiao();
+                        ?>
+                        <option data-id="<?= $regId ?>" value="<?= htmlspecialchars($regNome, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($regNome, ENT_QUOTES, 'UTF-8') ?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
 
             <datalist id="lista-regioes">
                 <?php if (!empty($regioes)): ?>
@@ -148,7 +159,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -181,7 +192,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -226,7 +237,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 
@@ -256,7 +267,7 @@ $fotoFundoUrl  = !empty($d['foto_fundo']) ? ((strpos($d['foto_fundo'], 'http') =
 
         <div class="flex items-center justify-between mt-8">
             <button type="button" onclick="OnboardingManager.voltarEtapa()" class="text-sm text-text-muted hover:text-text-dark dark:hover:text-white underline">Voltar</button>
-            <button type="button" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
+            <button type="button" aria-label="Avançar para a próxima etapa" onclick="proximaEtapa()" class="w-12 h-12 rounded-full bg-rosaAlerta text-white text-xl font-bold flex items-center justify-center shadow hover:bg-rosa-2 transition">&rarr;</button>
         </div>
     </div>
 

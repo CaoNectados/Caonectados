@@ -51,7 +51,7 @@ echo renderVoltar('/perfil');
                 <div class="p-1 sm:p-3">
                     <p class="hidden sm:block truncate text-xs text-text-muted"><?= e($animal->getRacaNome() ?: 'Raça não informada') ?></p>
                     <?php if (in_array($estado,['adotado','desativado'],true)): ?>
-                    <form action="<?= e(URL_BASE) ?>/animal/reativar" method="POST" class="mt-2" onsubmit="if (typeof abrirModalConfirmacao === 'function') { const form = this; abrirModalConfirmacao('Reativar animal', 'O animal voltará a ficar disponível para novas adoções.', () => form.submit(), 'Reativar', 'Voltar'); return false; }">
+                    <form action="<?= e(URL_BASE) ?>/animal/reativar" method="POST" class="mt-2" onsubmit="if (typeof abrirModalConfirmacao === 'function') { const form = this; abrirModalConfirmacao('Reativar animal', 'O animal será reativado. Se houver solicitação em análise, esse estado será preservado.', () => form.submit(), 'Reativar', 'Voltar'); return false; }">
                         <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>"><input type="hidden" name="id" value="<?= $id ?>">
                         <button type="submit" class="min-h-11 w-full rounded-xl bg-primary px-1 py-2 text-[11px] sm:text-xs font-semibold text-white hover:opacity-90">Reativar animal</button>
                     </form>

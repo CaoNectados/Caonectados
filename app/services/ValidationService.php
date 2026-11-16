@@ -14,6 +14,17 @@ class ValidationService
     {
         $listas = ['preferencias_especie', 'preferencias_raca', 'preferencias_porte', 'preferencias_sexo', 'ids', 'racas_aceitas'];
         foreach ($dados as $campo => $valor) {
+            if ($campo === 'tracos') {
+                if (!is_array($valor) || !array_is_list($valor) || count($valor) > 30) {
+                    throw new \InvalidArgumentException('Selecione até 30 características válidas.');
+                }
+                foreach ($valor as $id) {
+                    if ((!is_int($id) && !is_string($id)) || !ctype_digit((string) $id) || (int) $id < 1) {
+                        throw new \InvalidArgumentException('Característica inválida.');
+                    }
+                }
+                continue;
+            }
             if ($campo === 'fotos_galeria') {
                 if (!is_array($valor) || !array_is_list($valor) || count($valor) > 9) {
                     throw new \InvalidArgumentException('Envie até 9 fotos adicionais.');
@@ -111,7 +122,6 @@ class ValidationService
     /**
      * Verifica se os campos obrigatórios foram preenchidos
      */
-    // Usado por: OnBoardingService (cadastro de adotante e de protetor/ONG)
     public static function validarCamposObrigatorios(array $dados, array $camposRequeridos): void
     {
         foreach ($camposRequeridos as $campo) {
@@ -124,7 +134,6 @@ class ValidationService
     /**
      * Valida o Nome (Mínimo de 2 caracteres)
      */
-    // Usado por: OnBoardingService (cadastro de adotante e de protetor/ONG), PerfilService::atualizarPerfil
     public static function validarNome($nome): void
     {
         if (!is_string($nome) || mb_strlen(trim($nome)) < 2 || mb_strlen(trim($nome)) > 150) {
@@ -135,7 +144,6 @@ class ValidationService
     /**
      * Valida formato de e-mail
      */
-    // Usado por: AuthController (cadastro/recuperação de senha), PerfilController (troca de e-mail)
     public static function validarEmail($email): void
     {
         if (!is_string($email) || empty($email) || strlen($email) > 150 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -146,7 +154,6 @@ class ValidationService
     /**
      * Valida e limpa o telefone (Deve conter 10 ou 11 dígitos)
      */
-    // Usado por: OnBoardingService (cadastro de adotante e de protetor/ONG), PerfilService::atualizarPerfil
     public static function validarTelefone($telefone): ?string
     {
         if ($telefone === null || $telefone === '') {
@@ -165,7 +172,6 @@ class ValidationService
     /**
      * Exige mínimo de 8 caracteres com maiúscula, minúscula, número e caractere especial
      */
-    // Usado por: AuthController (cadastro/redefinição de senha), PerfilController (troca de senha)
     public static function validarForcaSenha(string $senha): void
     {
         if (
@@ -182,7 +188,6 @@ class ValidationService
     /**
      * Valida Maioridade (Mínimo de 18 anos)
      */
-    // Usado por: OnBoardingService (cadastro de adotante e de protetor pessoa física)
     public static function validarMaioridade($dataNascimento): void
     {
         if (!is_string($dataNascimento) || empty($dataNascimento)) {
@@ -207,7 +212,6 @@ class ValidationService
     /**
      * Valida formato e garante que a data não seja superior à data atual
      */
-    // Usado por: OnBoardingService::processarOng (data de abertura do CNPJ)
     public static function validarDataNaoFutura($data): bool
     {
         if (!is_string($data) || empty($data)) {
@@ -228,7 +232,6 @@ class ValidationService
         return $d <= $hoje;
     }
 
-    // Usado por: OnBoardingService::processarOng, validarChavePix()
     public static function validarCpf(string $cpf): bool
     {
         if (!preg_match('/^[0-9. \-]+$/', $cpf)) return false;
@@ -250,7 +253,6 @@ class ValidationService
         return true;
     }
 
-    // Usado por: OnBoardingService::processarOng, validarChavePix()
     public static function validarCnpj(string $cnpj): bool
     {
         if (!preg_match('/^[0-9.\/ \-]+$/', $cnpj)) return false;
@@ -277,37 +279,10 @@ class ValidationService
         return $cnpj[13] == ($resto < 2 ? 0 : 11 - $resto);
     }
 
-    // Usado por: (não referenciado atualmente)
-    public static function verificarExistenciaCnpjReal(string $cnpj): bool
-    {
-        $cnpjLimpo = preg_replace('/[^0-9]/', '', $cnpj);
-
-        if (strlen($cnpjLimpo) !== 14) return false;
-
-        $url = "https://minhareceita.org/" . $cnpjLimpo;
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-        $resposta = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode === 200) {
-            $dados = json_decode($resposta, true);
-            return isset($dados['situacao_cadastral']) && (int)$dados['situacao_cadastral'] === 2;
-        }
-
-        return false;
-    }
 
     /**
      * Valida os formatos permitidos de Chave PIX
      */
-    // Usado por: (não referenciado atualmente)
     public static function validarChavePix($chave, $tipo = 'auto'): bool
     {
         if (($chave !== null && !is_string($chave)) || !is_string($tipo)) return false;
@@ -337,7 +312,6 @@ class ValidationService
     /**
      * Valida se a string é um link válido e se pertence à rede social correta
      */
-    // Usado por: OnBoardingService::processarOng, PerfilService::atualizarPerfil (links de Instagram/Facebook do protetor)
     public static function validarLinkRedeSocial(?string $url, string $rede): bool
     {
         if (empty($url)) return true;
@@ -356,14 +330,12 @@ class ValidationService
         return true;
     }
 
-    // Usado por: sanitizarArray()
     public static function sanitizarString(?string $texto): ?string
     {
         if ($texto === null) return null;
         return htmlspecialchars(strip_tags(trim($texto)), ENT_QUOTES, 'UTF-8');
     }
 
-    // Usado por: OnBoardingController (limpeza dos dados de formulário antes do processamento)
     public static function sanitizarArray(array $dados): array
     {
         $dadosLimpos = [];

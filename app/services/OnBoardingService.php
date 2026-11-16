@@ -7,7 +7,6 @@ use app\models\Usuario;
 use app\models\Adotante;
 use app\models\Protetor;
 use app\models\Pagina;
-use app\models\Rede;
 use app\repositories\UsuarioRepository;
 use app\repositories\AdotanteRepository;
 use app\repositories\ProtetorRepository;
@@ -34,7 +33,6 @@ class OnBoardingService
         $this->uploadService = new UploadService();
     }
 
-    // Usado por: OnBoardingController (verificação de perfil já existente e sincronização de sessão)
     public function usuarioJaPossuiPerfil(int $usuarioId): bool
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -86,7 +84,6 @@ class OnBoardingService
         return false;
     }
 
-    // Usado por: OnBoardingController::verificarSeJaPossuiPerfil() e PerfilController (RF 20 -
     // status da solicitação de upgrade de Adotante para Protetor/ONG). Reaproveita
     // ProtetorRepository::buscarPorUsuarioId(), que já traz sempre a solicitação mais recente
     // (ORDER BY protetor_id DESC), cobrindo naturalmente o caso de reenvio após recusa.
@@ -95,7 +92,6 @@ class OnBoardingService
         return $this->protetorRepo->buscarPorUsuarioId($usuarioId);
     }
 
-    // Usado por: OnBoardingController::salvarProtetor() e salvarAdotante() (RF 20 - upgrade
     // cruzado entre Adotante e Protetor/ONG, nos dois sentidos). Os métodos processarOng() e
     // processarAdotante() são 100% reaproveitados do fluxo original e, por isso, sempre
     // promovem tipo_atual/sessão para o perfil recém-cadastrado — o que é o comportamento
@@ -139,14 +135,12 @@ class OnBoardingService
         }
     }
 
-    // Usado por: OnBoardingController::verificarSeJaPossuiPerfil() (RF 20 inverso - impede que
     // um Protetor/ONG que já tem perfil de Adotante reabra o formulário de cadastro de novo)
     public function possuiPerfilAdotante(int $usuarioId): bool
     {
         return $this->adotanteRepo->buscarPorUsuarioId($usuarioId) !== null;
     }
 
-    // Usado por: OnBoardingController (pré-preenchimento do formulário de protetor/ONG)
     public function obterDadosPreenchidosProtetor(int $usuarioId): ?array
     {
         $dados = $this->protetorRepo->buscarPorUsuarioIdCompleto($usuarioId);
@@ -168,13 +162,15 @@ class OnBoardingService
         return $dados;
     }
 
-    // Usado por: OnBoardingController (cadastro de perfil adotante)
     public function processarAdotante(array $dados, array $arquivos, int $usuarioId): void
     {
         ValidationService::validarAceiteTermos($dados['aceite_termos'] ?? null);
         ValidationService::validarNome($dados['nome_usuario'] ?? '');
         ValidationService::validarMaioridade($dados['dt_nasc'] ?? '');
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
+        if (empty($telefoneLimpo)) {
+            throw new Exception('Informe o telefone com DDD para contato sobre a adoção.');
+        }
         ValidationService::validarCamposObrigatorios($dados, ['regiao_id', 'obs_casa', 'numero']);
 
         ValidationService::validarLocalizacao($dados['regiao_id'], $dados['obs_casa'], $dados['numero']);
@@ -283,7 +279,6 @@ class OnBoardingService
         }
     }
 
-    // Usado por: OnBoardingController (cadastro/reenvio de perfil protetor/ONG)
     public function processarOng(array $dados, array $arquivos, int $usuarioId): void
     {
         ValidationService::validarAceiteTermos($dados['aceite_termos'] ?? null);

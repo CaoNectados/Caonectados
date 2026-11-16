@@ -21,19 +21,16 @@ class AnimalService
         $this->uploadService = $uploadService ?? new UploadService();
     }
 
-    // Usado por: AnimalController::index
     public function buscarPorId(int $id): ?Animal
     {
         return $this->animalRepository->buscarPorId($id);
     }
 
-    // Usado por: AnimalController::index
     public function listarComFiltros(string $tipoPerfil, int $protetorId, string $status = 'todos'): array
     {
         return $this->animalRepository->listarComFiltros($tipoPerfil, $protetorId, $status);
     }
 
-    // Usado por: AnimalController::store
     public function cadastrarAnimal(Animal $animal): void
     {
         $this->validarAnimal($animal);
@@ -47,7 +44,6 @@ class AnimalService
         $animal->setAnimalId($resultado);
     }
 
-    // Usado por: AnimalController::update
     public function editarAnimal(Animal $animal): void
     {
         $this->validarAnimal($animal);
@@ -59,9 +55,9 @@ class AnimalService
         }
     }
 
-    // Usado por: AnimalController (alteração de status do animal)
     public function atualizarStatus(Animal $animal): void
     {
+        $this->erros = [];
         $this->validarStatus($animal->getStatus());
 
         if (!empty($this->erros)) {
@@ -75,7 +71,6 @@ class AnimalService
         }
     }
 
-    // Usado por: AnimalController::destroy
     public function desativarAnimal(Animal $animal): void
     {
         $excluido = $this->animalRepository->excluirLogico($animal->getAnimalId());
@@ -85,7 +80,6 @@ class AnimalService
         }
     }
 
-    // Usado por: AnimalController (reativar animal desativado)
     public function reativarAnimal(Animal $animal): void
     {
         $reativado = $this->animalRepository->reativarAnimal($animal->getAnimalId());
@@ -110,7 +104,6 @@ class AnimalService
     /**
      * Salva/substitui a foto principal do animal. Aceita tanto um array de $_FILES quanto uma string Base64.
      */
-    // Usado por: AnimalController (cadastro/edição de animal)
     public function salvarFoto($arquivoOuBase64, int $animalId): ?string
     {
         if (empty($arquivoOuBase64) || $animalId <= 0) {
@@ -133,13 +126,7 @@ class AnimalService
         return $caminhoFoto;
     }
 
-    // Usado por: (não referenciado atualmente)
-    public function getErros(): array
-    {
-        return $this->erros;
-    }
 
-    // Usado por: cadastrarAnimal(), editarAnimal()
     private function validarAnimal(Animal $animal): void
     {
         $this->erros = [];
@@ -165,7 +152,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal()
     private function validarProtetor(int $protetorId): void
     {
         if ($protetorId <= 0) {
@@ -173,7 +159,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal()
     private function validarNome(?string $nome): void
     {
         if (trim((string) $nome) === '') {
@@ -181,7 +166,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal()
     private function validarRaca(int $racaId): void
     {
         if ($racaId <= 0) {
@@ -189,7 +173,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal()
     private function validarSexo(?string $sexo): void
     {
         $sexosPermitidos = ['macho', 'femea', 'indefinido'];
@@ -198,7 +181,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal()
     private function validarPorte(?string $porte): void
     {
         $portesPermitidos = ['pequeno', 'medio', 'grande'];
@@ -207,7 +189,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal(), atualizarStatus()
     private function validarStatus(?string $status): void
     {
         $statusPermitidos = ['disponivel', 'em_analise', 'adotado', 'desativado'];
@@ -216,7 +197,6 @@ class AnimalService
         }
     }
 
-    // Usado por: validarAnimal()
     private function validarDataNascimento(?string $dataNascimento): void
     {
         // Campo opcional (dt_nasc é NULL-able no banco e não é obrigatório no formulário).

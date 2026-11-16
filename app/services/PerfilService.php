@@ -29,11 +29,13 @@ class PerfilService
         $this->redeRepo = new RedeRepository();
     }
 
-    // Usado por: PerfilController (atualização de dados do perfil)
     public function atualizarPerfil(array $dados, array $arquivos, int $usuarioId, string $tipoPerfilSessao): string
     {
         ValidationService::validarNome($dados['nome'] ?? '');
         $telefoneLimpo = ValidationService::validarTelefone($dados['telefone'] ?? null);
+        if ($tipoPerfilSessao === 'adotante' && empty($telefoneLimpo)) {
+            throw new Exception('Informe o telefone com DDD para contato sobre a adoção.');
+        }
 
         foreach (['logradouro', 'obs_casa', 'numero', 'num_morada'] as $campo) {
             if (isset($dados[$campo])) ValidationService::validarTexto($dados[$campo], $campo, 0, $campo === 'numero' || $campo === 'num_morada' ? 20 : 1000);
@@ -169,7 +171,6 @@ class PerfilService
         }
     }
 
-    // Usado por: PerfilController (troca rápida da foto de perfil)
     public function atualizarApenasFoto(string $base64Data, int $usuarioId, string $tipoPerfilSessao): void
     {
         $isProtetorOng = in_array($tipoPerfilSessao, ['ong', 'protetor'], true);
@@ -221,7 +222,6 @@ class PerfilService
         $_SESSION['foto_perfil'] = $caminhoFoto;
     }
 
-    // Usado por: atualizarPerfil(), atualizarApenasFoto()
     private function obterFotoAntigaDoPerfil(int $usuarioId, bool $isProtetorOng): ?string
     {
         if ($isProtetorOng) {

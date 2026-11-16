@@ -5,7 +5,6 @@
 
 const CaonectadosValidator = {
 
-    // Usado por: atributo oninput do campo de bairro em perfil/editar.php
     validarRegiao: function(inputId, hiddenId, datalistId) {
         const inputTexto = document.getElementById(inputId);
         const inputHidden = document.getElementById(hiddenId);
@@ -23,7 +22,6 @@ const CaonectadosValidator = {
         return encontradoId !== '';
     },
 
-    // Usado por: perfil/editar.php, protetor_onboarding.php e internamente por validarDocumento()/validarChavePix()
     isCpfValido: function(cpf) {
         if (!/^[0-9. \-]+$/.test(cpf)) return false;
         cpf = cpf.replace(/[^\d]+/g, '');
@@ -44,7 +42,6 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // Usado por: perfil/editar.php, protetor_onboarding.php e internamente por validarDocumento()/validarChavePix()
     isCnpjValido: function(cnpj) {
         if (!/^[0-9.\/ \-]+$/.test(cnpj)) return false;
         cnpj = cnpj.replace(/[^\d]+/g, '');
@@ -76,7 +73,6 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // Usado por: (não referenciado atualmente) — determina CPF/CNPJ pelo tamanho do documento e delega para isCpfValido()/isCnpjValido()
     validarDocumento: function(documento) {
         const docLimpo = documento.replace(/[^\d]+/g, '');
         if (docLimpo.length <= 11) {
@@ -86,7 +82,6 @@ const CaonectadosValidator = {
         }
     },
 
-    // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php (uploads de foto/comprovante)
     validarTamanhoArquivo: function(inputElement, tamanhoMaximoMB = 5) {
         if (inputElement.files && inputElement.files[0]) {
             const tamanhoEmMB = inputElement.files[0].size / (1024 * 1024);
@@ -95,7 +90,6 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // Usado por: perfil/editar.php e protetor_onboarding.php (campos de Instagram/Facebook)
     validarLinkSocial: function(url, rede) {
         if (!url || url.trim() === '') return true;
         let link = url.trim();
@@ -111,7 +105,6 @@ const CaonectadosValidator = {
         }
     },
 
-    // Usado por: perfil/editar.php e protetor_onboarding.php (campo de chave PIX)
     validarChavePix: function(chave, tipo = 'auto') {
         if (!['auto', 'cpf', 'cnpj', 'telefone', 'email', 'aleatoria'].includes(tipo)) return false;
         if (!chave || chave.trim() === '') return true;
@@ -131,7 +124,6 @@ const CaonectadosValidator = {
         return tipo === 'auto' ? Object.values(validos).includes(true) : validos[tipo];
     },
 
-    // Usado por: adotante_onboarding.php e protetor_onboarding.php (etapa de dados pessoais)
     validarMaioridade: function(dataNascimento) {
         if (!this.validarDataNaoFutura(dataNascimento)) return false;
         const hoje = new Date();
@@ -141,12 +133,10 @@ const CaonectadosValidator = {
         return idade >= 18;
     },
 
-    // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php
     validarNome: function(nome) {
         return typeof nome === 'string' && nome.trim().length >= 2 && nome.trim().length <= 150;
     },
 
-    // Usado por: perfil/editar.php, adotante_onboarding.php e protetor_onboarding.php
     validarTelefone: function(telefone) {
         if (!telefone || telefone.trim() === '') return true; // Campo opcional
 
@@ -155,14 +145,12 @@ const CaonectadosValidator = {
         return numeros.length === 10 || numeros.length === 11;
     },
 
-    // Usado por: auth/cadastro.php, auth/redefinir_senha.php e perfil/trocar_email.php — equivalente
     // client-side de ValidationService::validarEmail() no back-end
     validarEmail: function(email) {
         if (!email) return false;
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
     },
 
-    // Usado por: auth/cadastro.php, auth/redefinir_senha.php e perfil/redefinir_senha.php — equivalente
     // client-side de ValidationService::validarForcaSenha() no back-end
     validarForcaSenha: function(senha) {
         if (!senha || senha.length < 8) return false;
@@ -173,7 +161,6 @@ const CaonectadosValidator = {
         return true;
     },
 
-    // Usado por: (não referenciado atualmente) — equivalente client-side de ValidationService::validarDataNaoFutura() no back-end
     validarDataNaoFutura: function(dataStr) {
         if (!dataStr || typeof dataStr !== 'string') return false;
 

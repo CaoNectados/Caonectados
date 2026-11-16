@@ -126,8 +126,5 @@ class Router
     exit;
 }
 
-    public function getAllRoutes(): array
-    {
-        return $this->routes;
-    }
+
 }

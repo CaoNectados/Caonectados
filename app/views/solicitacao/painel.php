@@ -4,6 +4,8 @@ $solicitacoes = $solicitacoes ?? [];
 require_once __DIR__ . '/../templates/header.php';
 echo renderVoltar('/perfil');
 
+$encontrosCaoNectou = \app\helpers\CaoNectouHelper::dados($solicitacoes, true, (int) $_SESSION['usuario_id']);
+
 $urlBase = defined('URL_BASE') ? rtrim(URL_BASE, '/') : '';
 
 function montarUrlFotoSolicitacao(?string $caminho, string $urlBase): ?string
@@ -11,7 +13,7 @@ function montarUrlFotoSolicitacao(?string $caminho, string $urlBase): ?string
     if (empty($caminho)) {
         return null;
     }
-    return $urlBase . '/' . ltrim($caminho, '/');
+    return preg_match('#^https?://#i', $caminho) ? $caminho : $urlBase . '/' . ltrim($caminho, '/');
 }
 
 $statusLabels = [
@@ -23,21 +25,21 @@ $statusLabels = [
 ];
 ?>
 
-<div class="min-h-[70vh] bg-background text-text-dark p-4 sm:p-6 md:p-8 flex flex-col items-center">
-    <div class="w-full max-w-figma bg-surface rounded-3xl md:rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors">
+<div class="min-h-[70vh] bg-background text-text-dark px-0 py-4 sm:p-6 md:p-8 flex flex-col items-center">
+    <div class="w-full max-w-figma bg-surface rounded-3xl md:rounded-[2.5rem] p-3 sm:p-8 md:p-10 shadow-sm border border-cinzaMarrom/20 transition-colors">
 
         <!-- Abas -->
-        <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
             <a href="<?= $urlBase ?>/solicitacoes?aba=pendentes"
-               class="py-3 px-4 text-center font-poppins font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'pendentes' ? 'bg-laranja-1 text-white' : 'bg-surface text-text-dark hover:bg-laranja-1/20' ?>">
+               class="min-h-11 min-w-0 py-3 px-1 sm:px-4 text-center font-poppins font-bold text-xs sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'pendentes' ? 'bg-laranja-1 text-white' : 'bg-surface text-text-dark hover:bg-laranja-1/20' ?>">
                Pendentes
             </a>
             <a href="<?= $urlBase ?>/solicitacoes?aba=aprovadas"
-               class="py-3 px-4 text-center font-poppins font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'aprovadas' ? 'bg-verdeMusgo text-white' : 'bg-surface text-text-dark hover:bg-verdeMusgo/20' ?>">
+               class="min-h-11 min-w-0 py-3 px-1 sm:px-4 text-center font-poppins font-bold text-xs sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'aprovadas' ? 'bg-verdeMusgo text-white' : 'bg-surface text-text-dark hover:bg-verdeMusgo/20' ?>">
                Aprovadas
             </a>
             <a href="<?= $urlBase ?>/solicitacoes?aba=recusadas"
-               class="py-3 px-4 text-center font-poppins font-bold text-sm sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'recusadas' ? 'bg-erro text-white' : 'bg-surface text-text-dark hover:bg-erro/20' ?>">
+               class="min-h-11 min-w-0 py-3 px-1 sm:px-4 text-center font-poppins font-bold text-xs sm:text-base rounded-2xl border-2 border-preto dark:border-cinzaMarrom transition-all active:scale-95 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] <?= $abaAtual === 'recusadas' ? 'bg-erro text-white' : 'bg-surface text-text-dark hover:bg-erro/20' ?>">
                Recusadas
             </a>
         </div>
@@ -60,13 +62,13 @@ $statusLabels = [
                         $foto = montarUrlFotoSolicitacao($solic['animal_foto'] ?? null, $urlBase);
                     ?>
                     <div class="py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-rosa-1/20 dark:hover:bg-preto2/50 transition px-3 sm:px-4 rounded-2xl">
-                        <div class="flex items-center gap-4">
+                        <div class="flex min-w-0 items-center gap-3 sm:gap-4">
                             <?php if ($foto): ?>
                                 <img src="<?= htmlspecialchars($foto) ?>" alt="" class="w-12 h-12 rounded-full object-cover border-2 border-rosa-3 dark:border-preto3 shrink-0 shadow-sm bg-white">
                             <?php else: ?>
-                                <div class="w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center shrink-0 shadow-sm text-lg">🐾</div>
+                                <div class="w-12 h-12 rounded-full bg-rosa-1 dark:bg-preto2 border-2 border-rosa-3 dark:border-preto3 flex items-center justify-center shrink-0 shadow-sm text-lg"><?= renderIconeMenu('patinha.svg', '', 'h-7 w-7 text-primary dark:text-white') ?></div>
                             <?php endif; ?>
-                            <div>
+                            <div class="min-w-0 flex-1">
                                 <h3 class="text-base sm:text-lg font-bold text-text-dark leading-snug"><?= htmlspecialchars($solic['animal_nome']) ?></h3>
                                 <p class="text-xs sm:text-sm text-text-muted mt-0.5">
                                     Interessado: <strong class="text-text-dark"><?= htmlspecialchars($solic['adotante_nome']) ?></strong> •
@@ -76,10 +78,15 @@ $statusLabels = [
                             </div>
                         </div>
 
+                        <div class="flex shrink-0 flex-col items-end gap-3">
+                        <?php if (isset($encontrosCaoNectou[(int) $solic['solicitacao_id']])): ?>
+                        <button type="button" data-caonectou-id="<?= (int) $solic['solicitacao_id'] ?>" class="btn-ver-caonectou min-h-11 rounded-full bg-rosa-1 px-4 py-2 text-sm font-bold text-text-dark dark:bg-primary dark:text-white">CãoNectou!</button>
+                        <?php endif; ?>
                         <a href="<?= $urlBase ?>/solicitacoes/detalhes?id=<?= (int) $solic['solicitacao_id'] ?>"
                            class="self-end sm:self-center text-xs sm:text-sm font-bold text-primary dark:text-roxinhoFofo underline hover:text-accent transition">
                             Clique para detalhes
                         </a>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -87,4 +94,5 @@ $statusLabels = [
     </div>
 </div>
 
+<?php require __DIR__ . '/../templates/modal_caonectou.php'; ?>
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
