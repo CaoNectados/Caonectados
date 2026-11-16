@@ -500,5 +500,5 @@
 <style>
     :where(.modal-centralizada, dialog) :where(h1, h2, h3, h4, p, dd, dt, span, label, a, button) { overflow-wrap: anywhere; min-width: 0; }
     .modal-centralizada { inset: 0; width: 100%; height: 100dvh; margin: 0; box-sizing: border-box; align-items: center; justify-content: center; }
-    .modal-centralizada > :not(script):not(style) { max-height: calc(100dvh - 2rem); overflow-y: auto; }
+    .modal-centralizada > :not(script):not(style) { min-width: 0; }
 </style>
